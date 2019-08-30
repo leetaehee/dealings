@@ -1,7 +1,7 @@
-<?php if(isset($_SESSION['is_admin']) && $_SESSION['is_admin']=='N'): ?>
+<?php if($isSessionPass==true): ?>
 	<p>
 		회원 탈퇴를 하시면 계정을 복구할 수 없습니다. 진행을 하시면 아래 버튼을 클릭하세요.<br>
-		<a href="<?=$member_del_url?>?mode=del&idx=<?=$_SESSION['idx']?>">
+		<a href="<?=$memberDelUrl?>?mode=del&idx=<?=$_SESSION['idx']?>">
 			회원탈퇴하러가기
 		</a>
 	</p>

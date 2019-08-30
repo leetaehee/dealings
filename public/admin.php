@@ -4,27 +4,40 @@
 	 *	@brief: 관리자페이지 
 	 */
 
-	include __DIR__.'/../configs/config.php'; // 환경설정
-	include __DIR__.'/../messages/message.php'; // 메세지
-	include __DIR__.'/../includes/session_check.php'; // 현재 세션체크
+	// 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	// 메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	// 공용함수
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	// 현재 세션체크
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
+	// PDO 객체 생성
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/databaseConnection.php';
 
 	try {
-        include __DIR__.'/../includes/databaseConnection.php'; // PDO 객체 생성
-		$title = TITLE_ADMIN_MENU.' | '.TITLE_SITE_NAME; // 템플릿에서 <title>에 보여줄 메세지 설정
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_ADMIN_MENU. ' | ' . TITLE_SITE_NAME;
 
-		$action_url = SITE_DOMAIN.'/admin.php'; // form 전송시 전달되는 URL.
-
+		// form 전송시 전달되는 URL.
+		$actionUrl = SITE_DOMAIN. '/admin.php';
+		
+		//이름이 암호화 되어있어서 검색기능은 사용하지 않음
 		$search_name = '';
-		if(isset($_POST['search_name'])){
+		/*
+		if (isset($_POST['search_name'])) {
 			$search_name = $_POST['search_name'];
 		}
-
+		*/
+		
+		$result = 0; // 쿼리 실행결과
 		$search = '';
-		if($_SESSION['is_superadmin']=='N'){
-			$search = ' AND `im`.`is_superadmin` = :is_superadmin';
+        
+		if ($_SESSION['admin_grade'] == 1) {
+			$search = ' AND `img2`.`grade_code` = :grade_code';
 		}
 
-		if(!empty($search_name)){
+		if (!empty($search_name)) {
 			$search .= ' AND `im`.`name` = :name';
 		}
 
@@ -40,12 +53,15 @@
 						 `im`.`join_approval_date`,
 						 `im`.`withdraw_date`,
 						 `im`.`is_forcedEviction` `fe`,
-						 `im`.`is_admin` `adm`,
-						 `img`.`grade_name`,
-						 case when `im`.`sex` = :sex then "남" else "여" end sex_name 
+						 `img`.`grade_name` `nm_grade_name`,
+						 `img2`.`grade_name`,
+						 case when `im`.`admin_grade` = "1" then "Y" else "N" end adm,
+						 case when `im`.`sex` = :sex then "남" else "여" end sex_name
 					FROM `imi_members` `im`
-						INNER JOIN `imi_member_grades` `img`
+						LEFT JOIN `imi_member_grades` `img`
 							ON `im`.`grade_code` = `img`.`grade_code`
+						LEFT JOIN `imi_member_grades` `img2`
+							ON `im`.`admin_grade` = `img2`.`grade_code`
 					WHERE 1=1
 				';
 
@@ -54,34 +70,49 @@
 
 		// 회원정보조회 SQL.
 		$stmt = $pdo->prepare($query);
-
-		$stmt->bindValue(':sex','M');
-	
-		if($_SESSION['is_superadmin']=='N'){
-			$stmt->bindValue(':is_superadmin','N');
-		}
-		if(!empty($search_name)){
-			$stmt->bindValue(':name',$search_name);
-		}
-		$stmt->execute();  // 실행
-		$members = $stmt->fetchAll(); // 회원데이터 
 		
-		// 설정값에 따라 향후 액션을 지정함.
-		$choiceArray = ['Y'=>['value'=>'N','text'=>'설정해제'],
-						'N'=>['value'=>'Y','text'=>'설정하기']];
+		$stmt->bindValue(':sex', 'M');
 
-		$setting_manager_url = $setting_forcedEviction_url = MEMBER_PROCESS_ACTION.'/member_process.php';
+		if ($_SESSION['admin_grade'] == 1) {
+			$stmt->bindValue(':grade_code', 1);
+		}
+
+		if (!empty($search_name)) {
+			$stmt->bindValue(':name', $search_name);
+		}
+		$result = $stmt->execute();  // 실행
+		
+		if ($result > 0) {
+			$members = $stmt->fetchAll(); // 회원데이터 
+		}
+		
+		// 설정값에 따라 액션을 지정함.
+		$choiceArray = [
+				'Y'=>[
+					'value'=>'N',
+					'integer'=>0,
+					'text'=>'설정해제'
+				],
+				'N'=>[
+					'value'=>'Y',
+					'integer'=>1,
+					'text'=>'설정하기'
+				]
+			];
+
+		$settingManagerUrl = MEMBER_PROCESS_ACTION.'/admin_process.php';
+		$settingForcedEvictionUrl = MEMBER_PROCESS_ACTION.'/admin_process.php';
 		
 		// 관리자설정 action URL	
-		$setting_manager_url .= '?mode=setting_manager';
+		$settingManagerUrl .= '?mode=setting_manager';
 		// 강제탈퇴 action URL
-		$setting_forcedEviction_url .= '?mode=setting_forcedEviction';
+		$settingForcedEvictionUrl .= '?mode=setting_forcedEviction';
 
 		ob_Start();
-		include __DIR__.'/../templates/admin.html.php'; // 템플릿
+		include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin.html.php'; // 템플릿
 		$output = ob_get_clean();
-	}catch(Exception $e) {
+	} catch(Exception $e) {
 		$output = DB_CONNECTION_ERROR_MESSAGE.$e->getMessage().', 위치: '.$e->getFile().':'.$e->getLine();
 	}
 
-	include __DIR__ .'/../templates/layout.html.php'; // 전체 레이아웃
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout.html.php'; // 전체 레이아웃

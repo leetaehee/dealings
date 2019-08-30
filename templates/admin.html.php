@@ -1,10 +1,12 @@
-<form id="admin-list" method="post" action="<?=$action_url?>">
+<!--
+<form id="admin-list" method="post" action="<?=actionUrl?>">
 	<label for="search-name">이름</label>
 	<input type="text" id="search-name" name="search_name" value="<?=$search_name;?>">
 	<input type="submit" value="검색">
 </form>
+-->
 
-<table class="table">
+<table class="table admin-table-width">
 	<colgroup>
 		<col style="width: 5%;">
 		<col style="width: 13%;">
@@ -36,11 +38,20 @@
 			<?php foreach($members as $index => $mb): ?>
 				<tr>
 					<td><?=$index+1?></td>
-					<td><?=$mb['name']?><br>(<?=$mb['id']?>)</td>
-					<td><?=$mb['birth']?></td>
+					<td><?=setDecrypt($mb['name'])?><br>(<?=$mb['id']?>)</td>
+					<td><?=setDecrypt($mb['birth'])?></td>
 					<td><?=$mb['sex_name']?></td>
-					<td><?=$mb['grade_name']?></td>
-					<td><?=$mb['phone']?><br>(<?=$mb['email']?>)</td>
+					<td>
+						<?php if(!empty($mb['grade_name'])): ?>
+							<?=$mb['grade_name']?>
+						<?php else: ?>
+							<?=$mb['nm_grade_name']?>
+						<?php endif;?>
+					</td>
+					<td>
+						<?=setDecrypt($mb['phone'])?><br>
+						(<?=setDecrypt($mb['email'])?>)
+					</td>
 					<td>
 						<?=$mb['join_date']?>
 						<?php if(!empty($mb['join_approval_date'])):?>
@@ -53,23 +64,23 @@
 						<?php endif; ?>
 					</td>
 					<td>
-						<?php if($_SESSION['is_superadmin']=='Y'): ?>
+						<?php if($_SESSION['admin_grade']==2): ?>
 							<?php if($_SESSION['id']!=$mb['id']): ?>
-								<a href="<?=$setting_manager_url?>&value=<?=$choiceArray[$mb['adm']]['value']?>&idx=<?=$mb['idx']?>">
+								<a href="<?=$settingManagerUrl?>&value=<?=$choiceArray[$mb['adm']]['integer']?>&idx=<?=$mb['idx']?>">
 									<?=$choiceArray[$mb['adm']]['text']?>
 								</a>
-							<?php endif;?>
+							<?php endif; ?>
 						<?php else: ?>
 							권한없음
 						<?php endif; ?>
 					</td>
 					<td>
-						<?php if($_SESSION['is_superadmin']=='Y'): ?>
+						<?php if($_SESSION['admin_grade']==2): ?>
 							<?php if($_SESSION['id']!=$mb['id']): ?>
-								<a href="<?=$setting_forcedEviction_url?>&value=<?=$choiceArray[$mb['fe']]['value']?>&idx=<?=$mb['idx']?>">
+								<a href="<?=$settingForcedEvictionUrl?>&value=<?=$choiceArray[$mb['fe']]['value']?>&idx=<?=$mb['idx']?>">
 									<?=$choiceArray[$mb['fe']]['text']?>
 								</a>
-							<?php endif;?>
+							<?php endif; ?>
 						<?php else: ?>
 							권한없음
 						<?php endif; ?>

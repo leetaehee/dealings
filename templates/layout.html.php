@@ -9,10 +9,17 @@
 			}
 
 			.table {
-				width: 1090px;
 				font-size: 4pt;
 				border: 1px solid #444444;
 				border-collapse: collapse;
+			}
+
+			.admin-table-width {
+				width: 1090px;
+			}
+			
+			.mileage-table-width {
+				width: 620px;
 			}
 
 			.table th, .table td {
@@ -50,7 +57,10 @@
 						<a href="<?=SITE_DOMAIN?>/join.php">회원가입</a>
 					</li>
 				<?php endif; ?>
-				<?php if(isset($_SESSION['is_admin']) && $_SESSION['is_admin']=='Y'): ?>
+				<?php if(isset($_SESSION['admin_grade']) && $_SESSION['admin_grade'] > 0): ?>
+					<li>
+						<a href="<?=SITE_DOMAIN?>/mileage.php">마일리지 관리</a>
+					</li>
 					<li>
 						<a href="<?=SITE_DOMAIN?>/admin.php">관리자페이지</a>
 					</li>

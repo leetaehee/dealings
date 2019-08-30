@@ -3,25 +3,40 @@
 	 *  @author: LeeTaeHee
 	 *	@brief: 마이페이지
 	 */
-
-	include __DIR__.'/../configs/config.php'; // 환경설정
-	include __DIR__.'/../messages/message.php'; // 메세지
-	include __DIR__.'/../includes/session_check.php'; // 현재 세션체크
+	
+	// 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	// 메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	// 공통함수
+	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	// 현재 세션체크
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
+	// PDO 객체 생성
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/databaseConnection.php';
 
 	try {
-        include __DIR__.'/../includes/databaseConnection.php'; // PDO 객체 생성
-		$title = TITLE_MYPAGE_MENU.' | '.TITLE_SITE_NAME; // 템플릿에서 <title>에 보여줄 메세지 설정
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_MYPAGE_MENU . ' | ' . TITLE_SITE_NAME;
 
-		$action_url = ''; // form 전송시 전달되는 URL.
-		$action_mode = ''; 
+		$actionUrl = $actionMode = '';  // form 전송시 전달되는 URL.
 
-		$member_del_url = MEMBER_PROCESS_ACTION.'/member_process.php'; // 회원탈퇴 링크
+		// 회원탈퇴 링크
+		$memberDelUrl = MEMBER_PROCESS_ACTION . '/memberDel_process.php';
 
 		ob_Start();
-		include __DIR__.'/../templates/mypage.html.php'; // 템플릿
+
+		// 일반회원인지 체크 	
+		$isSessionPass = false;
+		if (isset($_SESSION['member_type']) && $_SESSION['admin_type']!='admin'){
+            $isSessionPass = true; 
+		}
+
+		// 템플릿
+		include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/mypage.html.php';
 		$output = ob_get_clean();
 	}catch(Exception $e) {
-		$output = DB_CONNECTION_ERROR_MESSAGE.$e->getMessage().', 위치: '.$e->getFile().':'.$e->getLine();
+		$output = DB_CONNECTION_ERROR_MESSAGE . $e->getMessage() . ', 위치: ' . $e->getFile() . ':' . $e->getLine();
 	}
 
-	include __DIR__ .'/../templates/layout.html.php'; // 전체 레이아웃
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout.html.php'; // 전체 레이아웃

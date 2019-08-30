@@ -28,7 +28,7 @@ function mailer($fname, $fmail, $to, $subject, $content, $type=0, $file="", $cc=
     $mail = new PHPMailer(); // defaults to using php "mail()"
 	
 	$mail->IsSMTP(); 
-	$mail->SMTPDebug = 2; 
+	//$mail->SMTPDebug = 2; 
 	$mail->SMTPSecure = "ssl";
 	//$mail->Encoding = 'base64';
 

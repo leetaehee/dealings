@@ -10,66 +10,84 @@
 		6. 확인해야 하는 정보- 강제탈퇴유무, 메일 승인여부, 탈퇴유무
 	 */
 
-	 $top_dir = '/../../..';
+	 // 환경설정
+	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	 // 공통함수
+	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	 // PDO 객체 생성
+	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/databaseConnection.php';
 
-	 include __DIR__.$top_dir.'/configs/config.php'; // 환경설정
-	 include __DIR__.$top_dir.'/includes/function.php'; // 공통함수
+	 try {
+		 $returnUrl = ''; // 리턴되는 화면 URL 초기화.
+		 $result = false;
+		 $mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
 
-	 $return_url = ''; // 리턴되는 화면 URL 초기화.
-	 $is_valid_falid = true; // 유효성 검증 실패시에 체크하는 변수
+		 if ($mode == 'login') {
+			 // 유효성 검증 및 로그인실패시 이동 링크
+			 $returnUrl = SITE_DOMAIN.'/login.php'; 
+			 $postData = [
+				'mode'=>$mode,
+				'id'=>isset($_POST['id']) ? $_POST['id'] : '',
+				'password'=>isset($_POST['password']) ? $_POST['password'] : ''
+			 ];
 
-	 if($_POST['mode']=='login'){
-		 // 유효성검증 실패시, 리턴 UTL
-		 $return_url = SITE_DOMAIN.'/login.php';
+			 // 로그인 유효성 검증
+			 if (checkMemberFormValidate($_POST) == true) {
+				 $query = 'SELECT `imi`.`id`,
+								  `imi`.`idx`,
+								  `imi`.`password`,
+								  `imi`.`name`,
+								  `imi`.`grade_code`,
+								  `imi`.`is_forcedEviction`,
+								  `imi`.`forcedEviction_date`,
+								  `imi`.`join_approval_date`,
+								  `imi`.`withdraw_date`,
+								  `imi`.`admin_grade`,
+								  `img`.`grade_code`,
+								  `img`.`grade_name`,
+								  `img`.`member_type`,
+								  `img2`.`member_type` `admin_type`,
+								  `img2`.`grade_name` `admin_grade_name`
+							FROM `imi_members` `imi`
+								LEFT JOIN `imi_member_grades` `img`
+									ON `imi`.`grade_code` = `img`.`grade_code`
+									AND `img`.`member_type` = :member_type
+								LEFT JOIN `imi_member_grades` `img2`
+									ON `imi`.`admin_grade` = `img2`.`grade_code`
+									AND `img2`.`member_type` = :admin_type
+							WHERE `imi`.`id` = :id
+							AND `imi`.`join_approval_date` IS NOT NULL
+							AND `imi`.`withdraw_date` IS NULL
+							AND `imi`.`is_forcedEviction` = "N"
+						';
 
-		 // 로그인 유효성 검증
-		 if(check_memberForm_validate($_POST)==false){
-			$is_valid_falid = false;
+				 $stmt = $pdo->prepare($query);
+				 $stmt->bindValue(':member_type', 'member');
+				 $stmt->bindValue(':admin_type', 'admin');
+				 $stmt->bindValue(':id', $_POST['id']);
+				 
+				 $result = $stmt->execute();
+				 
+				 if ($result == true) {
+					 $account = $stmt->fetch();
+					 
+					 if (password_verify($postData['password'], $account['password'])) {
+						 $_SESSION['idx'] = $account['idx'];
+						 $_SESSION['id'] = $account['id'];
+						 $_SESSION['name'] = setDecrypt($account['name']);
+						 $_SESSION['grade_code'] = $account['grade_code'];
+						 $_SESSION['admin_grade'] = $account['admin_grade'];
+						 $_SESSION['member_type'] = $account['member_type'];
+						 $_SESSION['admin_grade_name'] = $account['admin_grade_name'];
+						 $_SESSION['admin_type'] = $account['admin_type'];
+
+						 $returnUrl = SITE_DOMAIN.'/index.php'; // 로그인 성공 시 이동 링크
+					 }
+				 }
+			 }
+			 alertMsg($returnUrl);
 		 }
-		 
-		 try {
-			 include __DIR__.$top_dir.'/includes/databaseConnection.php'; // PDO 객체 생성
-
-			 // DB에서 항목가져오기
-			 $stmt = $pdo->prepare('
-							SELECT `id`,
-								   `idx`,
-								   `password`,
-								   `name`,
-								   `grade_code`,
-								   `is_admin`,
-								   `is_superadmin`,
-								   `is_forcedEviction`,
-								   `forcedEviction_date`,
-								   `join_approval_date`
-								   `withdraw_date`
-							FROM `imi_members` 
-							WHERE `id` = :id
-							AND `join_approval_date` IS NOT NULL
-							AND `withdraw_date` IS NULL
-							AND `is_forcedEviction` = "N"
-						');
-			 $stmt->bindValue(':id',$_POST['id']);
-			 $stmt->execute();
-			 $account = $stmt->fetch();
-		 } catch (Exception $e){
-			$output = DB_CONNECTION_ERROR_MESSAGE.$e->getMessage().', 위치: '.$e->getFile().':'.$e->getLine();
-			echo $output;
-		 }
-
-		 // 검증  
-		 if(password_verify($_POST['password'],$account['password']) && $is_valid_falid==true){
-			 // 세션처리 후 index.php로 이동 
-			 $_SESSION['idx'] = $account['idx'];
-			 $_SESSION['id'] = $account['id'];
-			 $_SESSION['name'] = $account['name'];
-			 $_SESSION['group_code'] = $account['grade_code'];
-			 $_SESSION['is_admin'] = $account['is_admin'];
-			 $_SESSION['is_superadmin'] = $account['is_superadmin'];
-			 
-			 header('location: '.SITE_DOMAIN);
-		 }else{
-			 // 실패시 로그인 페이지로 리턴 
-			 header('location: '.$return_url);
-		 }
+	 } catch (Exception $e) {
+		$output = DB_CONNECTION_ERROR_MESSAGE.$e->getMessage().', 위치: '.$e->getFile().':'.$e->getLine();
+		echo $output;
 	 }
