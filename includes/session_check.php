@@ -10,6 +10,6 @@
 			unset($_SESSION['tmp_idx']);
 		}else{
 			$returnUrl = SITE_DOMAIN;
-			alertMsg($returnUrl);
+			alertMsg($returnUrl,1,'로그인을 해야 이용 가능합니다!');
 		}
 	}

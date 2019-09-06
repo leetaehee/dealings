@@ -41,20 +41,10 @@
 								  `imi`.`is_forcedEviction`,
 								  `imi`.`forcedEviction_date`,
 								  `imi`.`join_approval_date`,
-								  `imi`.`withdraw_date`,
-								  `imi`.`admin_grade`,
-								  `img`.`grade_code`,
-								  `img`.`grade_name`,
-								  `img`.`member_type`,
-								  `img2`.`member_type` `admin_type`,
-								  `img2`.`grade_name` `admin_grade_name`
+								  `imi`.`withdraw_date`
 							FROM `imi_members` `imi`
-								LEFT JOIN `imi_member_grades` `img`
+								INNER JOIN `imi_member_grades` `img`
 									ON `imi`.`grade_code` = `img`.`grade_code`
-									AND `img`.`member_type` = :member_type
-								LEFT JOIN `imi_member_grades` `img2`
-									ON `imi`.`admin_grade` = `img2`.`grade_code`
-									AND `img2`.`member_type` = :admin_type
 							WHERE `imi`.`id` = :id
 							AND `imi`.`join_approval_date` IS NOT NULL
 							AND `imi`.`withdraw_date` IS NULL
@@ -62,8 +52,6 @@
 						';
 
 				 $stmt = $pdo->prepare($query);
-				 $stmt->bindValue(':member_type', 'member');
-				 $stmt->bindValue(':admin_type', 'admin');
 				 $stmt->bindValue(':id', $_POST['id']);
 				 
 				 $result = $stmt->execute();
@@ -76,10 +64,6 @@
 						 $_SESSION['id'] = $account['id'];
 						 $_SESSION['name'] = setDecrypt($account['name']);
 						 $_SESSION['grade_code'] = $account['grade_code'];
-						 $_SESSION['admin_grade'] = $account['admin_grade'];
-						 $_SESSION['member_type'] = $account['member_type'];
-						 $_SESSION['admin_grade_name'] = $account['admin_grade_name'];
-						 $_SESSION['admin_type'] = $account['admin_type'];
 
 						 $returnUrl = SITE_DOMAIN.'/index.php'; // 로그인 성공 시 이동 링크
 					 }

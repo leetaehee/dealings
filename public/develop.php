@@ -16,12 +16,12 @@
 	//43255821107256(14)
 	//23911431181092(14)
 	//13470179379291(14)
-	//echo setEncrypt('134701793792917');
+	//echo setEncrypt('1989-11-17');
 
-	echo strlen('f1FdY3G8ZwDH2bWgX19hAw==');
+	//echo strlen('4t7H8fL4rM4AJ7RoN6fQjg==');
 
 	//복호화
-	//echo setDecrypt('rTIaEVLQRc8JRhG/9Qi+4Q==');
+	//echo '<br>'.setDecrypt('NeNNT3s+gJleebHKtQpSZVVRz2JMLJX0I7jIMAHZBEA=');
 
 	// 날짜계산
 	$date = date('2019-06-20');

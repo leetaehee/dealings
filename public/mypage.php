@@ -12,31 +12,32 @@
 	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	// 현재 세션체크
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
-	// PDO 객체 생성
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/databaseConnection.php';
+    
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
 
-	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
-		$title = TITLE_MYPAGE_MENU . ' | ' . TITLE_SITE_NAME;
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
 
-		$actionUrl = $actionMode = '';  // form 전송시 전달되는 URL.
+	// 템플릿에서 <title>에 보여줄 메세지 설정
+	$title = TITLE_MYPAGE_MENU . ' | ' . TITLE_SITE_NAME;
+    $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
 
-		// 회원탈퇴 링크
-		$memberDelUrl = MEMBER_PROCESS_ACTION . '/memberDel_process.php';
+    $memberClass = new MemberClass($db);
+    $idx = $_SESSION['idx'];
 
-		ob_Start();
+    $myInfomation = $memberClass->getMyInfomation($idx);
 
-		// 일반회원인지 체크 	
-		$isSessionPass = false;
-		if (isset($_SESSION['member_type']) && $_SESSION['admin_type']!='admin'){
-            $isSessionPass = true; 
-		}
+    if ($myInfomation==false) {
+        alertMsg($returnUrl,1,'오류입니다! 관리자에게 문의하세요.');
+    }
 
-		// 템플릿
-		include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/mypage.html.php';
-		$output = ob_get_clean();
-	}catch(Exception $e) {
-		$output = DB_CONNECTION_ERROR_MESSAGE . $e->getMessage() . ', 위치: ' . $e->getFile() . ':' . $e->getLine();
-	}
+    $memberDeleteUrl = SITE_DOMAIN . '/member_delete.php?idx=' . $idx; // 회원탈퇴 
+    $memberModifyUrl = SITE_DOMAIN . '/member_modify.php?idx=' . $idx; // 회원수정 
+	$myAccountSetUrl = SITE_DOMAIN . '/my_account.php?idx=' . $idx; // 계좌설정
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout.html.php'; // 전체 레이아웃
+	ob_Start();
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/mypage.html.php';
+	$output = ob_get_clean();
+
+
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

@@ -8,118 +8,170 @@
 		4. 회원 탈퇴는 관리자는 할 수 없으며, 슈퍼관리자에게 권한해제를 요청해야 함.
 	 */
 
-	// 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
-	// 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
-	// 공통함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	// PHP메일보내기
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php';
-	// PDO 객체 생성
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/databaseConnection.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
 
-	try {
-		$returnUrl = ''; // 리턴되는 화면 URL 초기화.
-		$isValid = true;
-		$result = false;
-		$insertResult = 0;
-		$mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php'; // PHP메일보내기
 
-		if ($mode == 'add') {
-			// 유효성검증 실패시, 리턴 UTL
-			$returnUrl = SITE_DOMAIN.'/join.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
 
-			$postData = [
-					'mode'=>$mode,
-					'id'=>isset($_POST['id']) ? $_POST['id'] : '',
-					'password'=>isset($_POST['password']) ? $_POST['password'] : '',
-					'repassword'=>isset($_POST['repassword']) ? $_POST['repassword'] : '',
-					'name'=>isset($_POST['name']) ? $_POST['name'] : '',
-					'email'=>isset($_POST['email']) ? $_POST['email'] : '',
-					'phone'=>isset($_POST['phone']) ? $_POST['phone'] : '',
-					'birth'=>isset($_POST['birth']) ? $_POST['birth'] : '',
-					'sex'=>isset($_POST['sex']) ? $_POST['sex'] : '',
-					'account_no'=>isset($_POST['account_no']) ? $_POST['account_no'] : '',
-					'account_bank'=>isset($_POST['account_bank']) ? $_POST['account_bank'] : ''
-				];
+    // Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
 
-			// 핸드폰번호에 하이픈을 제거한다
-			$phone = $postData['phone'];
+	$returnUrl = ''; // 리턴되는 화면 URL 초기화.
+	$isValid = true;
+	$mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
 
-			if (!empty(strstr($phone, '-'))) {
-				$phone = str_replace('-', '' , $phone);
+	if ($mode == 'add') {
+		$memberClass = new MemberClass($db);
+
+		// 폼 데이터 받아서 유효성 검증
+		$returnUrl = SITE_DOMAIN.'/join.php'; // 유효성검증 실패시, 리턴 UTL
+
+		$postData = $_POST;
+		$resultMemberValidCheck = $memberClass->checkMemberFormValidate($postData);
+
+		if ($resultMemberValidCheck['isValid'] == false) {
+			alertMsg($returnUrl, 1, $resultMemberValidCheck['errorMessage']);
+		} else {
+			if ($memberClass->getIdOverlapCount($postData['id']) > 0) {
+				alertMsg($returnUrl, 1, '아이디가 중복됩니다.');
 			}
-			
-			if (checkMemberFormValidate($postData) == false) {
-				$isValid = false; // 유효성검증
-			} else {
-				if (getIsCheckAccountOverlap($pdo, $postData) == false) {
-					$isValid = false; // 계정 중복체크 (아이디,이메일,핸드폰)
-				}
+			if ($memberClass->getPhoneOverlapCount($postData['phone']) > 0) {
+				alertMsg($returnUrl, 1, '핸드폰번호가 중복됩니다.');
 			}
-
-			if ($isValid == false) { 
-				alertMsg($returnUrl);
-			}	
-
-			if ($isValid == true) {
-				// 회원가입 화면 URL 지정(가입완료화면)
-				$returnUrl = SITE_DOMAIN.'/join_complete.php';
-				// 비밀번호 암호화(단방향)
-				$encryptedPassword = password_hash($postData['password'], PASSWORD_DEFAULT); 
-				// 등급 가져오기(2019.08.29 사용안함) 
-				//$gradeCode = getLowGrade($pdo);
-
-				// Insert SQL
-				$query = 'INSERT INTO `imi_members` SET
-								`id` = :id,
-								`grade_code` = :grade_code,
-								`admin_grade` = :admin_grade,
-								`password` = :password,
-								`email` = :email,
-								`name` = :name,
-								`phone` = :phone,
-								`sex` = :sex,
-								`birth` = :birth,
-								`account_no` = :account_no,
-								`account_bank` = :account_bank,
-								`join_date` = CURDATE()';
-				$stmt = $pdo->prepare($query);
-				$stmt->bindValue(':id', $postData['id']);
-				$stmt->bindValue(':grade_code', 3);
-				$stmt->bindValue(':admin_grade', 0);
-				$stmt->bindValue(':password', $encryptedPassword);
-				$stmt->bindValue(':email', setEncrypt($postData['email']));
-				$stmt->bindValue(':name', setEncrypt($postData['name']));
-				$stmt->bindValue(':phone', setEncrypt($phone));
-				$stmt->bindValue(':sex', $postData['sex']);
-				$stmt->bindValue(':birth', setEncrypt($postData['birth']));
-				$stmt->bindValue(':account_no', setEncrypt($postData['account_no']));
-				$stmt->bindValue(':account_bank', $postData['account_bank']);
-				
-				// 트랜잭션 추가.
-				$pdo->beginTransaction();
-				$result = $stmt->execute(); // 회원정보 추가
-				$idx = $pdo->lastInsertId(); // primary key 구하기
-				$pdo->commit();
-
-				if ($result == true) {
-					// 회원 가입 화면을 보여주기 위한 Session 변수 만들기
-					$_SESSION['tmp_idx'] = 't_'.$idx;
-
-					// 승인링크 추가
-					$approvalUrl = SITE_DOMAIN.'/join_approval.php?idx='.$idx;
-					$content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
-
-					//메일발송
-					mailer(MAIL_SENDER, MAIL_ADDRESS, $postData['email'], MAIL_TITLE, $content);
-				}
-				alertMsg($returnUrl);
+			if ($memberClass->getEmailOverlapCount($postData['email'])) {
+				alertMsg($returnUrl, 1, '이메일이 중복됩니다.');
 			}
 		}
-	} catch (Exception $e){
-		$pdo->rollback();
-		$output = DB_CONNECTION_ERROR_MESSAGE . $e->getMessage() . ', 위치: ' . $e->getFile() . ':' . $e->getLine();
-		echo $output;
+
+		if ($resultMemberValidCheck['isValid'] == true) {
+			$insertResult = $memberClass->insertMember($postData);
+
+			if ($insertResult > 0) {
+				$returnUrl = SITE_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
+
+				$_SESSION['tmp_idx'] = 't_'.$idx; // 임시세션
+
+				$approvalUrl = SITE_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
+				$content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
+
+				//메일발송
+				mailer(MAIL_SENDER, MAIL_ADDRESS, $postData['email'], MAIL_TITLE, $content);
+
+				alertMsg($returnUrl, 1, '회원가입이 완료되었습니다! 이메일을 확인하세요!');
+			} else {
+				alertMsg($returnUrl, 1, '회원가입이 실패하였습니다! 회원가입 페이지로 이동합니다.');
+			}
+		} 
+	} else if ($mode == 'modi') {
+		// 회원정보수정
+		$memberClass = new MemberClass($db);
+		$postData = $_POST; // 폼데이터
+
+		$returnUrl = SITE_DOMAIN.'/member_modify.php?idx='.$postData['idx']; // 유효성검증 실패시, 리턴 UTL
+
+		$resultMemberValidCheck = $memberClass->checkMemberFormValidate($postData);
+
+		if ($resultMemberValidCheck['isValid'] == false) {
+			alertMsg($returnUrl, 1, $resultMemberValidCheck['errorMessage']);
+		} else {
+			
+			if ($memberClass->getPhoneOverlapCount($postData['phone']) > 0 && $postData['isOverlapPhone']==1) {
+				alertMsg($returnUrl, 1, '핸드폰번호가 중복됩니다.');
+			}
+			if ($memberClass->getEmailOverlapCount($postData['email']) > 0  && $postData['isOverlapEmail']==1) {
+				alertMsg($returnUrl, 1, '이메일이 중복됩니다.');
+			}
+		}
+
+
+		if ($resultMemberValidCheck['isValid'] == true) {
+			// 트랜잭션시작
+			$db->beginTrans();
+
+			$updateResult = $memberClass->updateMember($postData);
+
+			if ($updateResult > 0) {
+				$returnUrl = SITE_DOMAIN.'/mypage.php'; // 수정 성공 시 마이페이지로 이동
+			}else{
+				$db->rollbackTrans();
+				alertMsg($returnUrl, 1, '회원정보 수정이 실패하였습니다! 관리자에게 문의하세요');
+			}
+
+			$db->commitTrans();
+
+			alertMsg($returnUrl, 1, '회원정보가 수정 되었습니다!');
+		}
+	} else if ($mode == 'del') {
+		// 회원탈퇴
+		$idx = isset($_GET['idx']) ? $_GET['idx'] : $_POST['idx'];
+        $password = isset($_GET['password']) ? $_GET['password'] : $_POST['password'];
+        
+        $returnUrl = SITE_DOMAIN.'/member_delete.php?idx='.$idx; // 유효성검증 실패시, 리턴 
+        
+        $memberClass = new MemberClass($db);
+        $loginClass = new LoginClass($db);
+        
+        $param = [$idx, $password];
+        
+        // 트랜잭션시작
+        $db->beginTrans();
+        
+        if ($loginClass->checkPasswordByUser($param)==false) {
+			$db->rollbackTrans();
+            alertMsg($returnUrl, 1, '비밀번호를 확인해주세요!');
+        }else{
+            $returnUrl = SITE_DOMAIN;
+        }
+        
+        $updateResult = $memberClass->deleteMember($idx);
+        
+        if ($updateResult < 1) {
+			$db->rollbackTrans();
+            alertMsg($returnUrl,1,'오류! 관리자에게 문의하세요!');
+        }
+        
+        $db->commitTrans();
+        
+        session_destroy();
+        alertMsg($returnUrl,1,'정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.');
+	} else if ($mode == 'account') {
+		$returnUrl = SITE_DOMAIN.'/my_account.php';
+		
+		$memberClass = new MemberClass($db);
+		$postData = $_POST;
+
+		$resultAccountValidCheck = $memberClass->checkAccountFormValidate($postData);
+
+		if ($resultAccountValidCheck['isValid'] == false) {
+			alertMsg($returnUrl, 1, $resultAccountValidCheck['errorMessage']);
+		} else {
+			$returnUrl = SITE_DOMAIN.'/mypage.php'; // 마이페이지로 이동
+
+			$param = [
+					'accountNo'=>setEncrypt($postData['account_no']),
+					'accountBank'=>$postData['account_bank'],
+					'idx'=>$postData['idx']
+				];
+
+			// 트랜잭션 시작
+			$db->beginTrans();
+
+			$updateResult = $memberClass->updateMyAccount($param);
+
+			if ($updateResult < 1) {
+				$db->rollbackTrans();
+
+				$returnUrl = SITE_DOMAIN;
+				alertMsg($returnUrl, 1, '계좌정보가 입력이 실패했습니다.');
+			}
+		
+			$db->commitTrans();
+
+			alertMsg($returnUrl, 1, '계좌정보가 설정되었습니다!');
+		}
 	}

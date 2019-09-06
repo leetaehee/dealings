@@ -18,17 +18,35 @@
 	define('TITLE_LOGIN_MENU', '로그인'); // 로그인 메뉴
 	define('TITLE_LOGOUT_MENU', '로그아웃'); // 로그아웃 메뉴
 	define('TITLE_JOIN_MENU', '회원가입'); // 회원가입 메뉴
+    define('TITLE_MODIFY_MENU', '회원정보수정'); // 회원정보수정
 	define('TITLE_JOIN_COMPLETE_MENU', '회원가입 완료'); // 회원가입 완료 후 보여지는 메뉴
 	define('TITLE_JOIN_APPROVAL', '회원가입 승인대기'); // 회원가입 승인대기화면 
 	define('TITLE_MYPAGE_MENU', '회원정보'); // 마이페이지 메뉴
-	define('TITLE_ADMIN_MENU', '관리자'); // 관리자 메뉴
-	define('TITLE_MILEAGES_MENU','마일리지 현황'); // 마일리지 현황 메뉴
-	define('TITLE_TRANSACTION_ERROR_PAGE', '트랜잭션 에러 발생!'); // 트랜잭션 에러페이지
+	define('TITLE_MILEAGES_MENU', '마일리지 현황'); // 마일리지 현황 메뉴
+	define('TITLE_SITE_MAIN', '메인화면'); // 메인화면(로그인 하고나서)
+    define('TITLE_MYPAGE_DEL_MENU', '회원탈퇴'); // 회원탈퇴
+	define('TITLE_LOGIN_LIST', '로그인내역'); // 로그인내역
+	define('TITLE_MY_ACCOUNT_SETTING', '출금계좌 내역'); // 출금계좌
+	define('TITLE_VIRTUAL_MILEGE_CHARGE', '가상계좌 충전'); // 가상계좌 충전
+	define('TITLE_CARD_MILEGE_CHARGE', '신용카드 충전'); // 신용카드 충전
+	define('TITLE_PHONE_MILEGE_CHARGE', '휴대전화 충전'); // 휴대전화 충전
+	define('TITLE_VOUCHER_MILEGE_CHARGE', '문화상품권 충전'); // 문화상품권 충전
+	define('TITLE_VIRTUAL_MILEGE_WITHDRAWAL', '가상계좌 출금'); // 마일리지 출금
+	define('TITLE_MY_CHARGE_LIST', '마일리지 충전내역'); // 마일리지 충전내역
+	define('TITLE_MY_WITHDRAWAL_LIST', '마일리지 출금내역'); // 마일리지 출금내역
+
+	define('TITLE_ADMIN_SITE_NAME', '관리자::IMI 회원정보 시스템'); // 관리자 사이트명
+	define('TITLE_ADMIN_MODIFY_MENU', '정보수정'); // 관리자 정보수정
+	define('TITLE_ADMIN_PAGE_DEL_MENU', '탈퇴'); // 회원탈퇴
+	define('TITLE_ADMIN_LOGIN_LIST', '내역'); // 관리자 로그인내역
+	define('TITLE_ADMIN_MENU', '정보'); // 관리자 정보 메뉴
+	define('TITLE_ADMIN_MEMBER_STATUS', '회원관리'); // 회원현황
 
 	/*
 	 * @author: LeeTaeHee
 	 * @brief: 회원가입시 사용자에게 보여지는 안내 메세지 
 	 */
+
 	 define('JOIN_FORM_EMAIL_CAUTION_WRITE', '(imi@imi.com과 같이 입력해주세요.)');
 	 define('JOIN_FORM_PHONE_CAUTION_WRITE', '(휴대번호에는 하이픈(\'-\')을 넣을 수없습니다.)');	
 	 define('JOIN_FORM_BIRTH_CAUTION_WRITE', '(1989-11-17와 같이 입력해주세요.)');

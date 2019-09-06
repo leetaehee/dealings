@@ -36,7 +36,7 @@
 						   `modify_date` = CURDATE()
 					   where `idx` = :idx';
 			$stmt = $pdo->prepare($query);
-			$stmt->bindValue(':idx',$idx);
+			$stmt-a>bindValue(':idx',$idx);
 
 			// 트랜잭션 추가 
 			$pdo->beginTransaction();
