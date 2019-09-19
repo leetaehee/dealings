@@ -16,161 +16,340 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php'; // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
 
-	$returnUrl = ''; // 리턴되는 화면 URL 초기화.
-	$isValid = true;
-	$mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
-	
-	/*
-	 * 마일리지 구분- 가상계좌(5), 문화상품권(3), 휴대전화(2), 신용카드(1)
-	 */
+    try {
+        $returnUrl = ''; // 리턴되는 화면 URL 초기화.
+        $alertMessage = '';
 
-	if ($mode == 'charge') {
-		/*
-		 * 가상계좌 충전
-		 */
-		$chargeDate = date('Y-m-d');
+        if (isset($_POST['mode'])) {
+            $mode = htmlspecialchars($_POST['mode']);
+        } else {
+            $mode = htmlspecialchars($_GET['mode']);
+        }
+        
+        /*
+         * 마일리지 구분- 가상계좌(5), 문화상품권(3), 휴대전화(2), 신용카드(1)
+         */
+        if ($mode == 'charge') {
+            /*
+             * 가상계좌 충전
+             */
+            $chargeDate = date('Y-m-d');
 
-		$postData = $_POST;
-		$mileageType = $postData['mileage_type'];
+            // injection, xss 방지코드
+            $_POST['mileage_type'] = htmlspecialchars($_POST['mileage_type']); 
+            $_POST['account_bank'] = htmlspecialchars($_POST['account_bank']);
+            $_POST['account_no'] = htmlspecialchars($_POST['account_no']);
+            $_POST['charge_cost'] = htmlspecialchars($_POST['charge_cost']);
+            $_POST['charge_name'] = htmlspecialchars($_POST['charge_name']);
+            $postData = $_POST;
+            
+            $mileageType = $postData['mileage_type'];
+            $idx = $_SESSION['idx'];
 
-		// 유효성 검사 실패시 마일리지 타입별 링크
-		if ($mileageType == 5) {
-			$returnUrl = SITE_DOMAIN.'/virtual_account_charge.php'; 
-		} else if ($mileageType == 1) {
-			$returnUrl = SITE_DOMAIN.'/card_charge.php'; 
-		} else if ($mileageType == 3) {
-			$returnUrl = SITE_DOMAIN.'/voucher_charge.php'; 
-		} else if ($mileageType == 2) {
-			$returnUrl = SITE_DOMAIN.'/phone_charge.php'; 
-		}
+            $mileageClass = new MileageClass($db);
+            $memberClass = new MemberClass($db);
+            $resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
 
-		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
-		$resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
+            // 유효성 검사 실패시 마일리지 타입별 링크
+            if ($mileageType == 5) {
+                $returnUrl = SITE_DOMAIN.'/virtual_account_charge.php'; 
+            } else if ($mileageType == 1) {
+                $returnUrl = SITE_DOMAIN.'/card_charge.php'; 
+            } else if ($mileageType == 3) {
+                $returnUrl = SITE_DOMAIN.'/voucher_charge.php'; 
+            } else if ($mileageType == 2) {
+                $returnUrl = SITE_DOMAIN.'/phone_charge.php'; 
+            }
 
-		if($resultMileageValidCheck['isValid']==false){
-			// 폼 데이터 받아서 유효성 검증
-			alertMsg($returnUrl, 1, $resultMileageValidCheck['errorMessage']);
-		}
+            if($resultMileageValidCheck['isValid'] === false) {
+                // 폼 데이터 받아서 유효성 검증
+                throw new Exception($resultMileageValidCheck['errorMessage']);
+            }
 
-		// 트랜잭션 처리 할것!
-		$db->beginTrans();
+            // 트랜잭션 처리 할것!
+            $db->beginTrans();
 
-		$expirationData = $mileageClass->getExpirationDay($mileageType); //유효기간 만료일 구하기
-		if ($expirationData == false) {
-			$db->rollbackTrans();
-			alertMsg($returnUrl, 1, '오류입니다! 관리자에게 문의하세요!');
-		} else {
-			$expirationDate = '';
-			if ($expirationData['period'] != 'none') {
-				// 유효기간 만료일자 지정
-				$period = "+".$expirationData['day'].' '.$expirationData['period'];
-				$expirationDate = date('Y-m-d',strtotime($period,strtotime($chargeDate)));
-			}
+            $expirationData = $mileageClass->getExpirationDay($mileageType); //유효기간 만료일 구하기
+            if ($expirationData === false) {
+                $alertMessage = '오류입니다! 관리자에게 문의하세요!';
+                throw new Exception('마일리지 만료정보 가져오는 중에 오류발생! 관리자에게 문의하세요!');
+            } else {
+                $expirationDate = '';
+                if ($expirationData['period'] != 'none') {
+                    // 유효기간 만료일자 지정
+                    $period = "+".$expirationData['day'].' '.$expirationData['period'];
+                    $expirationDate = date('Y-m-d',strtotime($period,strtotime($chargeDate)));
+                }
 
-			$chargeParam = [
-					'idx'=>$postData['idx'],
-					'account_bank'=>$postData['account_bank'],
-					'account_no'=>setEncrypt($postData['account_no']),
-					'charge_cost'=>$postData['charge_cost'],
-					'spare_cost'=>$postData['charge_cost'],
-					'charge_name'=>$postData['charge_name'],
-					'mileageType'=>$mileageType,
-					'chargeDate'=>$chargeDate,
-					'charge_status'=>3,
-				];
-			
-			if(!empty($expirationDate)){
-				$chargeParam['expirationDate'] = $expirationDate;
-			}
-			
-			$insertChargeResult = $mileageClass->insertMileageCharge($chargeParam); // 충전정보 추가
+                $chargeParam = [
+                        'idx'=>$idx,
+                        'account_bank'=>$postData['account_bank'],
+                        'account_no'=>setEncrypt($postData['account_no']),
+                        'charge_cost'=>$postData['charge_cost'],
+                        'spare_cost'=>$postData['charge_cost'],
+                        'charge_name'=>$postData['charge_name'],
+                        'mileageType'=>$mileageType,
+                        'chargeDate'=>$chargeDate,
+                        'charge_status'=>3,
+                    ];
 
-			if($insertChargeResult < 1){
-				$db->rollbackTrans();
-				alertMsg($returnUrl, 1, '`imi_mileage_charge ` 테이블 오류! 관리자에게 문의하세요!');
-			}
+                if (!empty($expirationDate)) {
+                    $chargeParam['expirationDate'] = $expirationDate;
+                }
 
-			$mileageParam = [
-					'charge_cost'=>$postData['charge_cost'],
-					'idx'=>$postData['idx']
-				];
+                $insertChargeResult = $mileageClass->insertMileageCharge($chargeParam); // 충전정보 추가
+                if ($insertChargeResult < 1) {
+                    throw new Exception('마일리지 충전 중 오류 발생! 관리자에게 문의하세요.');
+                }
 
-			$updateResult = $memberClass->updateMileageCharge($mileageParam); // 마일리지변경
+                $mileageParam = [
+                    'charge_cost'=>$postData['charge_cost'],
+                    'idx'=>$idx
+                ];
 
-			if ($updateResult < 1) {
-				$db->rollbackTrans();
-				alertMsg($returnUrl, 1, '`imi_members` 테이블 오류! 관리자에게 문의하세요!');
-			}
+                $updateResult = $memberClass->updateMileageCharge($mileageParam); // 마일리지변경
+                if ($updateResult < 1) {
+                    throw new Exception('마일리지 충전 변경 중에 오류 발생! 관리자에게 문의하세요!');
+                }
 
-			$returnUrl = SITE_DOMAIN.'/mypage.php';
+                $memberMileageType = $mileageClass->getMemberMileageTypeIdx($idx);
 
-			$db->commitTrans();
+                if ($memberMileageType == false) {
+                    $mileageTypeParam = [
+                        $idx, 
+                        $postData['charge_cost']
+                    ];
+                    $mileageTypeInsert = $mileageClass->mileageTypeInsert($mileageType, $mileageTypeParam);
+                    if ($mileageTypeInsert < 1) {
+                        throw new Exception('마일리지 유형별 합계 삽입 중 오류 발생! 관리자에게 문의하세요!');
+                    }
+                } else {
+                    $mileageTypeParam = [
+                        $postData['charge_cost'],
+                        $idx
+                    ];
+                    $mileageTypeUpdate = $mileageClass->mileageTypeChargeUpdate($mileageType, $mileageTypeParam);
+                    if ($mileageTypeUpdate < 1) {
+                        throw new Exception('마일리지 유형별 합계 변동 중 오류 발생 관리자에게 문의하세요!');
+                    }
+                }
 
-			alertMsg($returnUrl, 1, '충전이 완료되었습니다! 감사합니다');
-		}
-	} else if ($mode == 'withdrawal') {
-		/*
-		 * 가상계좌 출금
-		 */
-		$processDate = date('Y-m-d');
+				$returnUrl = SITE_DOMAIN.'/my_charge_list.php';
+				$alertMessage = '마일리지가 충전되었습니다. 감사합니다.';
+                
+                $db->commitTrans();
+            }
+        } else if ($mode == 'withdrawal') {
+            /*
+             * 가상계좌 출금
+             */
+            $processDate = date('Y-m-d');
 
-		$postData = $_POST;
-		
+            // injection, xss 방지코드
+            $_POST['mileage_type'] = htmlspecialchars($_POST['mileage_type']); 
+            $_POST['account_bank'] = htmlspecialchars($_POST['account_bank']);
+            $_POST['account_no'] = htmlspecialchars($_POST['account_no']);
+            $_POST['charge_name'] = htmlspecialchars($_POST['charge_name']);
+            $_POST['charge_cost'] = htmlspecialchars($_POST['charge_cost']);
+            $postData = $_POST;
 
-		// 유효성 검사 실패시 마일리지 타입별 링크
-		if ($postData['mileageType'] == 5) {
-			$returnUrl = SITE_DOMAIN.'/virtual_account_mileage_withdrawal.php';
-		}
+            $idx = $_SESSION['idx'];
+            $mileageType = (int)$postData['mileage_type'];
 
-		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
-		$resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
+            // 유효성 검사 실패시 마일리지 타입별 링크
+            if ($mileageType == 5) {
+                $returnUrl = SITE_DOMAIN.'/virtual_account_mileage_withdrawal.php';
+            }
 
-		if($resultMileageValidCheck['isValid']==false){
-			// 폼 데이터 받아서 유효성 검증
-			alertMsg($returnUrl, 1, $resultMileageValidCheck['errorMessage']);
-		}
+            $mileageClass = new MileageClass($db);
+            $memberClass = new MemberClass($db);
 
-		/*
-		 * 출금데이터 하기전에 select를 통해 출금가능데이터가 변경되면 안되도록
-		 * 트랜잭션 처리가 필요하나, 현재는 db 구조로 인해 진행하지 않음
-		 */
+            $resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
+            if( $resultMileageValidCheck['isValid'] === false) {
+                // 폼 데이터 받아서 유효성 검증
+                throw new Exception($resultMileageValidCheck['errorMessage']);
+            }
 
-		$mileageChangeParam = [
-				'memberIdx'=>$postData['idx'],
-				'mileageIdx'=>$postData['mileageType'],
-				'chargeCost'=>$postData['charge_cost'],
+            $maxMileageParam = [
+                'mileageType'=>$mileageType,
+                'idx'=>$idx
+            ];
+
+            $maxMileage = $mileageClass->getAvailableMileage($maxMileageParam);
+            if ($maxMileage === false) {
+                throw new Exception('출금 가능한 마일리지 가져오는 중에 오류 발생! 관리자에게 문의하세요!');
+            }
+
+            if ($postData['charge_cost'] > $maxMileage) {
+                throw new Exception('출금금액이 출금가능금액을 초과합니다!');
+            }
+
+            $db->beginTrans(); // 트랜잭션시작
+
+            $param = [
+				'mileage_idx'=>$mileageType,
+				'member_idx'=>$idx,
+				'charge_status'=>3
+			];
+            if ($mileageType === 5) {
+                // 충전가능한 내역 리스트
+                $virtualWitdrawaLlist = $mileageClass->getVirutalAccountWithdrawalPossibleList($param);
+                if ($virtualWitdrawaLlist === false) {
+                    throw new Exception('충전 내역을 가져오는 중에 오류가 발생하였습니다.');
+                }
+            }
+
+            //imi_mileage_charge 수량 변경을 위한 정보 얻어오기
+            $pChargeData = $postData['charge_cost']; 
+            $chargeArray = $mileageClass->getMildateChargeInfomationData($virtualWitdrawaLlist, $pChargeData);
+            if ($chargeArray === false) {
+                throw new Exception('수량정보 데이터를 가져오는 중에 오류가 발생하였습니다.');
+            }
+			$chargeData = $chargeArray['update_data'];
+
+            $updateChargeResult = $mileageClass->updateMileageCharge($chargeData);
+            if ($updateChargeResult === false) {
+                throw new Exception('출금 수정 실패! 관리자에게 문의하세요');
+            }
+
+            // 트랜잭션 테스트 시 아래 제거 후 catch문에서 잘잡는지 확인
+            $spareZeroCount = $mileageClass->getCountChargeSpareCountZero();
+            if ($spareZeroCount < 0) {
+                throw new Exception('마일리지 상태 조회 오류! 관리자에게 문의하세요');
+            }
+
+            if ($spareZeroCount > 0) {
+                $updateZeroResult = $mileageClass->updateChargeZeroStatus();
+                if ($updateZeroResult === false) {
+                    throw new Exception('마일리지 출금 상태 변경 실패! 관리자에게 문의하세요');
+                }
+            }
+
+            $mileageChangeParam = [
+				'memberIdx'=>$idx,
+				'mileageIdx'=>$mileageType,
 				'accountNo'=>$postData['account_no'],
 				'accountBank'=>$postData['account_bank'],
 				'chargeName'=>$postData['charge_name'],
-				'chargeStatus'=>2
+				'chargeStatus'=>2,
+				'process_date'=>date('Y-m-d')
 			];
-		
-		$db->beginTrans(); // 트랜잭션시작
-		
-		// 출금데이터 생성
-		$insertChangeResult = $mileageClass->insertMileageChange($mileageChangeParam);
-		
-		if ($insertChangeResult < 1) {
-			$db->rollbackTrans();
-			alertMsg($returnUrl, 1, '`imi_mileage_change` 테이블 오류! 관리자에게 문의하세요!');
-		}
+            $changeData = $mileageClass->updateMileageArray($chargeData, $mileageChangeParam);
+			if ($changeData === false) {
+				throw new Exception('배열 데이터 생성 오류');
+			}
 
-		$mileageParam = [
-				'charge_cost'=>$postData['charge_cost'],
-				'idx'=>$postData['idx']
-			];
+            // 출금데이터 생성
+            $insertChangeResult = $mileageClass->insertMileageChange($changeData);
+            if ($insertChangeResult < 1) {
+                throw new Exception('출금데이터 생성 실패! 관리자에게 문의하세요');
+            }
 
-		$updateResult = $memberClass->updateMileageWithdrawal($mileageParam); // 마일리지변경
+            $mileageParam = [
+                'mileage'=>$postData['charge_cost'],
+                'idx'=>$idx
+            ];
 
-		if ($updateResult < 1) {
-			$db->rollbackTrans();
-			alertMsg($returnUrl, 1, '`imi_members` 테이블 오류! 관리자에게 문의하세요!');
-		}
+            $updateResult = $memberClass->updateMileageWithdrawal($mileageParam); // 마일리지변경
+            if ($updateResult < 1) {
+                throw new Exception('회원 마일리지 수정 실패! 관리자에게 문의하세요');
+            }
 
-		$returnUrl = SITE_DOMAIN.'/mypage.php';
-		$db->commitTrans();
+            $mileageTypeParam = [
+                $postData['charge_cost'], 
+                $idx
+            ];
+            $mileageTypeUpdate = $mileageClass->mileageTypeWithdrawalUpdate($mileageType, $mileageTypeParam);
+            if ($mileageTypeUpdate < 1) {
+                throw new Exception('마일리지 유형별 출금금액 수정 오류! 관리자에게 문의하세요!');
+            } else {
+                $returnUrl = SITE_DOMAIN.'/my_withdrawal_list.php';
+                $alertMessage = '출금이 완료되었습니다! 감사합니다';
+            }
+            
+            $db->commitTrans();
+        } else if ($mode == 'mileage_cancel') {
+            // 충전정보, 변동내역, 회원정보, 마일리지타입정보 모두 바꾸기
+            $returnUrl = SITE_ADMIN_DOMAIN.'/charge_list.php'; // 작업이 끝나고 이동하는 URL
+            
+            // xss, inject 방지 코드
+            $chargeIdx = isset($_GET['idx']) ? htmlspecialchars($_GET['idx']) : '';
+            if (empty($chargeIdx)) {
+                throw new Exception('잘못된 접근입니다! 관리자에게 문의하세요.');
+            }
 
-		alertMsg($returnUrl, 1, '출금이 완료되었습니다! 감사합니다');
-	}
+            $mileageClass = new MileageClass($db);
+            $memberClass = new MemberClass($db);
+
+            $db->beginTrans(); // 트랜잭션시작
+
+            $chargeData = $mileageClass->getChargeInsertData($chargeIdx);
+            if ($chargeData === false) {
+                throw new Exception('충전정보를 가져오는 중에 문제가 발생했습니다. 관리자에게 문의하세요!');
+            }
+
+            $statusParam = [1, 0, 0, $chargeIdx]; // 충전취소는 남은금액은 삭감시키지않는다.
+            $updateStatusResult = $mileageClass->updateChargeStatus($statusParam);
+            if ($updateStatusResult < 1) {
+                throw new Exception('충전내역 상태를 변경하는 중에 오류 발생! 관리자에게 문의하세요');
+            }
+
+            $mileageChangeParam[] = [
+                    'member_idx'=>$chargeData->fields['member_idx'],
+                    'mileage_idx'=>$chargeData->fields['mileage_idx'],
+                    'accountNo'=>$chargeData->fields['charge_account_no'],
+                    'accountBank'=>$chargeData->fields['charge_infomation'],
+                    'chargeName'=>$chargeData->fields['charge_name'],
+                    'chargeStatus'=>1,
+                    'process_date'=>date('Y-m-d'),
+                    'charge_idx'=>$chargeData->fields['idx'],
+                    'charge_cost'=>$chargeData->fields['charge_cost'],
+                ];
+            $mileageType = $chargeData->fields['mileage_idx'];
+
+            // 출금데이터 생성
+            $insertChangeResult = $mileageClass->insertMileageChange($mileageChangeParam);
+
+            if ($insertChangeResult < 1) {
+                throw new Exception('출금데이터 생성 실패! 관리자에게 문의하세요');
+            }
+
+            $mileageParam = [
+                    'charge_cost'=>$chargeData->fields['charge_cost'],
+                    'idx'=>$chargeData->fields['member_idx']
+                ];
+
+            $updateResult = $memberClass->updateMileageWithdrawal($mileageParam); // 마일리지변경
+            if ($updateResult < 1) {
+                throw new Exception('회원 마일리지 수정 실패! 관리자에게 문의하세요.');
+            }
+
+            $mileageTypeParam = [
+                'charge_cost'=>$chargeData->fields['charge_cost'],
+                'idx'=>$chargeData->fields['member_idx']
+            ];
+            $mileageTypeUpdate = $mileageClass->mileageTypeWithdrawalUpdate($mileageType, $mileageTypeParam);
+            if ($mileageTypeUpdate < 1) {
+                throw new Exception('마일리지 유형별 출금 합계 수정 오류! 관리자에게 문의하세요!');
+            } else {
+                $alertMessage = '충전이 취소 되었습니다.';
+            }
+            $db->commitTrans();
+        }
+    } catch (Exception $e) {
+        if ($connection === true) {
+			$alertMessage = $e->getMessage();
+            $db->rollbackTrans(); 
+        }
+    } finally {
+        if ($connection === true) {
+            $db->completeTrans();
+            $db->close();
+        }
+
+        if (!empty($alertMessage)) {
+            alertMsg($returnUrl, 1, $alertMessage);
+        } else {
+            alertMsg(SITE_DOMAIN, 0);
+        }
+    }

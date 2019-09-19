@@ -18,29 +18,37 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
 
-	// 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_MY_ACCOUNT_SETTING . ' | ' . TITLE_SITE_NAME;
-    $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_MY_ACCOUNT_SETTING . ' | ' . TITLE_SITE_NAME;
+		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$alertMessage = '';
+		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form 전송시 전달되는 URL.
+		$actionMode = 'account'; 
+		$JsTemplateUrl = JS_URL . '/account.js'; 
+		$idx = $_SESSION['idx'];
 
-	$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form 전송시 전달되는 URL.
-	$actionMode = 'account'; 
-	$JsTemplateUrl = JS_URL . '/account.js'; 
+		$memberClass = new MemberClass($db);
 
-	$idx = $_SESSION['idx'];
+		$accountData = $memberClass->getAccountByMember($idx);
+		if($accountData === false) {
+			throw new Exception('회원정보에 대한 자료를 찾을 수 없습니다. 관리자에게 문의하세요.');
+		}
 
-    $memberClass = new MemberClass($db); 
-	$accountData = $memberClass->getAccountByMember($idx);
+		$accountNo = setDecrypt($accountData->fields['account_no']);
+		$accountBank = $accountData->fields['account_bank'];
 
-	if($accountData==false) {
-		alertMsg($returnUrl,1,'데이터를 조회할 수 없습니다');
-	}
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_account.html.php';
+	} catch (Exception $e) {
+		$alertMessage = $e->getMessage();
+	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
 
-	$account_no = setDecrypt($accountData->fields['account_no']);
-	$account_bank = $accountData->fields['account_bank'];
-
-	ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_account.html.php';
-	$output = ob_get_clean();
-
+		if (!empty($alertMessage)) {
+			alertMsg(SITE_DOMAIN,1,$alertMessage);
+		}
+	} 
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

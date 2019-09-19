@@ -41,6 +41,7 @@
 	define('MILEAGE_PROCESS_ACTION', SITE_DOMAIN . '/process/mileage'); // 마일리지
 	define('LOGIN_PROCESS_ACTION', SITE_DOMAIN . '/process/login'); // 세션 
 	define('VIRTUAL_ACCOUNT_PROCESS_ACTION', SITE_DOMAIN . '/process/virtual'); // 마일리지
+	define('DEALINGS_PROCESS_ACCTION', SITE_DOMAIN . '/process/dealings'); // 거래
 
 	// process (관리자)
 	define('ADMIN_PROCESS_ACTION', SITE_DOMAIN . '/process/admin'); // 로그인
@@ -50,7 +51,21 @@
 	define('ENCRYPT_KEY', 'imi_key');
 
 	/**
-	 * 변수
+	 * 전역변수
 	 */ 
 	$ajaxUrl = '';
 	$JsTemplateUrl = '';
+	$templateFileName = '404.html.php';
+
+	/**
+	 * 배열
+	 */
+	$CONFIG_BANK_ARRAY = [
+		'기업은행','국민은행','신한은행','외환은행','우리은행','부산은행','광주은행','우체국','카카오뱅크'
+	];
+	$CONFIG_CARD_ARRAY = [
+		'삼성','BC','현대','KB국민','외환','신한','롯데','하나','NH카드'
+	];
+	$CONFIG_MILEAGE_ARRAY = [
+		1000,5000,10000,50000,100000
+	];

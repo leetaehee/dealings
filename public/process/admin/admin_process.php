@@ -21,120 +21,202 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/AdminClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
 
-	$returnUrl = ''; // 리턴되는 화면 URL 초기화.
-	$isValid = true;
-	$mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
+    try { 
+        $returnUrl = ''; // 리턴되는 화면 URL 초기화.
+        $alertMessage = '';
 
-	if ($mode == 'add') {
-		$adminClass = new AdminClass($db);
-
-		// 폼 데이터 받아서 유효성 검증
-		$returnUrl = SITE_ADMIN_DOMAIN.'/join.php'; // 유효성검증 실패시, 리턴 UTL
-
-		$postData = $_POST;
-		$resultMemberValidCheck = $adminClass->checkAdminFormValidate($postData);
-
-		if ($resultMemberValidCheck['isValid'] == false) {
-			alertMsg($returnUrl, 1, $resultMemberValidCheck['errorMessage']);
-		} else {
-			if ($adminClass->getIdOverlapCount($postData['id']) > 0) {
-				alertMsg($returnUrl, 1, '아이디가 중복됩니다.');
-			}
-			if ($adminClass->getPhoneOverlapCount($postData['phone']) > 0) {
-				alertMsg($returnUrl, 1, '핸드폰번호가 중복됩니다.');
-			}
-			if ($adminClass->getEmailOverlapCount($postData['email'])) {
-				alertMsg($returnUrl, 1, '이메일이 중복됩니다.');
-			}
-		}
-
-		if ($resultMemberValidCheck['isValid'] == true) {
-			$insertResult = $adminClass->insertMember($postData);
-
-			if ($insertResult > 0) {
-				$returnUrl = SITE_ADMIN_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
-
-				$_SESSION['tmp_idx'] = 't_'.$idx; // 임시세션
-
-				$approvalUrl = SITE_ADMIN_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
-				$content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
-
-				//메일발송
-				mailer(MAIL_SENDER, MAIL_ADDRESS, $postData['email'], MAIL_TITLE, $content);
-
-				alertMsg($returnUrl, 1, '관리자 회원가입이 완료되었습니다! 이메일을 확인하세요!');
-			} else {
-				alertMsg($returnUrl, 1, '관리자 회원가입이 실패하였습니다!');
-			}
-		} 
-	} else if ($mode == 'modi') {
-		// 회원정보수정
-		$adminClass = new AdminClass($db);
-		$postData = $_POST; // 폼데이터
-
-		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_modify.php?idx='.$postData['idx']; // 유효성검증 실패시, 리턴 UTL
-
-		$resultAdminValidCheck = $adminClass->checkAdminFormValidate($postData);
-
-		if ($resultAdminValidCheck['isValid'] == false) {
-			alertMsg($returnUrl, 1, $resultAdminValidCheck['errorMessage']);
-		} else {
-			if ($adminClass->getPhoneOverlapCount($postData['phone']) > 0 && $postData['isOverlapPhone']==1) {
-				alertMsg($returnUrl, 1, '핸드폰번호가 중복됩니다.');
-			}
-			if ($adminClass->getEmailOverlapCount($postData['email']) > 0  && $postData['isOverlapEmail']==1) {
-				alertMsg($returnUrl, 1, '이메일이 중복됩니다.');
-			}
-		}
-
-		if ($resultAdminValidCheck['isValid'] == true) {
-			// 트랜잭션시작
-			$db->beginTrans();
-
-			$updateResult = $adminClass->updateAdmin($postData);
-
-			if ($updateResult > 0) {
-				$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 수정 성공 시 마이페이지로 이동
-			}else{
-				$db->rollbackTrans();
-				alertMsg($returnUrl, 1, '회원정보 수정이 실패하였습니다! 관리자에게 문의하세요');
-			}
-			
-			$db->commitTrans();
-
-			alertMsg($returnUrl, 1, '회원정보가 수정 되었습니다!');
-		}
-	} else if ($mode == 'del') {
-		// 회원탈퇴
-		$idx = isset($_GET['idx']) ? $_GET['idx'] : $_POST['idx'];
-        $password = isset($_GET['password']) ? $_GET['password'] : $_POST['password'];
-        
-        $returnUrl = SITE_ADMIN_DOMAIN.'/admin_delete.php?idx='.$idx; // 유효성검증 실패시, 리턴 
-        
-        $adminClass = new AdminClass($db);
-        $loginClass = new LoginClass($db);
-        
-        $param = [$idx, $password];
-        
-        // 트랜잭션시작
-        $db->beginTrans();
-        
-        if ($loginClass->checkPasswordByAdmin($param)==false) {
-            $db->rollbackTrans();
-			alertMsg($returnUrl, 1, '비밀번호를 확인하세요');            
-        }else{
-            $returnUrl = SITE_ADMIN_DOMAIN;
+        if (isset($_POST['mode'])) {
+            $mode = htmlspecialchars($_POST['mode']);
+        } else {
+            $mode = htmlspecialchars($_GET['mode']);
         }
         
-        $updateResult = $adminClass->deleteAdmin($idx);
-        
-        if ($updateResult < 1) {
-			$db->rollbackTrans();
-            alertMsg($returnUrl,1,'오류! 관리자에게 문의하세요!');
+        if ($mode == 'add') {
+            $adminClass = new AdminClass($db);
+
+            // 폼 데이터 받아서 유효성 검증
+            $returnUrl = SITE_ADMIN_DOMAIN.'/join.php'; // 유효성검증 실패시, 리턴 UTL
+            
+            // injection, xss 방지코드
+            $_POST['isOverlapEmail'] = htmlspecialchars($_POST['isOverlapEmail']);
+            $_POST['isOverlapPhone'] = htmlspecialchars($_POST['isOverlapPhone']);
+            $_POST['id'] = htmlspecialchars($_POST['id']);
+            $_POST['password'] = htmlspecialchars($_POST['password']);
+            $_POST['repassword'] = htmlspecialchars($_POST['repassword']);
+            $_POST['name'] = htmlspecialchars($_POST['name']);
+            $_POST['email'] = htmlspecialchars($_POST['email']);
+            $_POST['phone'] = htmlspecialchars($_POST['phone']);
+            $_POST['birth'] = htmlspecialchars($_POST['birth']);
+            $_POST['sex'] = htmlspecialchars($_POST['sex']);        
+            $postData = $_POST;
+            
+            $resultMemberValidCheck = $adminClass->checkAdminFormValidate($postData);
+            if ($resultMemberValidCheck['isValid'] === false) {
+                throw new Exception($resultMemberValidCheck['errorMessage']);
+            } else {
+                // 트랜잭션시작
+                $db->beginTrans();
+                
+                $accountData = [
+                    'phone'=>setEncrypt($postData['phone']),
+                    'email'=>setEncrypt($postData['email']),
+                    'id'=>$postData['id']
+                ];
+                
+                $accountOverlapCount = $adminClass->getAccountOverlapCount($accountData);                
+                if ($accountOverlapCount === false) {
+                    throw new Exception('계정중복확인 오류 발생! 관리자에게 문의하세요');
+                } else {
+                    if ($accountOverlapCount > 0) {
+                        throw new Exception('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+                    }
+                }
+            }
+
+            if ($resultMemberValidCheck['isValid'] == true) {
+                $insertResult = $adminClass->insertMember($postData);
+
+                if ($insertResult > 0) {
+                    $returnUrl = SITE_ADMIN_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
+
+                    $_SESSION['tmp_idx'] = 't_'.$idx; // 임시세션
+
+                    $approvalUrl = SITE_ADMIN_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
+                    $content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
+
+                    //메일발송
+                    mailer(MAIL_SENDER, MAIL_ADDRESS, $postData['email'], MAIL_TITLE, $content);
+                    $alertMessage = '관리자 회원가입이 완료되었습니다! 이메일을 확인하세요!';
+                    
+                     $db->commitTrans();
+                } else {
+                    throw new Exception('관리자 회원가입이 실패하였습니다!');
+                }
+            }
+        } else if ($mode == 'modi') {
+            // 회원정보수정
+            $adminClass = new AdminClass($db);
+            $isNewData = false;
+			// 유효성검증 실패시, 리턴 UTL
+			$returnUrl = SITE_ADMIN_DOMAIN.'/admin_modify.php?idx='.$postData['idx'];
+
+            // injection, xss 방지코드
+            $_POST['isOverlapEmail'] = htmlspecialchars($_POST['isOverlapEmail']);
+            $_POST['isOverlapPhone'] = htmlspecialchars($_POST['isOverlapPhone']);
+            $_POST['idx'] = htmlspecialchars($_POST['idx']);
+            $_POST['password'] = htmlspecialchars($_POST['password']);
+            $_POST['repassword'] = htmlspecialchars($_POST['repassword']);
+            $_POST['name'] = htmlspecialchars($_POST['name']);
+            $_POST['email'] = htmlspecialchars($_POST['email']);
+            $_POST['phone'] = htmlspecialchars($_POST['phone']);
+            $_POST['birth'] = htmlspecialchars($_POST['birth']);
+            $_POST['sex'] = htmlspecialchars($_POST['sex']);
+            $postData = $_POST;
+
+            $resultAdminValidCheck = $adminClass->checkAdminFormValidate($postData);
+            if ($resultAdminValidCheck['isValid'] == false) {
+                throw new Exception($resultAdminValidCheck['errorMessage']);
+            } else {
+                // 트랜잭션시작
+                $db->beginTrans();
+                
+                $accountData = [
+                    'phone'=>setEncrypt($postData['phone']),
+                    'email'=>setEncrypt($postData['email'])
+                ];
+                
+                if ($postData['isOverlapEmail'] > 0) {
+                    $isNewData = true; // 이메일 주소를 변경하는 경우
+                }
+                
+                if ($postData['isOverlapPhone'] > 0) {
+                    $isNewData = true;  // 핸드폰번호를 변경하는 경우
+                }
+                
+                if ($isNewData === true) {
+                    $accountOverlapCount = $adminClass->getAccountOverlapCount($accountData);
+                    
+                    if ($accountOverlapCount === false) {
+                        throw new Exception('계정중복확인 오류 발생! 관리자에게 문의하세요');
+                    } else {
+                        if ($accountOverlapCount > 0) {
+                            throw new Exception('이메일/핸드폰 번호는 중복 될 수 없습니다.');
+                        }
+                    }
+                }
+            }
+
+            if ($resultAdminValidCheck['isValid'] == true) {
+                // 트랜잭션시작
+                $db->beginTrans();
+
+                $updateResult = $adminClass->updateAdmin($postData);
+                if ($updateResult > 0) {
+                    $returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 수정 성공 시 마이페이지로 이동
+                }else{
+                    throw new Exception('회원정보 수정이 실패하였습니다! 관리자에게 문의하세요.');
+                }
+                $alertMessage = '회원정보가 수정 되었습니다!';
+                $db->commitTrans();
+            }
+        } else if ($mode == 'del') {
+            // 회원탈퇴
+            $adminClass = new AdminClass($db);
+            $loginClass = new LoginClass($db);
+
+            // injection, xss 방지코드
+            if (isset($_GET['idx'])) {
+                $idx = htmlspecialchars($_GET['idx']);
+            } else {
+                $idx = htmlspecialchars($_POST['idx']);
+            }
+
+            if (isset($_GET['password'])) {
+                $password = htmlspecialchars($_GET['password']);
+            } else {
+                $password = htmlspecialchars($_POST['password']);
+            }
+
+            $returnUrl = SITE_ADMIN_DOMAIN.'/admin_delete.php?idx='.$idx; // 유효성검증 실패시, 리턴 
+
+            $param = [$idx, $password];
+
+            // 트랜잭션시작
+            $db->beginTrans();
+
+            $checkLoginData = $loginClass->checkPasswordByAdmin($param);
+            if ($checkLoginData === false) {
+                throw new Exception('패스워드 체크 오류! 관리자에게 문의하세요.');
+            }else{
+                 if ($checkLoginData === null) {
+                    throw new Exception('패스워드를 확인하세요!');
+                }
+                $returnUrl = SITE_ADMIN_DOMAIN;
+            }
+
+            $updateResult = $adminClass->deleteAdmin($idx);
+            if ($updateResult < 1) {
+                throw new Exception('회원 탈퇴 오류! 관리자에게 문의하세요!');
+            }
+            
+            $alertMessage = '정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.';
+            $db->commitTrans();
+            session_destroy();
         }
-        
-        $db->commitTrans();
-        
-        session_destroy();
-        alertMsg($returnUrl,1,'정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.');
-	}
+    } catch (Exception $e) {
+        if ($connection === true) {
+			$alertMessage = $e->getMessage();
+            $db->rollbackTrans(); 
+        }
+    } finally {
+        if ($connection === true) {
+            $db->completeTrans();
+            $db->close();
+        }
+
+        if (!empty($alertMessage)) {
+            alertMsg($returnUrl, 1, $alertMessage);
+        } else {
+            alertMsg(SITE_ADMIN_DOMAIN, 0);
+        }
+    }

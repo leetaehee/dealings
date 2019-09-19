@@ -24,6 +24,7 @@
 			.mileage-table-width { width: 620px; }
 			.login-table-width { width: 630px; }
 			.charge-table-width { width: 670px; }
+			.dealings-table-width { width: 680px; }
 			.table th, .table td { border: 1px solid #444444; padding: 2px; }
 			.empty-tr-colspan { text-align: center; color: red; }
 		</style>
@@ -70,10 +71,16 @@
 					<li>
 						<a href="<?=SITE_ADMIN_DOMAIN?>/member_status.php">회원현황</a>
 					</li>
+					<li>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/charge_list.php">마일리지 결제내역</a>
+					</li>
+					<li>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/dealings_manage.php">상품권 거래관리</a>
+					</li>
 				</ul>
 			</aside>
 			<section>
-				<?=$output?>
+				<?php include_once $templateFileName?>
 			</section>
 			<footer>
 				&copy; IMI 회원정보 시스템 <?=date('Y')?> <br>

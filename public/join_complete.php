@@ -13,12 +13,18 @@
 	// 현재 세션체크
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
 
-	// 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_JOIN_COMPLETE_MENU . ' | ' . TITLE_SITE_NAME;
-	
-	ob_Start();
-	// 템플릿
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_complete.html.php';
-	$output = ob_get_clean();
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_JOIN_COMPLETE_MENU . ' | ' . TITLE_SITE_NAME;
+		$alertMessage = '';
+
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_complete.html.php';
+	} catch (Exception $e) {
+		$alertMessage = $e->getMessage();
+	} finally {
+		if (!empty($alertMessage)) {
+			alertMsg(SITE_DOMAIN,1,$alertMessage);
+		}
+	} 
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout.html.php'; // 전체 레이아웃

@@ -139,7 +139,7 @@ function isJoinValidForm()
 		}
         
 	} else {
-		alert("이름을 입력하세요1111.");
+		alert("이름을 입력하세요.");
 		return false;
 	}
 	

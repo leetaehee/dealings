@@ -17,24 +17,36 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
+    
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_ADMIN_MEMBER_STATUS . ' | ' . TITLE_ADMIN_SITE_NAME;
 
-	// 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_ADMIN_MEMBER_STATUS . ' | ' . TITLE_ADMIN_SITE_NAME;
-    $returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화.
+		// 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php';
+		$alertMessage = '';
+		$idx = $_SESSION['mIdx'];
 	
-	$idx = $_SESSION['mIdx'];
-	
-	$memberClass = new MemberClass($db); 
-	$memberList = $memberClass->getMemberList();
+		$memberClass = new MemberClass($db); 
+		$memberList = $memberClass->getMemberList();
 
-	if($memberList==false){
-		alertMsg($returnUrl, 1, '오류! 관리자에게 문의하세요');
+		if ($memberList === false) {
+			throw new Exception('회원 리스트 가져오다가 오류 발생! 관리자에게 문의하세요');
+		} else {
+			$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/member_status.html.php';
+		}
+
+		$rocordCount = $memberList->recordCount();
+	} catch (Exception $e) {
+		$alertMessage = $e->getMessage();
+	} finally {
+		if ($connection==true) {
+			$db->close();
+		}
+
+		if (!empty($alertMessage)) {
+			alertMsg($returnUrl,1,$alertMessage);
+		}
 	}
-
-	$rocordCount = $memberList->recordCount();
-
-	ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/member_status.html.php';
-	$output = ob_get_clean();
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/layout_main.html.php'; // 전체 레이아웃

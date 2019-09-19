@@ -1,4 +1,9 @@
 <?php
+	/**
+	 * @file MemberClass.php
+	 * @brief Login/Logout에 대한 클래스
+	 * @author 이태희
+	 */
 	Class MemberClass 
 	{
 		private $db = null;
@@ -11,25 +16,22 @@
 			return true;
 		}
 		
+		/**
+		 * @brief: 데이터베이스 커넥션 생성
+		 * @param: 커넥션 파라미터 
+		 */
 		public function __construct($db) 
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 커넥션 파라미터
-			 * @brief: 데이터베이스 커넥션 생성 
-			 */
 			$this->db = $db;
 		}
-
+		
+		/**
+		 * @brief: 유효성 검증(회원가입)
+		 * @param: 폼 데이터
+		 * @return: true/false, error-message 배열
+		 */
 		public function checkMemberFormValidate($postData)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 폼 데이터
-			 * @brief: 유효성 검증(회원가입)
-			 * @return: true/false, error-message 배열
-			 */
-
 			$repEmail = "/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i";
 			$repBirth = "/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/i";
 			
@@ -80,15 +82,13 @@
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
 
+		/**
+		 * @brief: 유효성 검증(계좌정보)
+		 * @param: 폼 데이터
+		 * @return: true/false, error-message 배열
+		 */
 		public function checkAccountFormValidate($postData)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 폼 데이터
-			 * @brief: 유효성 검증(계좌정보)
-			 * @return: true/false, error-message 배열
-			 */
-
 			if (isset($postData['account_bank']) && empty($postData['account_bank'])) {
 				return ['isValid'=>false, 'errorMessage'=>'은행을 입력하세요'];
 			}
@@ -99,77 +99,90 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
+        
+        /**
+		 * @brief: 회원 가입/수정 시 중복체크 (FOR UPDATE)
+		 * @param: id, email, phone 을 담는 array
+		 * @return: int 
+		 */
+        public function getAccountOverlapCount($accountData)
+        { 
+            $search = '';
+            if (isset($accountData['id'])) {
+                $search = 'OR `id` = ?';
+            }
+            
+            $query = "SELECT COUNT(`id`)  cnt 
+                      FROM `imi_members`
+                      WHERE `phone` = ? OR `email` = ? {$search} FOR UPDATE";
+            $result = $this->db->execute($query,$accountData);
+            
+			if ($result === false) {
+				return false;
+			}
+			
+			return $result->fields['cnt'];
+        }
 
+		/**
+		 * @brief: 회원 가입 시 중복 체크(아이디)
+		 * @param: id
+		 * @return: true/false
+		 */
 		public function getIdOverlapCount($id)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: id, db객체
-			 * @brief: 회원 가입 시 중복 체크(아이디)
-			 * @return: true/false
-			 */
 			$query = "SELECT count(id) cnt FROM `imi_members` WHERE `id` = ?";
 			$result = $this->db->execute($query,$id);
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
 			
 			return $result->fields['cnt'];
 		}
 
+		/**
+		 * @brief: 회원 가입 시 중복 체크(휴대폰)
+		 * @param: phone
+		 * @return: true/false
+		 */
 		public function getPhoneOverlapCount($phone)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: phone, db객체
-			 * @brief: 회원 가입 시 중복 체크(휴대폰)
-			 * @return: true/false
-			 */
-			
 			$phone = removeHyphen($phone);
 
 			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `phone` = ?";
 			$result = $this->db->execute($query, setEncrypt($phone));
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
 			return $result->fields['cnt'];
 		}
-
+		
+		/**
+		 * @brief: 회원 가입 시 중복 체크(이메일)
+		 * @param: email
+		 * @return: true/false
+		 */
 		public function getEmailOverlapCount($email)
-		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: email, db객체
-			 * @brief: 회원 가입 시 중복 체크(이메일)
-			 * @return: true/false
-			 */
-			
+		{	
 			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `email` = ?";
 			$result = $this->db->execute($query, setEncrypt($email));
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
 			return $result->fields['cnt'];
 		}
-
+		
+		/**
+		 * @brief: 회원 가입 저장
+		 * @param: form 데이터
+		 * @return: true/false
+		 */
 		public function insertMember($postData)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: form 데이터
-			 * @brief: 회원 가입 저장
-			 * @return: true/false
-			 */
-
-			/* 
-			 * 코드값 참조
-			 * grade_code = 3 (신규 가입시 부여되는 가장 낮은 레벨)
-			 */
-
+			//코드값 참조- grade_code = 3 (신규 가입시 부여되는 가장 낮은 레벨)
 			$bindValue = [$postData['id'],
 						  password_hash($postData['password'], PASSWORD_DEFAULT),
 						  setEncrypt($postData['email']),
@@ -201,15 +214,13 @@
 			return $insertId;
 		}
 
+		/**
+		 * @brief: 회원 수정
+		 * @param: form 데이터
+		 * @return: int 
+		 */
 		public function updateMember($postData)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: form 데이터
-			 * @brief: 회원 수정
-			 * @return: int 
-			 */
-
 			$param = [
 				password_hash($postData['password'], PASSWORD_DEFAULT),
 				setEncrypt($postData['email']),
@@ -240,33 +251,29 @@
 			return $affected_row;
 		}
 
+		/**
+		 * @brief: 가입승인메일 날짜 체크
+		 * @param:  회원 고유 키
+		 * @return: true/false
+		 */
 		public function getJoinApprovalMailDate($idx)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키
-			 * @brief: 가입승인메일 날짜 체크
-			 * @return: true/false
-			 */
-	
 			$query = 'SELECT `join_approval_date` FROM `imi_members` WHERE `idx` = ? FOR UPDATE';
 			$result = $this->db->execute($query, $idx);
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
 			return $result->fields['join_approval_date'];
 		}
 
+		/**
+		 * @brief: 가입승인메일 오늘날짜로 변경
+		 * @param:  회원 고유 키 
+		 * @return: true/false
+		 */
 		public function updateJoinApprovalMailDate($idx)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키
-			 * @brief: 가입승인메일 오늘날짜로 변경 
-			 * @return: true/false
-			 */
-
 			$query = 'UPDATE `imi_members` SET `join_approval_date` = CURDATE() WHERE `idx` = ?'; 
 			$result = $this->db->execute($query,$idx);
 			$affected_row = $this->db->affected_rows();
@@ -278,31 +285,33 @@
 			return $affected_row;
 		}
         
+		/**
+		 * @brief: 회원정보 출력
+		 * @param:  회원 고유 키
+		 * @return: array
+		 */
         public function getMyInfomation($idx)
 		{
-            /**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키
-			 * @brief: 회원정보 출력
-			 * @return: array
-			 */
-            
             $param = ['M',$idx];
             
-            $query = 'SELECT `idx`,
-                             `id`,
-                             `name`,
-                             `email`,
-                             `phone`,
-                             CASE WHEN `sex` = ? then "남성" else "여성" end sex_name,
-                             `sex`,
-                             `birth`,
-                             `join_date`,
-                             `join_approval_date`,
-							 `mileage`,
-							 `account_no`,
-							 `account_bank`
-                      FROM `imi_members` 
+            $query = 'SELECT `imi`.`idx`,
+                             `imi`.`id`,
+                             `imi`.`name`,
+                             `imi`.`email`,
+                             `imi`.`phone`,
+							 `imi`.`mileage`,
+                             CASE WHEN `imi`.`sex` = ? then "남성" else "여성" end sex_name,
+                             `imi`.`sex`,
+                             `imi`.`birth`,
+                             `imi`.`join_date`,
+                             `imi`.`join_approval_date`,
+							 `imi`.`mileage`,
+							 `imi`.`account_no`,
+							 `imi`.`account_bank`,
+							 `img`.`grade_name`
+                      FROM `imi_members` `imi`
+						INNER JOIN `imi_member_grades` `img` 
+							ON `imi`.`grade_code` = `img`.`grade_code`
                       WHERE `idx` = ?';
             $result = $this->db->execute($query, $param);
             
@@ -313,15 +322,14 @@
 			return $result;
         }
         
+		/**
+		 * @brief: 회원탈퇴 처리 (update)
+		 * @author: LeeTaeHee
+		 * @param:  회원 고유 키
+		 * @return: boolean
+		 */
         public function deleteMember($idx)
-        {
-            /**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키
-			 * @brief: 회원탈퇴 처리 (update)
-			 * @return: boolean
-			 */
-            
+        { 
             $query = 'UPDATE `imi_members` 
                       SET `withdraw_date` = CURDATE(),
 					      `modify_date` = CURDATE()
@@ -336,15 +344,14 @@
 
 			return $affected_row;
         }
-
+		
+		/**
+		 * @brief: 회원 계좌정보 가져오기
+		 * @param:  회원 고유 키
+		 * @return: object
+		 */
 		public function getAccountByMember($idx)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키
-			 * @brief: 회원 계좌정보 가져오기
-			 * @return: object
-			 */
 			$query = 'SELECT `idx`,
 							 `account_no`,
 							 `account_bank`
@@ -354,22 +361,20 @@
 
 			$result = $this->db->execute($query,$idx);
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
             
 			return $result;
 		}
 
+		/**
+		 * @brief: 회원 계좌정보 수정하기
+		 * @param:  회원 고유 키, 계좌 내용
+		 * @return: array
+		 */
 		public function updateMyAccount($param)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param:  회원 고유 키, 계좌 내용
-			 * @brief: 회원 계좌정보 수정하기
-			 * @return: object
-			 */
-
 			$query = 'UPDATE `imi_members` SET
 					   `account_no` = ?,
 					   `account_bank` = ?
@@ -385,15 +390,13 @@
 			return $affected_row;
 		}
 
+        /**
+         * @brief: 회원테이블 마일리지 변경 (충전시)
+         * @param: 회원 PK, 변경 마일리지 금액
+         * @return: int 
+         */
 		public function updateMileageCharge($param)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 회원 PK, 변경 마일리지 금액
-			 * @brief: 회원테이블 마일리지 변경 (충전시)
-			 * @return: int 
-			 */
-
 			$query = 'UPDATE `imi_members` SET
 					   `mileage` = `mileage` + ? 
 					   WHERE `idx` = ?';
@@ -408,15 +411,13 @@
 			return $affected_row;
 		}
 
+        /**
+         * @brief: 회원테이블 마일리지 변경 (출금시)
+         * @param: 회원 PK, 변경 마일리지 금액
+         * @return: int 
+         */
 		public function updateMileageWithdrawal($param)
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 회원 PK, 변경 마일리지 금액
-			 * @brief: 회원테이블 마일리지 변경 (충전시)
-			 * @return: int 
-			 */
-
 			$query = 'UPDATE `imi_members` SET
 					   `mileage` = `mileage` - ? 
 					   WHERE `idx` = ?';
@@ -431,15 +432,46 @@
 			return $affected_row;
 		}
 
+		/**
+         * @brief: 유효기간 지난 마일리지로 인한 대량 변동 시 사용 (마일리지 차감)
+				   - 모든 회원에 대해 마일리지 수정 (크론탭사용)
+         * @param: 회원 PK, 변경 마일리지 금액
+         * @return: int 
+         */
+		public function updateAllMemberMilege($params)
+		{
+			$count = $params->recordCount();
+			if ($count > 0) {
+				foreach ($params as $key => $value) {
+					$param = [
+							$value['charge_cost'],
+							$value['member_idx']
+						];
+
+					$query = 'UPDATE `imi_members` SET
+							  `mileage` = `mileage` - ? 
+							   WHERE `idx` = ?';
+					
+					$result = $this->db->execute($query, $param);
+					$affected_row = $this->db->affected_rows();
+
+					if ($affected_row < 1) {
+						return false;
+					}
+				}
+			} else {
+				return false;
+			}
+			return $affected_row;
+		}
+
+        /**
+         * @brief: [관리자 메뉴] 회원 현황 리스트
+         * @param: 없음
+         * @return: array 
+         */
 		public function getMemberList()
 		{
-			/**
-			 * @author: LeeTaeHee
-			 * @param: 없음
-			 * @brief: 관리자 회원 현황 리스트
-			 * @return: array 
-			 */
-
 			$query = 'SELECT `idx`,
 							 `id`,
 							 `name`,
@@ -456,10 +488,28 @@
 
 			$result = $this->db->execute($query);
 
-			if ($result == false) {
+			if ($result === false) {
 				return false;
 			}
             
 			return $result;
+		}
+	
+		/**
+         * @brief: 회원 전체 마일리지 가져오기 
+         * @param: 회원 키 값
+         * @return: int
+         */
+		public function getTotalMileage($idx)
+		{
+			$query = 'SELECT `mileage` FROM `imi_members` WHERE `idx` = ? FOR UPDATE';
+			$result = $this->db->execute($query, $idx);
+
+			if ($result === false) {
+				return false;
+			}
+            
+			return $result->fields['mileage'];
+
 		}
 	}

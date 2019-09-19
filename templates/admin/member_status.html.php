@@ -33,7 +33,7 @@
 					<td><?=setDecrypt($value['phone'])?></td>
 					<td><?=$value['sex_name']?></td>
 					<td><?=$value['join_approval_date']?></td>
-					<td><?=$value['mileage']?></td>
+					<td><?=number_format($value['mileage'])?></td>
 				</tr>
 			<?php endforeach; ?>
 		<?php else: ?>

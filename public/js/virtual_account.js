@@ -33,12 +33,11 @@ function getVirtualAccount($this)
 		url: ajaxUrl,
 		data: {
 			mode: "getVirtalAccount",
-			accountBank: $("#accountBank").val(),
-			idx: $("#idx").val()
+			accountBank: $("#accountBank").val()
 		},
 		dataType: "json",
 		success: function(data, status, xhr) {
-			if(data.isSucess==true){
+			if(data.isSuccess==true){
 			   $("#accountNo").html(data.account_no);
 			   $(".accountNo").val(data.account_no);
 			}else{
@@ -92,6 +91,11 @@ function isVirtualChargeValidForm()
 	if (chargeName.length < 1) {
 		alert("입금자를 입력하세요");
 		return false;
+	}else{
+		if (chargeName.length > 7) {
+			alert("입금자는 7자이내로 입력하세요");
+			return false;
+		}
 	}
 
 	return true;
@@ -106,7 +110,7 @@ function isVirtualWithdrawalValidForm()
 	 */
 	
 	var chargeCost = $("#chargeCost").val();
-	var charge = $("#charge").val()
+	var maxMileage = $("#maxMileage").val()
 
 	if (chargeCost.length  < 1) {
 		alert("출금 금액을 입력하세요.");
@@ -123,7 +127,7 @@ function isVirtualWithdrawalValidForm()
 			return false;
 		}
 
-		if (Number(chargeCost) > Number(charge))
+		if (Number(chargeCost) > Number(maxMileage))
 		{
 			alert("출금 금액은 출금가능한 마일리지를 초과 할 수 없습니다");
 			return false;

@@ -1,24 +1,21 @@
 <form id="card-charge-form" method="post" action="<?=$actionUrl?>">
 	<input type="hidden" name="mode" value="<?=$actionMode?>">
-    <input type="hidden" id="idx" name="idx" value="<?=$idx?>">
-	<input type="hidden" name="mileage_type" value="<?=$mileage_type?>">
+	<input type="hidden" name="mileage_type" value="<?=$mileageType?>">
     
     <p><h3>[신용카드 충전]</h3></p>
 
 	<p>
 		<label for="accountBank">카드종류: </label>
-		<select id="accountBank" name="account_bank">
-			<option value="">선택하세요.</option>
-			<option value="삼성">삼성</option>
-			<option value="BC">BC</option>
-			<option value="현대">현대</option>
-			<option value="KB국민">KB국민</option>
-			<option value="외환">외환</option>
-			<option value="신한">신한</option>
-			<option value="롯데">롯데</option>
-			<option value="하나">하나</option>
-			<option value="NH카드">NH카드</option>
-		</select>
+		<?php if(count($CONFIG_CARD_ARRAY) > 0):?>
+			<select id="accountBank" name="account_bank">
+				<option value="">선택하세요.</option>
+				<?php for($i=0; $i<count($CONFIG_CARD_ARRAY); $i++): ?>
+					<option value="<?=$CONFIG_CARD_ARRAY[$i]?>"><?=$CONFIG_CARD_ARRAY[$i];?></option>
+				<?php endfor; ?>
+			</select>
+		<?php else: ?>
+			<p>관리자에게 문의하세요!</p>
+		<?php endif; ?>
 	</p>
 	<br>
 
@@ -28,10 +25,20 @@
 	</p>
 	<br>
 
-
 	<p>
 		<label for="chargeCost">충전금액: </label>
-		<input type="text" id="chargeCost" name="charge_cost" value="" size="16">
+		<?php if(count($CONFIG_MILEAGE_ARRAY) > 0):?>
+			<select id="chargeCost" name="charge_cost">
+				<option value="">선택하세요.</option>
+				<?php for($i=0; $i<count($CONFIG_MILEAGE_ARRAY); $i++): ?>
+					<option value="<?=$CONFIG_MILEAGE_ARRAY[$i]?>">
+						<?=$CONFIG_MILEAGE_ARRAY[$i];?>
+					</option>
+				<?php endfor; ?> 
+			</select>원
+		<?php else: ?>
+			<p>관리자에게 문의하세요!</p>
+		<?php endif; ?>
 	</p>
 	<br>
 

@@ -24,13 +24,17 @@
 	7. 마일리지: <?=number_format($myInfomation->fields['mileage'])?>원
 </p>
 <?php if(!empty($myInfomation->fields['account_no'])): ?>
-<p>
-	8. 내 계좌 정보: 
-	<?=setDecrypt($myInfomation->fields['account_no'])?>(<?=$myInfomation->fields['account_bank']?>)
-</p>
+	<p>
+		8. 내 계좌 정보: 
+		<?=setDecrypt($myInfomation->fields['account_no'])?>(<?=$myInfomation->fields['account_bank']?>)
+	</p>
 <?php else: ?>
-	8. 내 계좌 정보: 미설정
+	<p>8. 내 계좌 정보: 미설정 </p>
 <?php endif; ?>
+<p>
+	9. 활동등급: <?=$myInfomation->fields['grade_name']?>
+</p>
+<br>
 <span>
     <a href="<?=$memberModifyUrl?>">[정보수정]</a>
 </span>

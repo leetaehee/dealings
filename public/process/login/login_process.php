@@ -12,104 +12,152 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php'; // Class 파일
 
-	$returnUrl = ''; // 리턴되는 화면 URL 초기화.
-	$mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
+    try {
+        $returnUrl = ''; // 리턴되는 화면 URL 초기화.
+        $alertMessage = ''; // 메세지
+	    $mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
+        
+        if (isset($_POST['mode'])) {
+            $mode = htmlspecialchars($_POST['mode']);
+        } else {
+            $mode = htmlspecialchars($_POST['GET']);
+        }
 
-	if ($mode == 'login') {
-		// 일반회원 로그인 
-		$loginClass = new LoginClass($db);
+        if ($mode == 'login') {
+            // 일반회원 로그인 
+            $loginClass = new LoginClass($db);
 
-		// 유효성 검증 및 로그인실패시 이동 링크
-		$returnUrl = SITE_DOMAIN.'/login.php'; 
+            // 유효성 검증 및 로그인실패시 이동 링크
+            $returnUrl = SITE_DOMAIN.'/login.php'; 
 
-		$postData = $_POST;
-		$loginValidator = $loginClass->checkLoginFormValidate($postData);
+            // injection, xss 방지코드
+            $_POST['id'] = htmlspecialchars($_POST['id']);
+            $_POST['password'] = htmlspecialchars($_POST['password']);
+            $postData = $_POST;
 
-		if ($loginValidator['isValid']==false) {
-			alertMsg($returnUrl, 1,$loginValidator['errorMessage']);
-		} else {
-			$loginData = $loginClass->getIsLogin($postData['id']);
+            $loginValidator = $loginClass->checkLoginFormValidate($postData);
 
-			if ($loginData->fields['withdraw_date']!=null) {
-				alertMsg($returnUrl, 1, '해당 계정은 탈퇴되었습니다!');
-			}
+            if ($loginValidator['isValid'] ===false) {
+                throw new Exception($loginValidator['errorMessage']);
+            } else {
+                // 트랜잭션 시작
+                $db->beginTrans();
+                
+                $loginData = $loginClass->getIsLogin($postData['id']);
 
-			if ($loginData->fields['is_forcedEviction']=='Y') {
-				alertMsg($returnUrl, 1, '해당 계정은 차단되었습니다! 관리자에게 문의하세요');
-			}
-		
-			if (password_verify($postData['password'], $loginData->fields['password'])) {
-				$returnUrl = SITE_DOMAIN.'/imi.php'; // 로그인 성공 시 이동 링크
+                if ($loginData->fields['join_date'] === null) {
+                    throw new Exception('회원 가입이 되어있지 않은 계정입니다.');
+                }
 
-				$param = [
-					$loginData->fields['idx'], 
-					setEncrypt($_SERVER['REMOTE_ADDR']), 
-					setEncrypt($_SERVER['HTTP_USER_AGENT'])
-				];
+                if ($loginData->fields['join_approval_date'] === null){
+                    throw new Exception('회원 가입시 입력한 메일에 승인을 하지 않았습니다.');
+                }
 
-				$insertResult = $loginClass->insertIP($param);
+                if ($loginData->fields['withdraw_date'] != null) {
+                    throw new Exception('해당 계정은 탈퇴되었습니다!');
+                }
 
-				if ($insertResult < 1) {
-					alertMsg(SITE_DOMAIN, 1, 'IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요');
-				}
+                if ($loginData->fields['is_forcedEviction'] === 'Y') {
+                    throw new Exception('해당 계정은 차단되었습니다! 관리자에게 문의하세요');
+                }
 
-				$_SESSION['idx'] = $loginData->fields['idx'];
-				$_SESSION['id'] = $loginData->fields['id'];
-				$_SESSION['name'] = setDecrypt($loginData->fields['name']);
-				$_SESSION['grade_code'] = $loginData->fields['grade_code'];
-				$_SESSION['member_type'] = 'member';
+                if (password_verify($postData['password'], $loginData->fields['password'])) { 
+                    $returnUrl = SITE_DOMAIN.'/imi.php'; // 로그인 성공 시 이동 링크
 
-				alertMsg($returnUrl, 1, '로그인 성공하였습니다!');
-			}
-			alertMsg($returnUrl, 1, '로그인 실패 했습니다.');
-		}
-	} else if ($mode == 'admin_login') {
-		// 관리자 로그인
+                    $param = [
+                        $loginData->fields['idx'], 
+                        setEncrypt($_SERVER['REMOTE_ADDR']), 
+                        setEncrypt($_SERVER['HTTP_USER_AGENT'])
+                    ];
 
-		$loginClass = new LoginClass($db);
+                    $insertResult = $loginClass->insertIP($param);
 
-		// 유효성 검증 및 로그인실패시 이동 링크
-		$returnUrl = SITE_DOMAIN.'/admin/login.php'; 
+                    if ($insertResult < 1) {
+                        throw new Exception('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
+                    }
 
-		$postData = $_POST;
-		$loginValidator = $loginClass->checkLoginFormValidate($postData);
+                    $_SESSION['idx'] = $loginData->fields['idx'];
+                    $_SESSION['id'] = $loginData->fields['id'];
+                    $_SESSION['name'] = setDecrypt($loginData->fields['name']);
+                    $_SESSION['grade_code'] = $loginData->fields['grade_code'];
+                   
+                    $alertMessage = '로그인 성공하였습니다!';
+                    $db->commitTrans();
+                }else{
+                    throw new Exception('로그인 실패 했습니다.');   
+                }
+            }
+        } else if ($mode == 'admin_login') {
+            // 관리자 로그인
+            $loginClass = new LoginClass($db);
 
-		if ($loginValidator['isValid']==false) {
-			alertMsg($returnUrl, 1,$loginValidator['errorMessage']);
-		} else {
-			$loginData = $loginClass->getIsAdminLogin($postData['id']);
+            // 유효성 검증 및 로그인실패시 이동 링크
+            $returnUrl = SITE_DOMAIN.'/admin/login.php'; 
 
-			if ($loginData->fields['withdraw_date']!=null) {
-				alertMsg($returnUrl, 1, '해당 계정은 탈퇴되었습니다!');
-			}
+            // injection, xss 방지코드
+            $_POST['id'] = htmlspecialchars($_POST['id']);
+            $_POST['password'] = htmlspecialchars($_POST['password']);
+            $postData = $_POST;
 
-			if ($loginData->fields['is_forcedEviction']=='Y') {
-				alertMsg($returnUrl, 1, '해당 계정은 차단되었습니다! 슈퍼 관리자에게 문의하세요');
-			}
+            $loginValidator = $loginClass->checkLoginFormValidate($postData);
 
-			if (password_verify($postData['password'], $loginData->fields['password'])) {
-				$returnUrl = SITE_DOMAIN.'/admin/imi.php'; // 로그인 성공 시 이동 링크
+            if ($loginValidator['isValid'] === false) {
+				throw new Exception($loginValidator['errorMessage']);
+            } else {
+                // 트랜잭션 시작
+                $db->beginTrans();
+                
+                $loginData = $loginClass->getIsAdminLogin($postData['id']);
 
-				$param = [
-					$loginData->fields['idx'], 
-					setEncrypt($_SERVER['REMOTE_ADDR']), 
-					setEncrypt($_SERVER['HTTP_USER_AGENT'])
-				];
+                if ($loginData->fields['withdraw_date'] != null) {
+                    throw new Exception('해당 계정은 탈퇴되었습니다!');
+                }
 
-				$insertResult = $loginClass->insertAdminIP($param);
+                if ($loginData->fields['is_forcedEviction'] === 'Y') {
+                    throw new Exception('해당 계정은 차단되었습니다! 슈퍼 관리자에게 문의하세요');
+                }
 
-				if ($insertResult < 1) {
-					alertMsg(SITE_ADMIN_DOMAIN, 1, 'IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요');
-				}
+                if (password_verify($postData['password'], $loginData->fields['password'])) {
+                    $returnUrl = SITE_DOMAIN.'/admin/imi.php'; // 로그인 성공 시 이동 링크
 
-				$_SESSION['mIdx'] = $loginData->fields['idx'];
-				$_SESSION['id'] = $loginData->fields['id'];
-				$_SESSION['name'] = setDecrypt($loginData->fields['name']);
-				$_SESSION['is_superadmin'] = $loginData->fields['is_supradmin'];
+                    $param = [
+                        $loginData->fields['idx'], 
+                        setEncrypt($_SERVER['REMOTE_ADDR']), 
+                        setEncrypt($_SERVER['HTTP_USER_AGENT'])
+                    ];
 
-				alertMsg($returnUrl, 1, '로그인 성공하였습니다!');
-			}
+                    $insertResult = $loginClass->insertAdminIP($param);
 
-			alertMsg($returnUrl, 1, '로그인 실패 했습니다.');
-		}
-	}
+                    if ($insertResult < 1) {
+                        throw new Exception('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
+                    }
+
+                    $_SESSION['mIdx'] = $loginData->fields['idx'];
+                    $_SESSION['mId'] = $loginData->fields['id'];
+                    $_SESSION['mName'] = setDecrypt($loginData->fields['name']);
+                    $_SESSION['mIs_superadmin'] = $loginData->fields['is_superadmin'];
+                    
+					$alertMessage = '로그인 성공하였습니다!';
+                    $db->commitTrans();
+                } else {
+                    throw new Exception('로그인 실패 했습니다.');   
+                }
+            }
+        }
+    } catch (Exception $e) {
+        if ($connection === true) {
+			$alertMessage = $e->getMessage();
+            $db->rollbackTrans(); 
+        }
+    } finally {
+        if ($connection === true) {
+            $db->completeTrans();
+            $db->close();
+        }
+
+        if (!empty($alertMessage)) {
+            alertMsg($returnUrl, 1, $alertMessage);
+        } else {
+            alertMsg(SITE_DOMAIN, 0);
+        }
+    }

@@ -1,23 +1,23 @@
 <form id="virtual-charge-form" method="post" action="<?=$actionUrl?>">
 	<input type="hidden" name="mode" value="<?=$actionMode?>">
-    <input type="hidden" id="idx" name="idx" value="<?=$idx?>">
-	<input type="hidden" name="mileage_type" value="<?=$mileage_type?>">
+	<input type="hidden" name="mileage_type" value="<?=$mileageType?>">
     
     <p><h3>[가상계좌 충전]</h3></p>
 
 	<p>
 		<label for="accountBank">입금은행: </label>
-		<select id="accountBank" name="account_bank">
-			<option value="">선택하세요.</option>
-			<option value="기업은행">기업은행</option>
-			<option value="국민은행">국민은행</option>
-			<option value="신한은행">신한은행</option>
-			<option value="외환은행">외환은행</option>
-			<option value="우리은행">우리은행</option>
-			<option value="부산은행">부산은행</option>
-			<option value="광주은행">광주은행</option>
-			<option value="우체국">우체국</option>
-		</select>
+		<?php if(count($CONFIG_BANK_ARRAY) > 0):?>
+			<select id="accountBank" name="account_bank">
+				<option value="">선택하세요.</option>
+				<?php for($i=0; $i<count($CONFIG_BANK_ARRAY); $i++): ?>
+					<option value="<?=$CONFIG_BANK_ARRAY[$i]?>">
+						<?=$CONFIG_BANK_ARRAY[$i];?>
+					</option>
+				<?php endfor; ?>
+			</select>
+		<?php else: ?>
+			<p>관리자에게 문의하세요!</p>
+		<?php endif; ?>
 		<input type="button" id="issue-btn" value="계좌조회">
 	</p>
 	<br>
@@ -28,10 +28,20 @@
 	</p>
 	<br>
 
-
 	<p>
 		<label for="chargeCost">입금금액: </label>
-		<input type="text" id="chargeCost" name="charge_cost" value="" size="16">
+		<?php if(count($CONFIG_MILEAGE_ARRAY) > 0):?>
+			<select id="chargeCost" name="charge_cost">
+				<option value="">선택하세요.</option>
+				<?php for($i=0; $i<count($CONFIG_MILEAGE_ARRAY); $i++): ?>
+					<option value="<?=$CONFIG_MILEAGE_ARRAY[$i]?>">
+						<?=$CONFIG_MILEAGE_ARRAY[$i];?>
+					</option>
+				<?php endfor; ?> 
+			</select>원
+		<?php else: ?>
+			<p>관리자에게 문의하세요!</p>
+		<?php endif; ?>
 	</p>
 	<br>
 

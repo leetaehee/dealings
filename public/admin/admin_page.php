@@ -18,27 +18,34 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/AdminClass.php'; // Class 파일
 
-	// 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_ADMIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
-    $returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_ADMIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
+		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$alertMessage = '';
 
-	
-	$adminClass = new AdminClass($db);
-    $idx = $_SESSION['mIdx'];
+		$adminClass = new AdminClass($db);
+		$idx = $_SESSION['mIdx'];
+		
+		$adminData = $adminClass->getAdminData($idx);
+		if ($adminData === false) {
+			throw new Exception('로그인 된 관리자 정보 가져올 때 오류발생! 관리자에게 문의하세요.');
+		}
 
-	
-    $adminData = $adminClass->getAdminData($idx);
+		$adminDeleteUrl = SITE_ADMIN_DOMAIN . '/admin_delete.php?idx=' . $idx; // 회원탈퇴 
+		$adminModifyUrl = SITE_ADMIN_DOMAIN . '/admin_modify.php?idx=' . $idx; // 회원수정 
 
-    if ($adminData==false) {
-        alertMsg($returnUrl,1,'오류입니다! 관리자에게 문의하세요.');
-    }
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/admin_page.html.php';
+	} catch (Exception $e) {
+		$alertMessage = $e->getMessage();
+	} finally {
+		if ($connection==true) {
+			$db->close();
+		}
 
-    $adminDeleteUrl = SITE_ADMIN_DOMAIN . '/admin_delete.php?idx=' . $idx; // 회원탈퇴 
-    $adminModifyUrl = SITE_ADMIN_DOMAIN . '/admin_modify.php?idx=' . $idx; // 회원수정 
-
-	ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/admin_page.html.php';
-	$output = ob_get_clean();
-
+		if (!empty($alertMessage)) {
+			alertMsg($returnUrl,1,$alertMessage);
+		}
+	}
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/layout_main.html.php'; // 전체 레이아웃

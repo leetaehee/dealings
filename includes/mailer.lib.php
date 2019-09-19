@@ -1,27 +1,13 @@
 <?php
 include_once(__DIR__.'/../PHPMailer/PHPMailerAutoload.php');
 
-// 네이버 메일 전송m
-// 메일 -> 환경설정 -> POP3/IMAP 설정 -> POP3/SMTP & IMAP/SMTP 중에 IMAP/SMTP 사용
-
-// 메일 보내기 (파일 여러개 첨부 가능)
-// mailer("보내는 사람 이름", "보내는 사람 메일주소", "받는 사람 메일주소", "제목", "내용", "type");
-// type : text=0, html=1, text+html=2
-
-// ex) mailer("kOO", "zzxp@naver.com", "zzxp@naver.com", "제목 테스트", "내용 테스트", 1);
+/**
+ * id: developerkimtakgu@gmail.com/pw: dltkdghrytnsla//app key:otigukngcxepqrdi
+ * imap 설정함
+ * smtp.naver.com
+ */
 function mailer($fname, $fmail, $to, $subject, $content, $type=0, $file="", $cc="", $bcc="")
 {
-    /**
-     * [네이버] 
-     * id: double255@naver.com/pw: phpmyadmin@/port: 465/app key: BVLNL2GPZ2LV
-     * smtp 설정함
-     * 이상민 카톡 확인 후 정리 할 것 
-     * smtp.naver.com
-     * [구글]
-     * id: developerkimtakgu@gmail.com/pw: dltkdghrytnsla/prot: ??/app key:otigukngcxepqrdi
-     * imap 설정함
-     * smtp.naver.com
-     */
     if ($type != 1)
         $content = nl2br($content);
 

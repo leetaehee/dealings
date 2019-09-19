@@ -18,28 +18,37 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php'; // Class 파일
 
-	// 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_LOGIN_LIST . ' | ' . TITLE_SITE_NAME;
-    $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_LOGIN_LIST . ' | ' . TITLE_SITE_NAME;
+		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$alertMessage = '';
+		
+		$param = [
+				'idx'=>$_SESSION['idx'],
+				'today'=>date('Y-m-d')
+			];
+		$loginClass = new LoginClass($db);
 
-    $loginClass = new LoginClass($db); 
-	
-	$param = [
-			'idx'=>$_SESSION['idx'],
-			'today'=>date('Y-m-d')
-		];
+		$loginAccessList = $loginClass->getLoginAccessList($param);
+		if ($loginAccessList === false) {
+			throw new Exception('로그인 접속내역 조회 오류! 관리자에게 문의하세요.');
+		}
+		$rocordCount = $loginAccessList->recordCount();
+		
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/login_access_list.html.php';
+	} catch (Exception $e) {
+		if ($connection == true) {
+			$alertMessage = $e->getMessage();
+		}
+	} finally {
+		if ($connection == true) {
+			$db->close();
+		}
 
-	$loginAccessList = $loginClass->getLoginAccessList($param);
-
-	if($loginAccessList==false) {
-		alertMsg($returnUrl,1,'데이터를 조회할 수 없습니다');
+		if (!empty($alertMessage)) {
+			alertMsg(SITE_DOMAIN,1,$alertMessage);
+		}
 	}
-
-	$rocordCount = $loginAccessList->recordCount();
-
-	ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/login_access_list.html.php';
-	$output = ob_get_clean();
-
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

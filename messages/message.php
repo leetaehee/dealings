@@ -34,6 +34,17 @@
 	define('TITLE_VIRTUAL_MILEGE_WITHDRAWAL', '가상계좌 출금'); // 마일리지 출금
 	define('TITLE_MY_CHARGE_LIST', '마일리지 충전내역'); // 마일리지 충전내역
 	define('TITLE_MY_WITHDRAWAL_LIST', '마일리지 출금내역'); // 마일리지 출금내역
+	define('TITLE_VOUCHER_DEALINGS_HOME', '상품권 거래'); // 상품권 거래 홈
+	define('TITLE_VOUCHER_PURCHASE_ENROLL', '상품권 구매등록'); // 상품권 구매 등록
+	define('TITLE_VOUCHER_SELL_ENROLL', '상품권 판매등록'); // 상품권 판매 등록
+	define('TITLE_VOUCHER_PURCHASE_LIST', '상품권 구매목록'); // 상품권 구매 목록
+	define('TITLE_VOUCHER_SELL_LIST', '상품권 판매목록'); // 상품권 판매 목록
+	define('TITLE_VOUCHER_PURCHASE_DETAIL_VIEW', '상품권 구매 거래 상세내역'); // 상품권 구매 거래 상세화면
+	define('TITLE_VOUCHER_SELL_DETAIL_VIEW', '상품권 판매 거래 상세내역'); // 상품권 판매 거래 상세화면
+	define('TITLE_VOUCHER_PURCHASE_STATUS', '상품권 구매 결제현황'); // 상품권 구매 결제 현황 목록
+	define('TITLE_VOUCHER_SELL_STATUS', '상품권 판매 결제현황'); // 상품권 판매 결제 현황 목록
+	define('TITLE_VOUCHER_PURCHASE_ENROLL_STATUS', '상품권 구매 등록현황'); // MY 구매 등록 현황 목록
+	define('TITLE_VOUCHER_SELL_ENROLL_STATUS', '상품권 판매 등록현황'); // MY 판매 등록 현황 목록
 
 	define('TITLE_ADMIN_SITE_NAME', '관리자::IMI 회원정보 시스템'); // 관리자 사이트명
 	define('TITLE_ADMIN_MODIFY_MENU', '정보수정'); // 관리자 정보수정
@@ -41,6 +52,8 @@
 	define('TITLE_ADMIN_LOGIN_LIST', '내역'); // 관리자 로그인내역
 	define('TITLE_ADMIN_MENU', '정보'); // 관리자 정보 메뉴
 	define('TITLE_ADMIN_MEMBER_STATUS', '회원관리'); // 회원현황
+	define('TITLE_ADMIN_CHARGE_STATUS', '마일리지 결제내역'); // 결제내역
+	define('TITLE_ADMIN_DEALINGS_STATUS', '상품권 거래관리'); // 거래관리
 
 	/*
 	 * @author: LeeTaeHee

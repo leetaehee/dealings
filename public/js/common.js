@@ -60,3 +60,26 @@ function checkInteger(integer)
 	var integerCheck = /^[0-9]+$/;
 	return integerCheck.test(integer);
 }
+
+function getCommission(dealingsMileage, commission)
+{
+	/*
+	 * @breif : 수수료 계산 
+	 *	1. 수수료 = (거래금액*수수료) / 100
+	 *  2. 실수령액 = 거래금액 - 수수료
+	 * @param : 거래금액, 수수료 
+	 * @return : int
+	 */
+	var balance = 0;
+	var realMileage = 0;
+
+	dealingsMileage = dealingsMileage*1;
+	commission = commission*1;
+
+	if (dealingsMileage >= 1000 && commission > 0) {
+		balance = (dealingsMileage*commission)/100;
+		return dealingsMileage-balance;
+	} else {
+		return 0;
+	}
+}

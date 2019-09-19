@@ -14,41 +14,50 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/AdminClass.php'; // Class 파일
 
-    // 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_ADMIN_MODIFY_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
-    $returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화.
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_ADMIN_MODIFY_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
+		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화.
+		$alertMessage = '';
 
-    $actionUrl = ADMIN_PROCESS_ACTION . '/admin_process.php'; // form action url
-    $ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
-	$actionMode = 'modi'; // 회원수정
-    $JsTemplateUrl = JS_ADMIN_URL . '/join.js'; 
+		$actionUrl = ADMIN_PROCESS_ACTION . '/admin_process.php'; // form action url
+		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
+		$actionMode = 'modi'; // 회원수정
+		$JsTemplateUrl = JS_ADMIN_URL . '/join.js'; 
 
-    $adminClass = new AdminClass($db);
-    $idx = $_SESSION['mIdx'];
+		$adminClass = new AdminClass($db);
+		$idx = $_SESSION['mIdx'];
 
-    $adminData = $adminClass->getAdminData($idx);
+		$adminData = $adminClass->getAdminData($idx);
+		if ($adminData === false) {
+			throw new Exception('회원정보를 찾을 수 없습니다. 관리자에게 문의하세요.');
+		}
 
-    if ($adminData==false) {
-        alertMsg($returnUrl,1,'회원정보를 찾을 수 없습니다.');
-    }
+		$adminId = $adminData->fields['id'];
+		$adminName = setDecrypt($adminData->fields['name']);
+		$adminEmail = setDecrypt($adminData->fields['email']);
+		$adminPhone = setDecrypt($adminData->fields['phone']);
+		$adminBirth = setDecrypt($adminData->fields['birth']);
+		$adminSex = $adminData->fields['sex'];
 
-    $adminId = $adminData->fields['id'];
-    $adminName = setDecrypt($adminData->fields['name']);
-    $adminEmail = setDecrypt($adminData->fields['email']);
-    $adminPhone = setDecrypt($adminData->fields['phone']);
-    $adminBirth = setDecrypt($adminData->fields['birth']);
-    $adminSex = $adminData->fields['sex'];
+		$adminSexMChecked = 'checked';
+		$adminSexWChecked = '';
+		if ($adminSex === 'M') {
+			$adminSexMChecked = 'checked';
+		} else {
+			$adminSexWChecked = 'checked';
+		}
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/join.html.php';
+	} catch (Exception $e) {
+		$alertMessage = $e->getMessage();
+	} finally {
+		if ($connection==true) {
+			$db->close();
+		}
 
-    $adminSexMChecked = 'checked';
-    $adminSexWChecked = '';
-    if ($adminSex=='M') {
-        $adminSexMChecked = 'checked';
-    } else {
-        $adminSexWChecked = 'checked';
-    }
-
-    ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/join.html.php'; // 템플릿
-	$output = ob_get_clean();
+		if (!empty($alertMessage)) {
+			alertMsg($returnUrl,1,$alertMessage);
+		}
+	}
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/layout_main.html.php'; // 전체 레이아웃

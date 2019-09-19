@@ -70,7 +70,7 @@
 				</ul>
 			</nav>
 			<section>
-				<?=$output?>
+				<?php include_once $templateFileName?>
 			</section>
 			<footer>
 				&copy; IMI  시스템 <?=date('Y')?> <br>

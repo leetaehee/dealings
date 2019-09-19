@@ -54,6 +54,9 @@
 							<a href="<?=SITE_DOMAIN?>/logout.php">로그아웃|</a>
 						</li>
 						<li> 
+							<a href="<?=SITE_DOMAIN?>/voucher_dealings.php">상품권거래|</a>
+						</li>
+						<li> 
 							<a href="<?=SITE_DOMAIN?>/mypage.php">마이룸</a>
 						</li>
 					<?php else: ?>
@@ -70,7 +73,7 @@
 				</ul>
 			</nav>
 			<section>
-				<?=$output?>
+				<?php include_once $templateFileName;?>
 			</section>
 			<footer>
 				&copy; IMI 시스템 <?=date('Y')?> <br>

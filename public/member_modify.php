@@ -13,42 +13,54 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
+	
+	try {
+		// 템플릿에서 <title>에 보여줄 메세지 설정
+		$title = TITLE_MODIFY_MENU . ' | ' . TITLE_SITE_NAME;
+		$returnUrl = SITE_DOMAIN.'/mypage.php'; // 리턴되는 화면 URL 초기화.
+		$alertMessage = '';
+		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form action url
+		$ajaxUrl = MEMBER_PROCESS_ACTION . '/member_ajax_process.php'; // ajax url
+		$actionMode = 'modi'; // 회원수정
+		$JsTemplateUrl = JS_URL . '/join.js'; 
 
-    // 템플릿에서 <title>에 보여줄 메세지 설정
-	$title = TITLE_MODIFY_MENU . ' | ' . TITLE_SITE_NAME;
-    $returnUrl = SITE_DOMAIN.'/mypage.php'; // 리턴되는 화면 URL 초기화.
+		$memberClass = new MemberClass($db);
+		$idx = htmlspecialchars($_SESSION['idx']);
 
-    $actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form action url
-    $ajaxUrl = MEMBER_PROCESS_ACTION . '/member_ajax_process.php'; // ajax url
-	$actionMode = 'modi'; // 회원수정
-    $JsTemplateUrl = JS_URL . '/join.js'; 
+		$myInfomation = $memberClass->getMyInfomation($idx);
 
-    $memberClass = new MemberClass($db);
-    $idx = $_SESSION['idx'];
+		if ($myInfomation === false) {
+			throw new Exception('회원정보를 찾을 수 없습니다. 관리자에게 문의하세요.');
+		}
 
-    $myInfomation = $memberClass->getMyInfomation($idx);
+		$userId = $myInfomation->fields['id'];
+		$userName = setDecrypt($myInfomation->fields['name']);
+		$userEmail = setDecrypt($myInfomation->fields['email']);
+		$userPhone = setDecrypt($myInfomation->fields['phone']);
+		$userBirth = setDecrypt($myInfomation->fields['birth']);
+		$userSex = $myInfomation->fields['sex'];
 
-    if ($myInfomation==false) {
-        alertMsg($returnUrl,1,'회원정보를 찾을 수 없습니다.');
-    }
+		$userSexMChecked = 'checked';
+		$userSexWChecked = '';
+		if ($userSex == 'M') {
+			$userSexMChecked = 'checked';
+		} else {
+			$userSexWChecked = 'checked';
+		}
 
-    $userId = $myInfomation->fields['id'];
-    $userName = setDecrypt($myInfomation->fields['name']);
-    $userEmail = setDecrypt($myInfomation->fields['email']);
-    $userPhone = setDecrypt($myInfomation->fields['phone']);
-    $userBirth = setDecrypt($myInfomation->fields['birth']);
-    $userSex = $myInfomation->fields['sex'];
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join.html.php'; // 템플릿
+	} catch (Exception $e) {
+		if ($connection === true) {
+			$alertMessage = $e->getMessage();
+		}
+	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
 
-    $userSexMChecked = 'checked';
-    $userSexWChecked = '';
-    if ($userSex=='M') {
-        $userSexMChecked = 'checked';
-    } else {
-        $userSexWChecked = 'checked';
-    }
-
-    ob_Start();
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/join.html.php'; // 템플릿
-	$output = ob_get_clean();
+		if (!empty($alertMessage)) {
+			alertMsg(SITE_DOMAIN,1,$alertMessage);
+		}
+	} 
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

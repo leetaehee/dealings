@@ -1,7 +1,6 @@
 <form id="phone-charge-form" method="post" action="<?=$actionUrl?>">
 	<input type="hidden" name="mode" value="<?=$actionMode?>">
-    <input type="hidden" id="idx" name="idx" value="<?=$idx?>">
-	<input type="hidden" name="mileage_type" value="<?=$mileage_type?>">
+	<input type="hidden" name="mileage_type" value="<?=$mileageType?>">
     
     <p><h3>[휴대전화 충전]</h3></p>
 
@@ -25,7 +24,18 @@
 
 	<p>
 		<label for="chargeCost">충전금액: </label>
-		<input type="text" id="chargeCost" name="charge_cost" value="" size="16">
+		<?php if(count($CONFIG_MILEAGE_ARRAY) > 0):?>
+			<select id="chargeCost" name="charge_cost">
+				<option value="">선택하세요.</option>
+				<?php for($i=0; $i<count($CONFIG_MILEAGE_ARRAY); $i++): ?>
+					<option value="<?=$CONFIG_MILEAGE_ARRAY[$i]?>">
+						<?=$CONFIG_MILEAGE_ARRAY[$i];?>
+					</option>
+				<?php endfor; ?> 
+			</select>원
+		<?php else: ?>
+			<p>관리자에게 문의하세요!</p>
+		<?php endif; ?>
 	</p>
 	<br>
 

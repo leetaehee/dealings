@@ -5,9 +5,8 @@
 	 */
 
 	if(!isset($_SESSION['mIdx'])){
-		if(isset($_SESSION['tmp_idx'])){
-			// 회원가입했을 때 임시세션 제거	
-			unset($_SESSION['tmp_idx']);
+		if(isset($_SESSION['tmp_idx'])){	
+			unset($_SESSION['tmp_idx']); // 회원가입했을 때 임시세션 제거
 		}else{
 			$returnUrl = SITE_ADMIN_DOMAIN;
 			alertMsg($returnUrl,1,'로그인을 해야 이용 가능합니다!');
