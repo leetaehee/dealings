@@ -1,7 +1,7 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 목록
+	 *	@brief: 판매 거래 등록 화면
 	 */
 	
 	// 공통
@@ -19,35 +19,38 @@
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
-		$title = TITLE_VOUCHER_PURCHASE_STATUS . ' | ' . TITLE_SITE_NAME;
+		$title = TITLE_VOUCHER_SELL_MODIFY . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
-		$dealingsType = '구매';
+
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/voucher_sell_enroll.js'; 
+		$actionMode = 'dealings_modify';
+
+		$dealingsIdx = $_GET['idx'];
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
 		$dealingsClass = new DealingsClass($db);
-		
-		$purchaseParam = [
-			'dealings_member_idx'=>$_SESSION['idx'],
-			'dealings_type'=>$dealingsType,
-			'dealings_status'=>1,
-			'is_del'=>'N'
-		];
 
-		$purchaseList = $dealingsClass->getDealingIngList($purchaseParam);
-		if ($purchaseList === false) {
-			throw new Exception('구매현황 데이터를 가져오면서 오류 발생! 관리자에게 문의하세요');
+		$voucherList = $dealingsClass->getVoucherList();
+		if ($voucherList == false) {
+			throw new Exception('상품권 정보를 가져오다가 오류 발생! 관리자에게 문의하세요.');
 		} else {
-			$purchaseListCount = $purchaseList->recordCount();
+			$vourcherListCount = $voucherList->recordCount();
 		}
 
-		// 거래상세화면 이동
-		$DealingsDetailViewHref = SITE_DOMAIN . '/dealings_purchase_status_view.php?';
+		$dealingsData = $dealingsClass->getDealingsData($dealingsIdx);
+		if ($dealingsData === false) {
+			throw new Exception('회원 판매 거래정보를 가져 올 수 없습니다.');
+		}
 
-		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/purchase_status.html.php';
+		$itemNo = $dealingsData->fields['item_no'];
+		$itemMoney = $dealingsData->fields['item_money'];
+
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/sell_dealings_modify.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {

@@ -24,6 +24,10 @@
 		$alertMessage = '';
 		$dealingsType = '판매';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$dealingsClass = new DealingsClass($db);
 		
 		$purchaseParam = [
@@ -51,5 +55,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃

@@ -1,14 +1,13 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 나의 구매글 등록 현황
+	 *	@brief: 회원 거래관리 현황
 	 */
 	
-	// 공통
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; //메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수 
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php'; // 세션체크
 	
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -25,11 +24,15 @@
 		$alertMessage = '';
 		$dealingsType = '구매';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$dealingsClass = new DealingsClass($db);
 
 		$payDealingsList = $dealingsClass->getPayCompletedDealingIngList();
 		if ($payDealingsList === false) {
-			throw new Exception('결제 완료 된 데이터를 가져올 수 없습니다! 관리자에게 문의하세요');
+			throw new Exception('결제 완료 된 데이터를 가져올 수 없습니다.');
 		} else {
 			$payDealingsListCount = $payDealingsList->recordCount();
 		}
@@ -45,5 +48,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/layout_main.html.php';// 전체 레이아웃

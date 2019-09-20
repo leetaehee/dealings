@@ -30,6 +30,10 @@
 		$dealingsType = '판매';
 		$btnName = '결제하기';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		// xss, injection 방지
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
 		$_GET['type'] = htmlspecialchars($_GET['type']);
@@ -40,14 +44,14 @@
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
-			throw new Exception('회원 구매 거래정보를 가져 올 수 없습니다! 관리자에게 문의하세요.');
+			throw new Exception('회원 구매 거래정보를 가져 올 수 없습니다.');
 		}
 
 		// 구매자 정보 갖고오기
 		$dealingsMemberIdx = $dealingsData->fields['dealings_member_idx'];
 		$purchaserData = $memberClass->getMyInfomation($dealingsMemberIdx);
 		if ($purchaserData === false) {
-			throw new Exception('구매자 정보를 가져 올 수 없습니다.! 관리자에게 문의하세요.');
+			throw new Exception('구매자 정보를 가져 올 수 없습니다.');
 		} else {
 			$purchaserDataCount = $purchaserData->recordCount();
 		}
@@ -58,6 +62,9 @@
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];
+
+		$dealingsModifyUrl = SITE_DOMAIN . '/purchase_dealings_modify.php?idx=' . $getData['idx']; // 구매거래수정 
+		$dealingsDeleteUrl = $actionUrl . '?idx=' . $getData['idx'] . '&mode=dealings_delete'; // 거래삭제
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_purchase_dealings_status.html.php';
 	} catch (Exception $e) {

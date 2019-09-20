@@ -1,22 +1,20 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 
+	 *	@brief: 가상계좌 출금 등록 화면
 	 */
 	
-	// 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
-	// 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
-	// 공통함수
-	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	// 현재 세션체크
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php'; // 현재 세션체크
     
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
+	// adodb
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
+	
+	// Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 
 	try {
@@ -30,6 +28,11 @@
 		$actionMode = 'withdrawal'; // 충전모드
 		$mileageType = 5;
 		$idx = $_SESSION['idx'];
+
+		
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
 
 		$memberClass = new MemberClass($db);
 		$mileageClass = new MileageClass($db);
@@ -56,18 +59,17 @@
 		if ($maxMileage < 0) {
 			throw new Exception($returnUrl, 1, '마일리지 조회 오류! 관리자에게 문의하세요.');
 		}
+
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/virtual_account_mileage_withdrawal.html.php';
 	} catch (Exception $e) {
-		if ($connection == true) {
-			$alertMessage = $e->getMessage();
-		}
+		$alertMessage = $e->getMessage();
 	} finally {
 		if ($connection == true) {
 			$db->close();
 		}
 
 		if (!empty($alertMessage)) {
-			alertMsg(SITE_DOMAIN,1,$alertMessage);
+			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
 

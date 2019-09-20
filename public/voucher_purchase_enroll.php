@@ -1,7 +1,7 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 등록
+	 *	@brief: 구매 거래 등록화면
 	 */
 	
 	// 공통
@@ -29,6 +29,10 @@
 		$dealingsState = '거래대기';
 		$dealingsType = '구매';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$dealingsClass = new DealingsClass($db);
 
 		$voucherList = $dealingsClass->getVoucherList();
@@ -46,5 +50,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃

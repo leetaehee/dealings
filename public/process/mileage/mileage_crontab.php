@@ -12,30 +12,21 @@
 	include_once $topDir . '/configs/config.php'; // 환경설정
 	include_once $topDir . '/messages/message.php'; // 메세지
 	include_once $topDir . '/includes/function.php'; // 공통함수
+	
+	// adodb
+	include_once $topDir . '/adodb/adodb.inc.php';
+	include_once $topDir . '/includes/adodbConnection.php';
+	
+	// Class 파일
+	include_once $topDir . '/class/MileageClass.php';
+	include_once $topDir . '/class/MemberClass.php';
 
-	include_once $topDir . '/adodb/adodb.inc.php'; // adodb
-	include_once $topDir . '/includes/adodbConnection.php'; // adodb
-
-	include_once $topDir . '/class/MileageClass.php'; // Class 파일
-	include_once $topDir . '/class/MemberClass.php'; // Class 파일
+	// Exception 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
     try {
-        /*
-         * -- imi_mileage_charge 테이블에서 아래 조건인 Row만 추출 (order by 줄것)
-         * 1. is_expiration=N
-         * 2. mileage_idx <> 5 (가상결제가 아니면)
-         * 3. charge_status = 3,6
-         * 4. expiration_date < 오늘날짜보다 작은 경우 
-         * -- is_expiration ='Y', imi_mileage_charge.charge_stauts=4(유효기간초과)로 할것
-         * -- 사용마일리지, 남은 마일리지 조정
-         * -- imi_mileage_change에 변경이력 넣기
-         * -- imi_members.mileage 수정
-         * -- imi_mileage_type_sum 업데이트 (가상계좌 제외하고 넣을 것)
-         */
-
         $today = date('Y-m-d');
-        $errorMessage = '';
-        $notErrorMessage = '';
+		$message = '';
 
         $db->beginTrans(); // 트랜잭션시작
 
@@ -48,36 +39,36 @@
             // 결제내역 데이터를 배열로 변환하기
             $chargeData = $mileageClass->getExpirationArrayData($excessValidDateList);
             if ($chargeData === false) {
-                throw new Exception('데이터를 배열로 저장할 때 오류 발생!');
+                throw new RollbackException('데이터를 배열로 저장 시 오류 발생했습니다. |');
             }
 
             // 유효기간 만료로 충전내역 변경
             $updateChargeResult = $mileageClass->updateExpirationDate($chargeData);
             if ($updateChargeResult < 1) {
-                throw new Exception('만료된 데이터가 없습니다.');
+                throw new RollbackException('만료된 데이터가 없습니다. |');
             }
 
             // 변동내용 추가
             $insertChangeResult = $mileageClass->insertMileageChange($chargeData);
             if ($insertChangeResult < 1) {
-                throw new Exception('마일리지 변동내역 추가하다가 오류 발생!');
+                throw new RollbackException('마일리지 변동내역 추가 오류 발생했습니다. |');
             }
 
              // 전체 마일리지 조회
             $memberTotalMileage = $mileageClass->getAllMemberMileageTotal();
             if ($memberTotalMileage == false) {
-                throw new Exception('마일리지 조회 중에 오류 발생!');
+                throw new RollbackException('마일리지 조회 오류 발생 했습니다. |');
             }
 
             // 개별정보수정
             $updateResult = $memberClass->updateAllMemberMilege($memberTotalMileage);
             if ($updateResult < 1) {
-                throw new Exception('회원 마일리지 수정 실패!');
+                throw new RollbackException('회원 마일리지 수정 실패 했습니다. |');
             }
             
             $mileageTypeData = $mileageClass->getAllMemberPartMileageTotal();
             if ($mileageTypeData == false) {
-                throw new Exception('회원 마일리지 유형별 합계 조회 오류!');
+                throw new RollbackException('회원 마일리지 유형별 합계 조회 오류 발생했습니다. |');
             }
 
             // 마일리지 타입별로 수정하기 
@@ -98,9 +89,9 @@
 
                         $insertResult = $mileageClass->mileageTypeInsert($mileageIdx, $param);
                         if ($insertResult < 1) {
-                            throw new Exception('memberIdx: '.$memberIdx.'번, 데이터 입력 오류 발생!');
+                            throw new RollbackException('memberIdx: '.$memberIdx.'번 입력 오류 발생했습니다. |');
                         } else {
-                            $notErrorMessage = '회원별 마일리지 타입에 대해 추가 완료';
+                            $message = '회원별 마일리지 타입에 대해 추가 완료 |';
                         }
                     } else {
                         $param = [
@@ -110,9 +101,9 @@
 
                         $updateResult = $mileageClass->mileageTypeWithdrawalUpdate($mileageIdx, $param);
                         if ($updateResult < 1) {
-                            throw new Exception('memberIdx: '.$memberIdx.'번, 데이터 수정 오류 발생!');
+                            throw new RollbackException('memberIdx: '.$memberIdx.'번 수정 오류 발생했습니다. |');
                         } else {
-                            $notErrorMessage = '회원별 마일리지 타입에 대해 수정 완료';
+                            $message = '회원별 마일리지 타입에 대해 수정 완료 |';
                         }
                     }
                 }
@@ -125,37 +116,37 @@
 
                 $updateChargeExpiration = $mileageClass->updateStatusByExpirationDate($chargeExpirationParam);
                 if ($updateChargeExpiration < 1) {
-                    $notErrorMessage = '> 충전상태 변경 오류! 관리자에게 문의하세요. <br>';
-                    throw new Exception($errorMessage);
+                    throw new RollbackException('충전상태 변경 오류! 관리자에게 문의하세요. |');
                 }
-                $db->commitTrans();
+
+				$alertMessage = '유효기간 만료데이터를 정상적으로 삭제하였습니다.';
+				$db->commitTrans();
+				$db->completeTrans();
             } else {
-                throw new Exception('회원별 마일리 타입 데이터 가져오는 중에 오류 발생!');
+                throw new RollbackException('회원별 마일리 타입 데이터 가져오는 중에 오류가 발생했습니다. |');
             }
         } else {
             // 유효기간 만료된 내역 추출하기 
             if ($excessValidDateList === false) {
-                throw new Exception('관리자에게 문의하세요');
+                throw new RollbackException('관리자에게 문의하세요');
             } else {
-                throw new Exception('데이터가 존재하지 않습니다.');
+                throw new RollbackException('데이터가 존재하지 않습니다.');
             }
         }
-    } catch (Exception $e) {
-        if ($connection === true) {
-			$errorMessage = $e->getMessage();
-            $db->rollbackTrans();
-        }
+    } catch (RollbackException $e) {
+		// 트랜잭션 문제가 발생했을 때
+		$alertMessage = $e->errorMessage();
+		$db->rollbackTrans();
+	} catch (Exception $e) {
+		// 트랜잭션을 사용하지 않을 때
+		$alertMessage = $e->getMessage();
     } finally {
-        if ($connection === true) {
-            $db->completeTrans();
+        if  ($connection === true) {
             $db->close();
         }
-
-		if (!empty($errorMessage)) {
-            echo $errorMessage;   
-        }
-        
-        if (!empty($notErrorMessage)) {
-            echo $notErrorMessage;   
-        }
+		
+        if (!empty($alertMessage)) {
+            echo $alertMessage.'<br>';
+			echo $message;
+		}
     }

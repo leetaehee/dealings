@@ -29,6 +29,10 @@
 		$dealingsType = '판매';
 		$btnName = '판매취소';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		// xss, injection 방지
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
 		$_GET['type'] = htmlspecialchars($_GET['type']);
@@ -39,11 +43,14 @@
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
-			throw new Exception('회원 판매 거래정보 가져오는데 오류 발생! 관리자에게 문의하세요.');
+			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
 		}
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['idx'];
+
+		$dealingsModifyUrl = SITE_DOMAIN . '/sell_dealings_modify.php?idx=' . $getData['idx']; // 판매거래수정 
+		$dealingsDeleteUrl = $actionUrl . '?idx=' . $getData['idx'] . '&mode=dealings_delete'; // 거래삭제
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_sell_dealings_status.html.php';
 	} catch (Exception $e) {

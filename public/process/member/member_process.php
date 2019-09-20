@@ -20,13 +20,15 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
 
+	// Exception 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
+
     try {
         $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = ''; // 메세지
         
         if ($connection === false) {
-            $alertMessage = '데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요';
-            throw new Exception($alertMessage);
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
         if (isset($_POST['mode'])) {
@@ -70,10 +72,10 @@
                 
                 $accountOverlapCount = $memberClass->getAccountOverlapCount($accountData);                
                 if ($accountOverlapCount === false) {
-                    throw new Exception('계정중복확인 오류 발생! 관리자에게 문의하세요');
+                    throw new RollbackException('계정정보를 가져오지 못했습니다.');
                 } else {
                     if ($accountOverlapCount > 0) {
-                        throw new Exception('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+                        throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
                     }
                 }
             }
@@ -84,18 +86,18 @@
                 if ($insertResult > 0) {
                     $returnUrl = SITE_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
 
-                    $_SESSION['tmp_idx'] = 't_'.$idx; // 임시세션
+                    $_SESSION['tmp_idx'] = 't_'.$insertResult; // 임시세션
 
                     $approvalUrl = SITE_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
                     $content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
 
                     //메일발송
                     mailer(MAIL_SENDER, MAIL_ADDRESS, $postData['email'], MAIL_TITLE, $content);
-                    $alertMessage = '회원 가입이 되었습니다. 이메일을 확인하세요';
-                    
+
                     $db->commitTrans();
+					$alertMessage = '회원 가입이 되었습니다. 이메일을 확인하세요';
                 } else {
-                    throw new Exception('회원 가입 실패하였습니다.');
+                    throw new RollbackException('회원 가입 실패하였습니다.');
                 }
             } 
         } else if ($mode == 'modi') {
@@ -144,10 +146,10 @@
                     $accountOverlapCount = $memberClass->getAccountOverlapCount($accountData);
                     
                     if ($accountOverlapCount === false) {
-                        throw new Exception('계정중복확인 오류 발생! 관리자에게 문의하세요');
+                        throw new RollbackException('계정중복확인 오류 발생! 관리자에게 문의하세요');
                     } else {
                         if ($accountOverlapCount > 0) {
-                            throw new Exception('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+                            throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
                         }
                     }
                 }
@@ -157,12 +159,13 @@
                 $updateResult = $memberClass->updateMember($postData);
 
                 if ($updateResult > 0) {
-                    $alertMessage = '회원정보가 수정 되었습니다.';
 					$returnUrl = SITE_DOMAIN.'/mypage.php'; // 수정 성공 시 마이페이지로 이동
+
+					$db->commitTrans();
+					$alertMessage = '회원정보가 수정 되었습니다.'; 
                 } else {
-                    throw new Exception('회원 정보 수정 실패하였습니다.');  
+                    throw new RollbackException('회원 정보 수정 실패하였습니다.');  
                 }
-                $db->commitTrans();
             }
         } else if ($mode == 'del') {
             // 회원탈퇴
@@ -197,25 +200,25 @@
             $checkLoginData = $loginClass->checkPasswordByUser($param);
 
             if ($checkLoginData === false) {
-                throw new Exception('패스워드 체크 오류! 관리자에게 문의하세요.');
+                throw new RollbackException('패스워드 체크 오류! 관리자에게 문의하세요.');
             }else{
                 if ($checkLoginData === null) {
-                    throw new Exception('패스워드를 확인하세요!');
+                    throw new RollbackException('패스워드를 확인하세요!');
                 }
 
             }
 
             $updateResult = $memberClass->deleteMember($idx);
-
             if ($updateResult < 1) {
-                throw new Exception('회원 탈퇴 오류! 관리자에게 문의하세요!');
+                throw new RollbackException('회원 탈퇴 오류! 관리자에게 문의하세요!');
             } else {
 				$returnUrl = SITE_DOMAIN;
+				
+				$db->commitTrans();
+				session_destroy();
+
 				$alertMessage = '정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.';
 			}
-           
-            $db->commitTrans();
-            session_destroy();
         } else if ($mode == 'account') {
             $returnUrl = SITE_DOMAIN.'/my_account.php';
 		
@@ -244,26 +247,28 @@
                 $db->beginTrans();
 
                 $updateResult = $memberClass->updateMyAccount($param);
-
                 if ($updateResult < 1) {
-                    throw new Exception('계좌정보가 입력이 실패했습니다.');
+                    throw new RollbackException('계좌정보가 입력이 실패했습니다.');
                 } else {
-                    $alertMessage = '계좌정보가 설정되었습니다!';
+                    $db->commitTrans();
+
+					$alertMessage = '계좌정보가 설정되었습니다!';
                 }
-                $db->commitTrans();
             }
         }
-    } catch (Exception $e) {
-        if  ($connection === true) {
-            $db->rollbackTrans();
-			$alertMessage = $e->getMessage();
-        }
+		$db->completeTrans();
+	} catch (RollbackException $e) {
+		// 트랜잭션 문제가 발생했을 때
+		$alertMessage = $e->errorMessage();
+		$db->rollbackTrans();
+	} catch (Exception $e) {
+		// 트랜잭션을 사용하지 않을 때
+		$alertMessage = $e->getMessage();	
     } finally {
         if  ($connection === true) {
-            $db->completeTrans();
             $db->close();
         }
-        
+		
         if (!empty($alertMessage)) {
             alertMsg($returnUrl, 1, $alertMessage);
         } else {

@@ -114,7 +114,8 @@
             
             $query = "SELECT COUNT(`id`)  cnt 
                       FROM `imi_members`
-                      WHERE `phone` = ? OR `email` = ? {$search} FOR UPDATE";
+                      WHERE `phone` = ? OR `email` = ? {$search}
+					  FOR UPDATE";
             $result = $this->db->execute($query,$accountData);
             
 			if ($result === false) {
@@ -131,7 +132,7 @@
 		 */
 		public function getIdOverlapCount($id)
 		{
-			$query = "SELECT count(id) cnt FROM `imi_members` WHERE `id` = ?";
+			$query = "SELECT count(id) cnt FROM `imi_members` WHERE `id` = ? FOR UPDATE";
 			$result = $this->db->execute($query,$id);
 
 			if ($result === false) {
@@ -150,7 +151,7 @@
 		{
 			$phone = removeHyphen($phone);
 
-			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `phone` = ?";
+			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `phone` = ? FOR UPDATE";
 			$result = $this->db->execute($query, setEncrypt($phone));
 
 			if ($result === false) {
@@ -166,7 +167,7 @@
 		 */
 		public function getEmailOverlapCount($email)
 		{	
-			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `email` = ?";
+			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `email` = ? FOR UPDATE";
 			$result = $this->db->execute($query, setEncrypt($email));
 
 			if ($result === false) {
@@ -312,7 +313,8 @@
                       FROM `imi_members` `imi`
 						INNER JOIN `imi_member_grades` `img` 
 							ON `imi`.`grade_code` = `img`.`grade_code`
-                      WHERE `idx` = ?';
+                      WHERE `idx` = ?
+					  FOR UPDATE';
             $result = $this->db->execute($query, $param);
             
 			if ($result == false) {
@@ -357,6 +359,7 @@
 							 `account_bank`
 					  FROM `imi_members`
 					  WHERE `idx` = ?
+					  FOR UPDATE
 					';
 
 			$result = $this->db->execute($query,$idx);
@@ -484,7 +487,8 @@
 					  FROM `imi_members`
 					  WHERE `forcedEviction_date` IS NULL
 					  AND `withdraw_date` IS NULL
-					  AND `join_approval_date` IS NOT NULL';
+					  AND `join_approval_date` IS NOT NULL
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query);
 

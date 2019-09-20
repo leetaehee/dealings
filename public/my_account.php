@@ -28,11 +28,15 @@
 		$JsTemplateUrl = JS_URL . '/account.js'; 
 		$idx = $_SESSION['idx'];
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$memberClass = new MemberClass($db);
 
 		$accountData = $memberClass->getAccountByMember($idx);
 		if($accountData === false) {
-			throw new Exception('회원정보에 대한 자료를 찾을 수 없습니다. 관리자에게 문의하세요.');
+			throw new Exception('회원정보를 찾을 수 없습니다.');
 		}
 
 		$accountNo = setDecrypt($accountData->fields['account_no']);
@@ -47,7 +51,7 @@
 		}
 
 		if (!empty($alertMessage)) {
-			alertMsg(SITE_DOMAIN,1,$alertMessage);
+			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
 

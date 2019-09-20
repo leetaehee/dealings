@@ -225,7 +225,8 @@
 					  WHERE `mileage_idx` <> 5
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
-					  ORDER BY `member_idx` ASC, `expiration_date` ASC FOR UPDATE';
+					  ORDER BY `member_idx` ASC, `expiration_date` ASC
+					  FOR UPDATE';
 			
 			$result = $this->db->execute($query,$param);
 
@@ -460,6 +461,7 @@
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` IN (1,3)
 					  AND `imc`.`is_expiration` = ?
+					  FOR UPDATE
 					';
 			$result = $this->db->execute($query,$param);
 
@@ -497,6 +499,7 @@
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` IN (2,4,5)
+					  FOR UPDATE
 					';
 			$result = $this->db->execute($query,$param);
 
@@ -514,7 +517,7 @@
          */
 		public function getMemberMileageTypeIdx($idx)
 		{
-			$query = 'SELECT `idx` FROM `imi_mileage_type_sum` WHERE `member_idx` = ?';
+			$query = 'SELECT `idx` FROM `imi_mileage_type_sum` WHERE `member_idx` = ? FOR UPDATE';
 			$result = $this->db->execute($query,$idx);
 
 			if ($result == false) {
@@ -614,6 +617,7 @@
 						'use_cost'=>$chargeData[$i]['use_cost'],
 						'member_idx'=>$purchaser_idx
 					];
+	
 					$colName = $this->getMileageTypeColumn($chargeData[$i]['mileage_idx']);
 
 					$query = "UPDATE `imi_mileage_type_sum` SET
@@ -627,11 +631,11 @@
 					if ($affected_row < 1) {
 						return false;
 					}
-					return $affected_row;
 				}
 			} else {
 				return false;
 			}
+			return $affected_row;
 		}
 
 		/**
@@ -646,7 +650,8 @@
 
 			$query = "SELECT `{$colName}` `{$colName}`
 					  FROM `imi_mileage_type_sum`
-					  WHERE `member_idx` = ?";
+					  WHERE `member_idx` = ?
+					  FOR UPDATE";
 			
 			$result = $this->db->execute($query,$memberIdx);
 
@@ -684,10 +689,10 @@
 						INNER JOIN `imi_mileage` `imcd`
 							ON `imc`.`mileage_idx` = `imcd`.`idx`
 					  WHERE `imc`.`is_expiration` = ?
-					  AND `imc`.`charge_status` <> ?';
+					  AND `imc`.`charge_status` <> ?
+					  FOR UPDATE';
 			
 			$result = $this->db->execute($query,$param);
-
 			if ($result == false) {
 				return false;
 			}
@@ -800,7 +805,7 @@
 					   `charge_status` = ?,
 					   `spare_cost` = `spare_cost` - ?,
 					   `use_cost` = `use_cost` + ?
-					   WHERE `idx` = ? ';
+					   WHERE `idx` = ?';
 			
 			$result = $this->db->execute($query, $param);
 			$affected_row = $this->db->affected_rows();
@@ -822,6 +827,7 @@
 					  FROM `imi_mileage_charge`
 					  WHERE `spare_cost` < 1
 					  AND `charge_status` <> 6
+					  FOR UPDATE
 					';
 			
 			$result = $this->db->execute($query);
@@ -870,7 +876,8 @@
 							 `idx`,
 							 `charge_cost`
 					  FROM `imi_mileage_charge`
-					  WHERE `idx` = ? FOR UPDATE';
+					  WHERE `idx` = ? 
+					  FOR UPDATE';
 			
 			$result = $this->db->execute($query,$idx);
 
@@ -899,7 +906,8 @@
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
 					  GROUP BY `member_idx`
-					  ORDER BY `member_idx`';
+					  ORDER BY `member_idx`
+					  FOR UPDATE';
 			
 			$result = $this->db->execute($query,$param);
 
@@ -928,7 +936,8 @@
 					  WHERE `mileage_idx` <> 5
 					  AND `expiration_date` < ?
 					  AND `charge_status` = 3
-                      GROUP BY `member_idx`, `mileage_idx`';
+                      GROUP BY `member_idx`, `mileage_idx`
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query,$param);
 

@@ -9,10 +9,12 @@
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php'; // 현재 세션체크
 
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php'; // Class 파일
+	// adodb
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
+	
+	// Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 	
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -23,6 +25,10 @@
 		$ajaxUrl = MEMBER_PROCESS_ACTION . '/member_ajax_process.php'; // ajax url
 		$actionMode = 'modi'; // 회원수정
 		$JsTemplateUrl = JS_URL . '/join.js'; 
+
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
 
 		$memberClass = new MemberClass($db);
 		$idx = htmlspecialchars($_SESSION['idx']);
@@ -59,7 +65,7 @@
 		}
 
 		if (!empty($alertMessage)) {
-			alertMsg(SITE_DOMAIN,1,$alertMessage);
+			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
 

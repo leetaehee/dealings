@@ -62,10 +62,6 @@
 	</p><br>
 
 	<p>
-		구매자: <?=$_SESSION['name']?>(<?=$_SESSION['id']?>)
-	</p><br>
-
-	<p>
 		<input type="button" id="purchase-btn" value="구매등록">
 	</p>
 </form>

@@ -1,7 +1,7 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 마이페이지
+	 *	@brief: 출금내역
 	 */
 	
 	// 환경설정
@@ -25,27 +25,29 @@
 		$alertMessage = '';
 		$idx = $_SESSION['idx'];
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$mileageClass = new MileageClass($db);
 
 		$withdrawalList = $mileageClass->getMileageWithdrawal($idx);
 		if($withdrawalList === false){
-			throw new Exception('출금내역을 가져오는데 오류발생! 관리자에게 문의하세요.');
+			throw new Exception('출금내역을 가져오는데 오류가 발생했습니다.');
 		}
 
 		$rocordCount = $withdrawalList->recordCount();
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_withdrawal_list.html.php';
 	} catch (Exception $e) {
-		if ($connection === true) {
-			$alertMessage = $e->getMessage();
-		}
+		$alertMessage = $e->getMessage();
 	} finally {
 		if ($connection === true) {
 			$db->close();
 		}
 
 		if (!empty($alertMessage)) {
-			alertMsg(SITE_DOMAIN,1,$alertMessage);
+			alertMsg($returnUrl,1,$alertMessage);
 		}
 	}
 

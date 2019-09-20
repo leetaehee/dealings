@@ -80,10 +80,19 @@
 			---------------------------------------
 		</p>
 	<?php endif; ?>
-
-	<?php if($dealingsData->fields['dealings_status'] < 3): ?>
+	
+	<?php if($dealingsData->fields['dealings_status'] ==  2): ?>
 		<p>
 			<input type="button" id="submit-btn" value="<?=$btnName?>">
 		</p>
+	<?php endif ?>
+
+	<?php if($dealingsData->fields['dealings_status'] < 2): ?>
+		<span>
+			<a href="<?=$dealingsModifyUrl?>">[수정]</a>
+		</span>
+		<span class="pl">
+			<a href="<?=$dealingsDeleteUrl?>">[삭제]</a>
+		</span>
 	<?php endif; ?>
 </form>

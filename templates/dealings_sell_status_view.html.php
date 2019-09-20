@@ -89,7 +89,7 @@
 		</p>
 	<?php endif; ?>
 
-	<?php if($dealingsData->fields['dealings_status'] < 3): ?>
+	<?php if($dealingsData->fields['dealings_status'] == 2): ?>
 		<p>
 			<input type="button" id="submit-btn" value="<?=$btnName?>">
 		</p>

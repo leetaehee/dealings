@@ -45,7 +45,8 @@
 						FROM `imi_members` `imi`
 							INNER JOIN `imi_member_grades` `img`
 								ON `imi`.`grade_code` = `img`.`grade_code`
-						WHERE `imi`.`id` = ? FOR UPDATE
+						WHERE `imi`.`id` = ?
+						FOR UPDATE
 					';
 
 			// 탈퇴일 AND `imi`.`withdraw_date` IS NULL
@@ -79,7 +80,8 @@
 							 `is_superadmin`
 						FROM `imi_admin`
 						WHERE `id` = ?
-						AND `join_approval_date` IS NOT NULL FOR UPDATE
+						AND `join_approval_date` IS NOT NULL
+						FOR UPDATE
 					';
 
 			$result = $this->db->execute($query, $id);
@@ -217,6 +219,7 @@
 					  FROM `imi_access_ip`
 					  WHERE `member_idx` = ?
 					  AND `access_date` = ?
+					  FOR UPDATE
 					';
 			
 			$result = $this->db->execute($query, $param);
@@ -243,6 +246,7 @@
 					  FROM `imi_admin_access_ip`
 					  WHERE `admin_idx` = ?
 					  AND `access_date` = ?
+					  FOR UPDATE
 					';
 			
 			$result = $this->db->execute($query, $param);

@@ -51,6 +51,7 @@
 					  FROM `imi_member_virtual_account`
 					  WHERE `member_idx` = ?
 					  AND `bank_name` = ?
+					  FOR UPDATE
 					';
 			
 			$result = $this->db->execute($query,$param);

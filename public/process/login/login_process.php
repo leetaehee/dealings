@@ -7,15 +7,24 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
+	// adodb
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php'; // Class 파일
+	// Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
+
+	// Exception 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
     try {
-        $returnUrl = ''; // 리턴되는 화면 URL 초기화.
+        $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = ''; // 메세지
 	    $mode = isset($_POST['mode']) ?  $_POST['mode'] : $_GET['mode'];
+
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
         
         if (isset($_POST['mode'])) {
             $mode = htmlspecialchars($_POST['mode']);
@@ -46,19 +55,19 @@
                 $loginData = $loginClass->getIsLogin($postData['id']);
 
                 if ($loginData->fields['join_date'] === null) {
-                    throw new Exception('회원 가입이 되어있지 않은 계정입니다.');
+                    throw new RollbackException('회원 가입이 되어있지 않은 계정입니다.');
                 }
 
                 if ($loginData->fields['join_approval_date'] === null){
-                    throw new Exception('회원 가입시 입력한 메일에 승인을 하지 않았습니다.');
+                    throw new RollbackException('회원 가입시 입력한 메일에 승인을 하지 않았습니다.');
                 }
 
                 if ($loginData->fields['withdraw_date'] != null) {
-                    throw new Exception('해당 계정은 탈퇴되었습니다!');
+                    throw new RollbackException('해당 계정은 탈퇴되었습니다!');
                 }
 
                 if ($loginData->fields['is_forcedEviction'] === 'Y') {
-                    throw new Exception('해당 계정은 차단되었습니다! 관리자에게 문의하세요');
+                    throw new RollbackException('해당 계정은 차단되었습니다! 관리자에게 문의하세요');
                 }
 
                 if (password_verify($postData['password'], $loginData->fields['password'])) { 
@@ -73,7 +82,7 @@
                     $insertResult = $loginClass->insertIP($param);
 
                     if ($insertResult < 1) {
-                        throw new Exception('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
+                        throw new RollbackException('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
                     }
 
                     $_SESSION['idx'] = $loginData->fields['idx'];
@@ -81,10 +90,10 @@
                     $_SESSION['name'] = setDecrypt($loginData->fields['name']);
                     $_SESSION['grade_code'] = $loginData->fields['grade_code'];
                    
-                    $alertMessage = '로그인 성공하였습니다!';
                     $db->commitTrans();
+					$alertMessage = '로그인 성공하였습니다!';
                 }else{
-                    throw new Exception('로그인 실패 했습니다.');   
+                    throw new RollbackException('로그인 실패 했습니다.');   
                 }
             }
         } else if ($mode == 'admin_login') {
@@ -110,11 +119,11 @@
                 $loginData = $loginClass->getIsAdminLogin($postData['id']);
 
                 if ($loginData->fields['withdraw_date'] != null) {
-                    throw new Exception('해당 계정은 탈퇴되었습니다!');
+                    throw new RollbackException('해당 계정은 탈퇴되었습니다!');
                 }
 
                 if ($loginData->fields['is_forcedEviction'] === 'Y') {
-                    throw new Exception('해당 계정은 차단되었습니다! 슈퍼 관리자에게 문의하세요');
+                    throw new RollbackException('해당 계정은 차단되었습니다! 슈퍼 관리자에게 문의하세요');
                 }
 
                 if (password_verify($postData['password'], $loginData->fields['password'])) {
@@ -127,9 +136,8 @@
                     ];
 
                     $insertResult = $loginClass->insertAdminIP($param);
-
                     if ($insertResult < 1) {
-                        throw new Exception('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
+                        throw new RollbackException('IP테이블에 문제가 생겼습니다! 관리자에게 문의하세요.');
                     }
 
                     $_SESSION['mIdx'] = $loginData->fields['idx'];
@@ -137,24 +145,27 @@
                     $_SESSION['mName'] = setDecrypt($loginData->fields['name']);
                     $_SESSION['mIs_superadmin'] = $loginData->fields['is_superadmin'];
                     
+					$db->commitTrans();
 					$alertMessage = '로그인 성공하였습니다!';
-                    $db->commitTrans();
                 } else {
-                    throw new Exception('로그인 실패 했습니다.');   
+                    throw new RollbackException('로그인 실패 했습니다.');   
                 }
             }
         }
-    } catch (Exception $e) {
-        if ($connection === true) {
-			$alertMessage = $e->getMessage();
-            $db->rollbackTrans(); 
-        }
+		$db->completeTrans();
+    } catch (RollbackException $e) {
+		// 트랜잭션 문제가 발생했을 때
+		$alertMessage = $e->errorMessage();
+		$db->rollbackTrans();
+	} catch (Exception $e) {
+		// 트랜잭션을 사용하지 않을 때
+		$alertMessage = $e->getMessage();
     } finally {
-        if ($connection === true) {
-            $db->completeTrans();
+        if  ($connection === true) {
+			// 커넥션 닫음
             $db->close();
         }
-
+		
         if (!empty($alertMessage)) {
             alertMsg($returnUrl, 1, $alertMessage);
         } else {

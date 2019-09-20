@@ -38,6 +38,8 @@
 	define('TITLE_VOUCHER_PURCHASE_ENROLL', '상품권 구매등록'); // 상품권 구매 등록
 	define('TITLE_VOUCHER_SELL_ENROLL', '상품권 판매등록'); // 상품권 판매 등록
 	define('TITLE_VOUCHER_PURCHASE_LIST', '상품권 구매목록'); // 상품권 구매 목록
+	define('TITLE_VOUCHER_PURCHASE_MODIFY', '상품권 구매수정'); // 상품권 구매 수정
+	define('TITLE_VOUCHER_SELL_MODIFY', '상품권 판매수정'); // 상품권 판매 수정
 	define('TITLE_VOUCHER_SELL_LIST', '상품권 판매목록'); // 상품권 판매 목록
 	define('TITLE_VOUCHER_PURCHASE_DETAIL_VIEW', '상품권 구매 거래 상세내역'); // 상품권 구매 거래 상세화면
 	define('TITLE_VOUCHER_SELL_DETAIL_VIEW', '상품권 판매 거래 상세내역'); // 상품권 판매 거래 상세화면

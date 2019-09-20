@@ -12,7 +12,7 @@
 	 */
 	function setEncrypt($column)
 	{
-		 return openssl_encrypt($column,ENCRYPT_TYPE,ENCRYPT_KEY,false,str_repeat(chr(0),16));
+		return openssl_encrypt($column,ENCRYPT_TYPE,ENCRYPT_KEY,false,str_repeat(chr(0),16));
 	}
 
 	/**
@@ -23,7 +23,7 @@
 	 */
 	function setDecrypt($column)
 	{
-		 return openssl_decrypt($column,ENCRYPT_TYPE,ENCRYPT_KEY,false,str_repeat(chr(0),16));
+		return openssl_decrypt($column,ENCRYPT_TYPE,ENCRYPT_KEY,false,str_repeat(chr(0),16));
 	}
 
 	/**

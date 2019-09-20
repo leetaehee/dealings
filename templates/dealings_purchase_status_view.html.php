@@ -53,7 +53,7 @@
 		10. 상품권 핀번호: 결제 및 관리자가 확인 후 문자로 보내드립니다.
 	</p>
 	
-	<?php if($dealingsData->fields['dealings_status'] < 3): ?>
+	<?php if($dealingsData->fields['dealings_status'] == 2): ?>
 		<p>
 			<input type="button" id="submit-btn" value="<?=$btnName?>">
 		</p>

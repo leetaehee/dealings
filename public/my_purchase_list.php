@@ -24,6 +24,10 @@
 		$alertMessage = '';
 		$dealingsType = '구매';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		$dealingsClass = new DealingsClass($db);
 		
 		$purchaseParam = [
@@ -34,7 +38,7 @@
 
 		$myPurchaseList = $dealingsClass->getMyDealingList($purchaseParam);
 		if ($myPurchaseList === false) {
-			throw new Exception('구매등록 데이터를 가져오면서 오류 발생! 관리자에게 문의하세요');
+			throw new Exception('구매등록 데이터를 가져오면서 오류가 발생했습니다.');
 		} else {
 			$myPurchaseListCount = $myPurchaseList->recordCount();
 		}
@@ -50,5 +54,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃

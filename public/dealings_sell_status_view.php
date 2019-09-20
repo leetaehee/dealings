@@ -1,7 +1,7 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 구매 결제 상세 화면 
+	 *	@brief: 판매 결제 상세 화면 
 	 */
 	
 	// 공통
@@ -30,6 +30,10 @@
 		$dealingsType = '판매';
 		$btnName = '결제하기';
 
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
 		// xss, injection 방지
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
 		$_GET['type'] = htmlspecialchars($_GET['type']);
@@ -40,14 +44,14 @@
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
-			throw new Exception('회원 판매 거래정보 가져올 수 없습니다.! 관리자에게 문의하세요.');
+			throw new Exception('회원 판매 거래정보 가져올 수 없습니다');
 		}
 
 		// 구매자 정보 갖고오기
 		$member_idx = $_SESSION['idx'];
 		$purchaserData = $memberClass->getMyInfomation($member_idx);
 		if ($purchaserData === false) {
-			throw new Exception('구매자 정보를 가져 올 수 없습니다.! 관리자에게 문의하세요.');
+			throw new Exception('구매자 정보를 가져 올 수 없습니다');
 		} else {
 			$purchaserDataCount = $purchaserData->recordCount();
 		}

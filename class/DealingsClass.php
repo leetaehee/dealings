@@ -140,6 +140,33 @@
 
 			return $inserId;
 		}
+
+		/**
+		 * @brief: 거래데이터 수정 
+		 * @param: 폼 데이터
+		 * @return: int 
+		 */
+		public function updateDealings($param)
+		{
+			$query = 'UPDATE `imi_dealings` SET
+					   `dealings_subject` = ?,
+					   `dealings_content` = ?,
+					   `item_no` = ?,
+					   `item_money` = ?,
+					   `dealings_mileage` = ?,
+					   `memo` = ?,
+					   `item_object_no` = ?
+					   WHERE `idx` = ?';
+
+			$result = $this->db->execute($query,$param);
+
+			$affected_row = $this->db->affected_rows();
+			if ($affected_row < 1) {
+				return false;
+			}
+
+			return $affected_row;
+		}
 		
 		/**
 		 * @brief: 거래 처리과정 데이터 생성  
@@ -206,11 +233,13 @@
 							 `id`.`dealings_subject`,
 							 `id`.`dealings_content`,
 							 `id`.`item_money`,
+							 `id`.`item_no`,
 							 `id`.`item_object_no`,
 							 `id`.`dealings_mileage`,
 							 `id`.`dealings_commission`,
 							 `id`.`dealings_status`,
 							 `id`.`writer_idx`,
+							 `id`.`memo`,
 							 `im`.`name`,
 							 `im`.`id`,
 							 `isi`.`item_name`,
@@ -247,7 +276,8 @@
 					  FROM `imi_dealings`
 					  WHERE `idx` = ? 
 					  AND `is_del` = ?
-					  AND `dealings_status` = ? FOR UPDATE';
+					  AND `dealings_status` = ?
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -266,7 +296,8 @@
 		{
 			$query = 'SELECT MIN(idx) next_idx
 					  FROM `imi_dealings_status_code`
-					  WHERE `idx` > ?';
+					  WHERE `idx` > ?
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -312,7 +343,9 @@
 					  `dealings_status` = ?,
 					  `dealings_date` = curdate()
 					  WHERE `dealings_idx` = ?';
+
 			$result = $this->db->execute($query,$param);
+
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
 				return false;
@@ -332,6 +365,47 @@
 					  `dealings_status` = ?
 					  WHERE `idx` = ?';
 
+			$result = $this->db->execute($query,$param);
+			$affected_row = $this->db->affected_rows();
+			if ($affected_row < 1) {
+				return false;
+			}
+
+			return $affected_row;
+		}
+
+		/**
+		 * @brief: 일정 기간동안 거래가 이루어지지 않을 경우 삭제처리 (삭제를 해제도 가능) 
+		 * @param: 폼 데이터 (거래대상자) array
+		 * @return: int
+		 */
+		public function updateDealingsDeleteStatus($param)
+		{
+			$query = 'UPDATE `imi_dealings` SET 
+					  `is_del` = ?,
+					  `dealings_status` = ?
+					  WHERE `idx` = ?';
+
+			$result = $this->db->execute($query,$param);
+			$affected_row = $this->db->affected_rows();
+			if ($affected_row < 1) {
+				return false;
+			}
+
+			return $affected_row;
+		}
+
+		/**
+		 * @brief: 거래 마일리지 변동 테이블의 거래상태 변경 
+		 * @param: 거래키와 상태 변경정보를 담은 array
+		 * @return: int
+		 */
+		public function updateDealingsChange($param)
+		{
+			$query = 'UPDATE `imi_dealings_mileage_change` SET
+						`dealings_status_code` = ?
+						WHERE `dealings_idx` = ?';
+			
 			$result = $this->db->execute($query,$param);
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
@@ -407,7 +481,7 @@
 						INNER JOIN `imi_members` `im`
 							ON `id`.`writer_idx` = `im`.`idx`
 					  WHERE `idu`.`dealings_status` IN (3,4,5)
-					  ORDER BY `idu`.`dealings_date` DESC';
+					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
 			$result = $this->db->execute($query);
 
@@ -432,6 +506,7 @@
 							 `id`.`item_object_no`,
 							 `id`.`dealings_mileage`,
 							 `idu`.`dealings_date`,
+							 `id`.`item_no`,
 							 `isi`.`item_name`,
 							 `idc`.`dealings_status_name`
 					  FROM `imi_dealings` `id`
@@ -461,7 +536,10 @@
 		 */
 		public function isExistDealingsIdx($dealings_idx)
 		{
-			$query = 'SELECT COUNT(`idx`) cnt FROM `imi_dealings_user` WHERE `dealings_idx` = ?';
+			$query = 'SELECT COUNT(`idx`) cnt 
+					  FROM `imi_dealings_user` 
+					  WHERE `dealings_idx` = ?
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query, $dealings_idx);
 			if ($result === false) {
@@ -482,10 +560,14 @@
 							 `id`.`dealings_mileage`,
 							 `id`.`dealings_commission`,
 							 ROUND((`id`.`dealings_mileage` * `id`.`dealings_commission`)/100) `commission`,
-							 `id`.`dealings_subject`
+							 `id`.`dealings_subject`,
+							 `id`.`dealings_status`,
+							 `id`.`item_no`
 					  FROM `imi_dealings` `id`
 						INNER JOIN `imi_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
+						INNER JOIN `imi_dealings_status_code` `ids`
+							ON `id`.`dealings_status` = `ids`.`idx`
 					  WHERE `id`.`idx` = ?
 					  FOR UPDATE';
 			
@@ -495,5 +577,54 @@
 			}
 
 			return $result;
+		}
+			
+		/**
+		 * @brief: 거래(판매/구매)글의 등록시점이 5일이 지난 데이터 가져오기
+		 * @param: none 
+		 * @return: array
+		 */
+		public function getDealingsDeleteList()
+		{
+			$param = [
+				'is_del'=>'N',
+				'expiration_date'=>date('Y-m-d')
+			];
+
+			$query = 'SELECT `idx`,
+							 `dealings_status`
+					  FROM `imi_dealings`
+					  WHERE `is_del` = ?
+					  AND `expiration_date` < ?
+					  AND `dealings_status` IN (1,2)';
+			
+			$result = $this->db->execute($query,$param);
+			if ($result === false) {
+				return false;
+			}
+			
+			return $result;
+		}
+
+		/**
+		 * @brief: 거래(판매/구매)글 중 삭제되는 데이터를 배열로 받기
+		 * @param: 거래 키값과 상태정보를 담은 array
+		 * @return: array
+		 */
+		public function getDealingsDeleteData($list)
+		{
+			$count = $list->recordCount();
+			
+			if ($count > 0) {
+				foreach($list as $key => $value){
+					$delData[] = [
+						'dealings_status'=>$value['dealings_status'],
+						'idx'=>$value['idx']
+					];
+				}
+			} else {
+				return false;
+			}
+			return $delData;
 		}
 	}

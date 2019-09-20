@@ -23,6 +23,10 @@
 		$title = TITLE_LOGIN_LIST . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
 		$alertMessage = '';
+
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
 		
 		$param = [
 				'idx'=>$_SESSION['idx'],
@@ -32,15 +36,13 @@
 
 		$loginAccessList = $loginClass->getLoginAccessList($param);
 		if ($loginAccessList === false) {
-			throw new Exception('로그인 접속내역 조회 오류! 관리자에게 문의하세요.');
+			throw new Exception('로그인 접속내역 조회 오류가 발생했습니다.');
 		}
 		$rocordCount = $loginAccessList->recordCount();
 		
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/login_access_list.html.php';
 	} catch (Exception $e) {
-		if ($connection == true) {
-			$alertMessage = $e->getMessage();
-		}
+		$alertMessage = $e->getMessage();
 	} finally {
 		if ($connection == true) {
 			$db->close();
