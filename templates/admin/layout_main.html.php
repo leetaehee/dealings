@@ -12,7 +12,7 @@
 			nav { height: 30px;}
 			section, aside { height: 500px; float: left; }
 			aside { width: 150px; } 
-			section { width: 685px; }
+			section { width: 685px; overflow: scroll; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
