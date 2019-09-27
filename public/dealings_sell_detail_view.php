@@ -23,8 +23,7 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_purchase_list.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php';
-		$actionMode = 'changeStatus';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/changeStatus.php';
 		$JsTemplateUrl = JS_URL . '/dealings_sell_detail_view.js';
 		$dealingsType = '판매';
 		$btnName = '구매하기';
@@ -45,6 +44,10 @@
 		if ($dealingsData === false) {
 			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
 		}
+
+		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
+		$_SESSION['dealings_idx'] = $getData['idx'];
+		$_SESSION['dealings_status'] = $getData['type'];
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];

@@ -43,11 +43,11 @@
 					<td>
 						<?php if($value['dealings_status']==3): ?>
 							<?php if($value['dealings_type']=='구매'): ?>
-								<a href="<?=$DealingsDetailViewHref;?>&idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=N">
+								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=N&target=member_idx">
 									완료
 								</a>
 							<?php else: ?>
-								<a href="<?=$DealingsDetailViewHref;?>&idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=N">
+								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=N&target=writer_idx">
 									완료
 								</a>
 							<?php endif; ?>
@@ -60,11 +60,11 @@
 					<td>
 						<?php if($value['dealings_status']==3): ?>
 							<?php if($value['dealings_type']=='구매'): ?>
-								<a href="<?=$DealingsDetailViewHref;?>&idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=Y">
+								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=Y&target=member_idx">
 									취소
 								</a>
 							<?php else: ?>
-								<a href="<?=$DealingsDetailViewHref;?>&idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=Y">
+								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=Y&target=writer_idx">
 									취소
 								</a>
 							<?php endif; ?>

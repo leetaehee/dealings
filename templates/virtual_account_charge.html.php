@@ -1,7 +1,4 @@
 <form id="virtual-charge-form" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
-	<input type="hidden" name="mileage_type" value="<?=$mileageType?>">
-    
     <p><h3>[가상계좌 충전]</h3></p>
 
 	<p>

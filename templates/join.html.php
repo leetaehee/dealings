@@ -1,5 +1,4 @@
 <form id="join-form" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
 	<input type="hidden" id="isOverlapId" value="0">
 	<input type="hidden" name="isOverlapEmail" id="isOverlapEmail" value="0">
 	<input type="hidden" name="isOverlapPhone" id="isOverlapPhone" value="0">
@@ -9,7 +8,6 @@
 	
     <?php if(!empty($userId)): ?>
         <label for="userId">아이디: </label><br>
-		<input type="hidden" name="idx" value="<?=$idx?>">
         <input type="hidden" id="userId" value="<?=$userId?>">
         <?=$userId?><br>
     <?php else: ?>

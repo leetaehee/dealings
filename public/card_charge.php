@@ -15,10 +15,8 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/mileage_process.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/card_charge.js'; 
-		$actionMode = 'charge'; // 충전모드
-		$mileageType = 1;
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/card_charge.php';
+		$JsTemplateUrl = JS_URL . '/card_charge.js';
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/card_charge.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

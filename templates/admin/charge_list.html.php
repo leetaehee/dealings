@@ -43,7 +43,7 @@
 					<td><?=number_format($value['use_cost'])?></td>
 					<td>
 						<?php if($value['use_cost'] == 0): ?>
-							<a href="<?=$chargeCancelUrl?>&idx=<?=$value['idx']?>">[취소]</a>
+							<a href="<?=$chargeCancelUrl?>?idx=<?=$value['idx']?>">[취소]</a>
 						<?php endif; ?>
 					</td>
 				</tr>

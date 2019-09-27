@@ -48,6 +48,9 @@
 	define('TITLE_VOUCHER_PURCHASE_ENROLL_STATUS', '상품권 구매 등록현황'); // MY 구매 등록 현황 목록
 	define('TITLE_VOUCHER_SELL_ENROLL_STATUS', '상품권 판매 등록현황'); // MY 판매 등록 현황 목록
 
+	/*
+	 * 관리자
+	 */
 	define('TITLE_ADMIN_SITE_NAME', '관리자::IMI 회원정보 시스템'); // 관리자 사이트명
 	define('TITLE_ADMIN_MODIFY_MENU', '정보수정'); // 관리자 정보수정
 	define('TITLE_ADMIN_PAGE_DEL_MENU', '탈퇴'); // 회원탈퇴
@@ -56,6 +59,10 @@
 	define('TITLE_ADMIN_MEMBER_STATUS', '회원관리'); // 회원현황
 	define('TITLE_ADMIN_CHARGE_STATUS', '마일리지 결제내역'); // 결제내역
 	define('TITLE_ADMIN_DEALINGS_STATUS', '상품권 거래관리'); // 거래관리
+	define('TITLE_COUPON_MAXIMUM_DISCOUNT_RATE', '쿠폰 할인률 제한'); // 할인률 제한
+	define('TITLE_COUPON_ISSUE', '쿠폰 발행'); // 쿠폰 발행
+	define('TITLE_COUPON_MAIN', '쿠폰 관리'); // 쿠폰 관리
+	define('TITLE_COUPON_USEAGE', '쿠폰 사용내역'); // 쿠폰 사용내역
 
 	/*
 	 * @author: LeeTaeHee

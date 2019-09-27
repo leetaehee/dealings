@@ -21,9 +21,8 @@
 		$title = TITLE_MODIFY_MENU . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN.'/mypage.php'; // 리턴되는 화면 URL 초기화.
 		$alertMessage = '';
-		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form action url
+		$actionUrl = MEMBER_PROCESS_ACTION . '/modify_member.php'; // form action url
 		$ajaxUrl = MEMBER_PROCESS_ACTION . '/member_ajax_process.php'; // ajax url
-		$actionMode = 'modi'; // 회원수정
 		$JsTemplateUrl = JS_URL . '/join.js'; 
 
 		if ($connection === false) {

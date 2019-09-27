@@ -23,9 +23,8 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/voucher_purchase_enroll.js'; 
-		$actionMode = 'dealings_modify';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_modify.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/voucher_purchase_enroll.js';
 
 		$dealingsIdx = $_GET['idx'];
 

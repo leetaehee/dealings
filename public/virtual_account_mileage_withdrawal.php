@@ -23,12 +23,11 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/mileage_process.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/virtual_account.js'; 
-		$actionMode = 'withdrawal'; // 충전모드
-		$mileageType = 5;
-		$idx = $_SESSION['idx'];
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/virtual_account_withdrawal.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/virtual_account_withdrawal.js'; 
 
+		$idx = $_SESSION['idx'];
+		$mileageType = 5;
 		
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -51,13 +50,13 @@
 		$accountBank = $accountData->fields['account_bank'];
 
 		$mileageTypeParam = [
-				'mileageType'=>$mileageType,
-				'idx'=>$idx
-			];
+			'mileageType'=>$mileageType,
+			'idx'=>$idx
+		];
 
 		$maxMileage = $mileageClass->getAvailableMileage($mileageTypeParam);
 		if ($maxMileage < 0) {
-			throw new Exception($returnUrl, 1, '마일리지 조회 오류! 관리자에게 문의하세요.');
+			throw new Exception('마일리지 조회 오류! 관리자에게 문의하세요.');
 		}
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/virtual_account_mileage_withdrawal.html.php';

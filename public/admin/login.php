@@ -12,8 +12,7 @@
 		$title = TITLE_LOGIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
 		$alertMessage = '';
 
-		$actionUrl = LOGIN_PROCESS_ACTION . '/login_process.php'; // form 전송시 전달되는 URL.
-		$actionMode = 'admin_login'; 
+		$actionUrl = LOGIN_PROCESS_ACTION . '/admin_login.php'; // form 전송시 전달되는 URL.
 		$JsTemplateUrl = JS_URL . '/admin/login.js';
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/login.html.php';
 	} catch (Exception $e) {

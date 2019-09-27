@@ -1,8 +1,4 @@
 <form id="my-sell-dealings-status" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
-	<input type="hidden" name="dealings_idx" value="<?=$getData['idx']?>">
-	<input type="hidden" name="dealings_writer_idx" value="<?=$dealingsData->fields['writer_idx']?>">
-	<input type="hidden" name="dealings_status" id="dealings-status" value="<?=$getData['type']?>">
 	<input type="hidden" name="dealings_type" value="<?=$dealingsType?>">
 	<p>
 		<h3>[<?=TITLE_VOUCHER_SELL_ENROLL_STATUS?>]</h3>
@@ -45,21 +41,31 @@
 		(수수료: <?=$dealingsData->fields['dealings_commission']?>%)
 	</p>
 
+    <p>
+		9. 판매 후 실수령액: <span id="realPaymentSum"><?=number_format($finalPaymentSum);?></span>원
+	</p>
+
 	<p>
-		9. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
+		10. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
 	</p>
 
 	<?php if(!empty($dealingsData->fields['item_object_no'])): ?>
 		<?php if($dealingsData->fields['dealings_status']==4): ?>
 			<p>
-				10. 상품권 핀번호: <?=setDecrypt($dealingsData->fields['item_object_no'])?>
+				11. 상품권 핀번호: <?=setDecrypt($dealingsData->fields['item_object_no'])?>
 			</p>
 		<?php else: ?>
 			<p>
-				10. 상품권 핀번호: 핀번호는 결제를 진행한 후 관리자가 승인해야 노출됩니다.
+				11. 상품권 핀번호: 핀번호는 결제를 진행한 후 관리자가 승인해야 노출됩니다.
 			</p>
 		<?php endif; ?>
 	<?php endif; ?>
+
+	<?php if(!empty($dealingsData->fields['memo'])): ?>
+		<p>
+			12. 비고: <?=$dealingsData->fields['memo']?>
+		</p>
+	<?php endif;?>
 
 	<?php if($dealingsData->fields['dealings_status'] == 2): ?>
 		<p>

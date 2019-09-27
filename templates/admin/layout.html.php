@@ -53,6 +53,9 @@
 						<li>
 							<a href="<?=SITE_DOMAIN?>/admin/logout.php">로그아웃|</a>
 						</li>
+						<li>
+							<a href="<?=SITE_DOMAIN?>/admin/coupon.php">쿠폰관리|</a>
+						</li>
 						<li> 
 							<a href="<?=SITE_DOMAIN?>/admin/admin_page.php">관리자</a>
 						</li>

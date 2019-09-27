@@ -26,8 +26,13 @@
     try {
         $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = ''; // 메세지
+
+		if ($CONFIG_PROHIBIT_ACCESS == 1) {
+			throw new Exception('이 페이지는 접근 차단되었습니다. 관리자에게 문의하세요.'); // 템플릿을 뺄것
+		}
         
         if ($connection === false) {
+			$returnUrl = SITE_DOMAIN;
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 

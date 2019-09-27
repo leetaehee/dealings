@@ -64,10 +64,6 @@
 				return ['isValid'=>false, 'errorMessage'=>'거래금액을 입력하세요'];
 			}
 
-			if (isset($postData['commission']) && empty($postData['commission'])) {
-				return ['isValid'=>false, 'errorMessage'=>'수수료를 확인하세요'];
-			}
-
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
 
@@ -266,6 +262,43 @@
 		}
 
 		/**
+		 * @brief: 거래 데이터 유효성 검증 데이터 
+		 * @param: 거래 테이블 키 값
+		 * @return: array 
+		 */
+		public function getValidDealingsData($idx)
+		{
+			$query = 'SELECT `id`.`idx`,
+							 `id`.`dealings_type`,
+							 `id`.`register_date`,
+							 `id`.`expiration_date`,
+							 `id`.`dealings_subject`,
+							 `id`.`dealings_content`,
+							 `id`.`item_money`,
+							 `id`.`item_no`,
+							 `id`.`dealings_mileage`,
+							 `id`.`dealings_commission`,
+							 `id`.`dealings_status`,
+							 `id`.`writer_idx`,
+							 `id`.`memo`,
+							 `isi`.`item_name`,
+							 `idu`.`dealings_member_idx`
+					  FROM `imi_dealings` `id`
+						INNER JOIN `imi_sell_item` `isi`
+							ON `id`.`item_no` = `isi`.`idx`
+						LEFT JOIN `imi_dealings_user` `idu`
+							ON `id`.`idx` = `idu`.`dealings_idx`
+					  WHERE `id`.`idx` = ?';
+
+			$result = $this->db->execute($query, $idx);
+			if ($result === false) {
+				return false;
+			}
+
+			return $result;
+		}
+
+		/**
 		 * @brief: 거래 데이터를 구매하기 전에 등록이 됬는지 확인
 		 * @param: 거래데이터 키 값
 		 * @return: boolean
@@ -330,7 +363,6 @@
 			}
 			return $inserId;
 		}
-
 
 		/**
 		 * @brief: 거래 유저 수정
@@ -407,6 +439,7 @@
 						WHERE `dealings_idx` = ?';
 			
 			$result = $this->db->execute($query,$param);
+
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
 				return false;
@@ -441,7 +474,7 @@
 					  AND `idu`.`dealings_type` = ?
 					  AND `idu`.`dealings_status` <> ?
 					  AND `id`.`is_del` = ?
-					  ORDER BY `idu`.`dealings_date` DESC';
+					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -519,7 +552,7 @@
 					  WHERE `id`.`dealings_type` = ?
 					  AND `id`.`is_del` = ?
 					  AND `id`.`writer_idx` = ?
-					  ORDER BY `idu`.`dealings_date` DESC';
+					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -562,7 +595,10 @@
 							 ROUND((`id`.`dealings_mileage` * `id`.`dealings_commission`)/100) `commission`,
 							 `id`.`dealings_subject`,
 							 `id`.`dealings_status`,
-							 `id`.`item_no`
+							 `id`.`item_no`,
+							 `id`.`idx`,
+							 `idu`.`dealings_member_idx`,
+							 `idu`.`dealings_writer_idx`
 					  FROM `imi_dealings` `id`
 						INNER JOIN `imi_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
@@ -626,5 +662,23 @@
 				return false;
 			}
 			return $delData;
+		}
+
+		/**
+		 * @brief: 거래 변동정보에 결제정보가 있는지 확인(할인쿠폰으로 결제가 없는경우도 있을 수 있음)
+		 * @param: 거래 키값과 상태정보를 담은 array
+		 * @return: array
+		 */
+		public function getMileageChangeIdx($dealingsIdx)
+		{
+			$query = 'SELECT `idx` 
+					  FROM `imi_dealings_mileage_change` 
+					  WHERE `dealings_idx` = ?';
+
+			$result = $this->db->execute($query, $dealingsIdx);
+			if ($result === false) {
+				return false;
+			}
+
 		}
 	}

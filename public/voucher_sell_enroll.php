@@ -16,6 +16,7 @@
 
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -23,9 +24,8 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/voucher_sell_enroll.js'; 
-		$actionMode = 'enroll';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/sell_enroll.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/voucher_sell_enroll.js';
 		$dealingsState = '거래대기';
 		$dealingsType = '판매';
 
@@ -34,6 +34,7 @@
         }
 
 		$dealingsClass = new DealingsClass($db);
+		$couponClass = new CouponClass($db);
 
 		$voucherList = $dealingsClass->getVoucherList();
 		if ($voucherList == false) {
@@ -41,6 +42,25 @@
 		} else {
 			$vourcherListCount = $voucherList->recordCount();
 		}
+
+		// 이용가능한 쿠폰 가져오기 
+		$couponParam = [
+			'issue_type'=> '판매',
+			'is_del'=> 'N',
+			'start_date'=> date('Y-m-d'),
+			'end_date'=> date('Y-m-d'),
+            'member_idx'=> $_SESSION['idx'],
+			'is_refund'=> 'N'
+		];
+		
+		// 사용가능한 쿠폰 리스트 가져오기
+		$couponData = $couponClass->getAvailableAllCouponData($couponParam);
+		if ($couponData === false) {
+			throw new Exception('사용가능한 쿠폰을 가져 올 수 없습니다. 가져 올 수 없습니다');
+		} else {
+			$couponDataCount = $couponData->recordCount();
+		}
+
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/voucher_sell_enroll.html.php';
 	} catch (Exception $e) {

@@ -23,8 +23,7 @@
 		$title = TITLE_MY_ACCOUNT_SETTING . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
 		$alertMessage = '';
-		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form 전송시 전달되는 URL.
-		$actionMode = 'account'; 
+		$actionUrl = MEMBER_PROCESS_ACTION . '/add_account.php'; // form 전송시 전달되는 URL. 
 		$JsTemplateUrl = JS_URL . '/account.js'; 
 		$idx = $_SESSION['idx'];
 

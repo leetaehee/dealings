@@ -1,8 +1,4 @@
 <form id="dealinges-sell-detail-form" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
-	<input type="hidden" name="dealings_idx" value="<?=$getData['idx']?>">
-	<input type="hidden" name="dealings_writer_idx" value="<?=$dealingsData->fields['writer_idx']?>">
-	<input type="hidden" name="dealings_status" value="<?=$getData['type']?>">
 	<input type="hidden" name="dealings_type" value="<?=$dealingsType?>">
 	<p>
 		<h3>[<?=TITLE_VOUCHER_SELL_DETAIL_VIEW?>]</h3>
@@ -45,12 +41,18 @@
 		(수수료: <?=$dealingsData->fields['dealings_commission']?>%)
 	</p>
 
+	<?php if(!empty($dealingsData->fields['memo'])): ?>
+		<p>
+			9. 비고: <?=$dealingsData->fields['memo']?>
+		</p>
+	<?php endif;?>
+
 	<p>
-		9. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
+		10. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
 	</p>
 
 	<p>
-		10. 상품권 핀번호: 결제 및 관리자가 확인 후 문자로 보내드립니다.
+		11. 상품권 핀번호: 결제 및 관리자가 확인 후 문자로 보내드립니다.
 	</p>
 	
 	<?php if($dealingsData->fields['writer_idx'] != $_SESSION['idx']): ?>

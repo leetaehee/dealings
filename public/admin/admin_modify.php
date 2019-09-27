@@ -20,9 +20,8 @@
 		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화.
 		$alertMessage = '';
 
-		$actionUrl = ADMIN_PROCESS_ACTION . '/admin_process.php'; // form action url
+		$actionUrl = ADMIN_PROCESS_ACTION . '/modify_member.php'; // form action url
 		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
-		$actionMode = 'modi'; // 회원수정
 		$JsTemplateUrl = JS_ADMIN_URL . '/join.js'; 
 
 		$adminClass = new AdminClass($db);
@@ -47,6 +46,7 @@
 		} else {
 			$adminSexWChecked = 'checked';
 		}
+
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/join.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

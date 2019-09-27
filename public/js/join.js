@@ -38,7 +38,6 @@ function getOverlapAjax($this)
 		type: "post",
 		url: ajaxUrl,
 		data: {
-			mode: "overlapCheck",
 			detail_mode: mode,
 			val: $this.val()
 		},
@@ -81,7 +80,7 @@ function getOverlapAjax($this)
 						break;
 					case "getUserPhone":
 						$("#isOverlapPhone").val(data.result);
-						$("#checkPhoneMessage").html("가입되지 않은 핸드폰입니다.사용하셔도 좋습니다.");
+						$("#checkPhoneMessage").html("가입되지 않은 핸드폰입니다. 사용하셔도 좋습니다.");
 						break;
 				}
 			}

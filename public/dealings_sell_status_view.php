@@ -17,6 +17,7 @@
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -24,8 +25,7 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_purchase_list.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php';
-		$actionMode = 'payMileage';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/payMileage.php';
 		$JsTemplateUrl = JS_URL . '/dealings_sell_status_view.js';
 		$dealingsType = '판매';
 		$btnName = '결제하기';
@@ -41,20 +41,77 @@
 
 		$memberClass = new MemberClass($db);
 		$dealingsClass = new DealingsClass($db);
+		$couponClass = new CouponClass($db);
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
 			throw new Exception('회원 판매 거래정보 가져올 수 없습니다');
 		}
 
+		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
+		$_SESSION['dealings_idx'] = $getData['idx'];
+		$_SESSION['dealings_status'] = $getData['type'];
+
+		$itemMoney = $dealingsData->fields['item_money'];
+        $itemNo = $dealingsData->fields['item_no'];
+		$dealingsType = $dealingsData->fields['dealings_type'];
+
 		// 구매자 정보 갖고오기
 		$member_idx = $_SESSION['idx'];
+        
 		$purchaserData = $memberClass->getMyInfomation($member_idx);
 		if ($purchaserData === false) {
 			throw new Exception('구매자 정보를 가져 올 수 없습니다');
 		} else {
 			$purchaserDataCount = $purchaserData->recordCount();
 		}
+
+		// 이용가능한 쿠폰 가져오기 
+		$couponParam = [
+            'itemNo'=> $itemNo,
+			'issue_type'=> '구매',
+			'item_money'=> $itemMoney,
+			'is_del'=> 'N',
+			'start_date'=> date('Y-m-d'),
+			'end_date'=> date('Y-m-d'),
+            'member_idx'=> $_SESSION['idx'],
+			'is_refund'=> 'N'
+		];
+		
+		// 사용가능한 쿠폰 가져오기
+		$couponData = $couponClass->getAvailableCouponData($couponParam);
+		if ($couponData === false) {
+			throw new Exception('사용가능한 쿠폰을 가져 올 수 없습니다. 가져 올 수 없습니다');
+		} else {
+			$couponDataCount = $couponData->recordCount();
+		}
+
+		$_SESSION['purchaser_idx'] = $purchaserData->fields['idx'];
+		$_SESSION['purchaser_mileage'] = $purchaserData->fields['mileage'];
+
+		$dealingsMileage = $dealingsData->fields['dealings_mileage'];
+		$finalPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
+		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
+		if ($dealingsCommission < 0) {
+			throw new Exception('수수료가 입력되어있지 않습니다.'); 
+		}
+
+		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
+		$finalPaymentSum -= $dealingsCommission;
+
+		// 사용한 쿠폰정보 가져오기
+		$useCouponParam = [
+			'dealings_idx'=> $getData['idx'],
+			'member_idx'=> $_SESSION['idx'],
+			'issue_type'=> '구매',
+			'is_refund'=> 'N'
+		];
+
+		$useCouponData = $couponClass->getUseCouponData($useCouponParam);
+		if ($useCouponData === false) {
+			throw new Exception('쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.');
+		}
+		$couponIdx = $useCouponData->fields['idx'];
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];

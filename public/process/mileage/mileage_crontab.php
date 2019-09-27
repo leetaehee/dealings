@@ -28,7 +28,7 @@
         $today = date('Y-m-d');
 		$message = '';
 
-        $db->beginTrans(); // 트랜잭션시작
+        $db->startTrans(); // 트랜잭션시작
 
         $mileageClass = new MileageClass($db);
         $memberClass = new MemberClass($db);

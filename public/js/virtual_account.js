@@ -32,7 +32,6 @@ function getVirtualAccount($this)
 		type: "post",
 		url: ajaxUrl,
 		data: {
-			mode: "getVirtalAccount",
 			accountBank: $("#accountBank").val()
 		},
 		dataType: "json",
@@ -42,6 +41,9 @@ function getVirtualAccount($this)
 			   $(".accountNo").val(data.account_no);
 			}else{
 				alert(data.errorMessage);
+
+				$("#accountNo").html('은행을 선택하세요.');
+				$(".accountNo").val('');
 			}
 		},
 		error: function(jdXHR, textStatus, errorThrown) {

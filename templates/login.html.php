@@ -1,5 +1,4 @@
 <form id="login-form" action="<?=$actionUrl?>" method="post">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
 	<label for="userId">아이디: </label><br>
 	<input type="text" id="userId" name="id" value=""><br>
 	<label for="userPassword">패스워드: </label><br>

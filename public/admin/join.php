@@ -12,10 +12,9 @@
 		$title = TITLE_JOIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
 		$alertMessage = '';
 		
-		$actionUrl = ADMIN_PROCESS_ACTION . '/admin_process.php'; // form action url
+		$actionUrl = ADMIN_PROCESS_ACTION . '/add_member.php'; // form action url
 		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
-		$JsTemplateUrl = JS_ADMIN_URL . '/join.js'; 
-		$actionMode = 'add'; // 회원가입
+		$JsTemplateUrl = JS_ADMIN_URL . '/join.js';
 
 		$adminId = $adminName = $adminEmail = $adminPhone = $adminBirth = $adminSex = '';
 		$adminSexMChecked = 'checked';

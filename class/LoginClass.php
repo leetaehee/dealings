@@ -80,7 +80,6 @@
 							 `is_superadmin`
 						FROM `imi_admin`
 						WHERE `id` = ?
-						AND `join_approval_date` IS NOT NULL
 						FOR UPDATE
 					';
 
@@ -168,14 +167,14 @@
         public function checkPasswordByUser($param)
         {
             $query = 'SELECT `password` FROM `imi_members` where `idx` = ? FOR UPDATE';
-            $result = $this->db->execute($query, $param[0]);
+            $result = $this->db->execute($query, $param['idx']);
             
             if ($result === false) {
                 return false;
             } else {
                 $dbpassword = $result->fields['password'];
                 
-                if (password_verify($param[1], $dbpassword)==false) {
+                if (password_verify($param['password'], $dbpassword)==false) {
                     return null;
                 }
             }        
@@ -190,14 +189,14 @@
 		public function checkPasswordByAdmin($param)
         {
             $query = 'SELECT `password` FROM `imi_admin` where `idx` = ? FOR UPDATE';
-            $result = $this->db->execute($query, $param[0]);
+            $result = $this->db->execute($query, $param['idx']);
             
             if ($result === false) {
                 return false;
             } else {
                 $dbpassword = $result->fields['password'];
                 
-                if (password_verify($param[1], $dbpassword)==false) {
+                if (password_verify($param['password'], $dbpassword)==false) {
                     return null;
                 }
             }        

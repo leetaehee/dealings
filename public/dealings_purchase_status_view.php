@@ -23,8 +23,7 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_purchase_list.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php';
-		$actionMode = 'changeCancelStatus';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/changeCancelStatus.php';
 		$JsTemplateUrl = JS_URL . '/dealings_purchase_status_view.js';
 		$dealingsType = '판매';
 		$btnName = '판매취소';
@@ -45,6 +44,20 @@
 		if ($dealingsData === false) {
 			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
 		}
+
+		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
+		$_SESSION['dealings_idx'] = $getData['idx'];
+		$_SESSION['dealings_status'] = $getData['type'];
+        
+        $dealingsMileage = $dealingsData->fields['dealings_mileage'];
+		$finalPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
+		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
+		if ($dealingsCommission < 0) {
+			throw new Exception('수수료가 입력되어있지 않습니다.'); 
+		}
+
+		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
+		$finalPaymentSum -= $dealingsCommission;
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];

@@ -170,18 +170,19 @@
             $memberClass = new MemberClass($db);
 
             $resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
-            if( $resultMileageValidCheck['isValid'] === false) {
+            if($resultMileageValidCheck['isValid'] === false) {
                 // 폼 데이터 받아서 유효성 검증
                 throw new Exception($resultMileageValidCheck['errorMessage']);
             }
-
-            $maxMileageParam = [
-                'mileageType'=>$mileageType,
-                'idx'=>$idx
-            ];
 			
 			// 트랜잭션시작
 			$db->beginTrans();
+
+			// 마일리지 초과하는지 확인
+			$maxMileageParam = [
+                'mileageType'=>$mileageType,
+                'idx'=>$idx
+            ];
 
             $maxMileage = $mileageClass->getAvailableMileage($maxMileageParam);
             if ($maxMileage === false) {

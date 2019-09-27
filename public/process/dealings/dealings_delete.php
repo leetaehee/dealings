@@ -1,0 +1,84 @@
+<?php
+	/**
+	 *  @author: LeeTaeHee
+	 *	@brief: 상품권 거래 삭제 (판매/구매)
+	 */
+
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+
+	// adodb
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
+
+    // Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
+
+	// Exception 파일 
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
+
+	try {
+		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+        $alertMessage = '';
+
+		if ($connection === false) {
+            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
+        }
+
+		// 글삭제
+		$dealingsClass = new DealingsClass($db);
+
+		// return시 url 설정
+		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+
+		// xss, injection 방지
+		$_GET['idx'] = htmlspecialchars($_GET['idx']);
+		$getData = $_GET;
+
+		if (!isset($getData['idx']) && !empty($getData['idx'])) {
+			throw new Exception('정상적인 경로가 아닙니다.');
+		}
+
+		$dealingsIdx = $getData['idx'];
+		$dealingsStatus = 6;
+
+		$db->startTrans();
+
+		$deleteParam = [
+			'is_del'=>'Y',
+			'dealings_status'=>$dealingsStatus,
+			'dealings_idx'=>$dealingsIdx
+		];
+
+		$updateResult = $dealingsClass->updateDealingsDeleteStatus($deleteParam);
+		if ($updateResult < 1) {
+			throw new RollbackException('거래 데이터 삭제 시 오류가 발생했습니다.');
+		}
+
+		$alertMessage = '거래 데이터가 정상적으로 삭제 되었습니다.';
+
+		$db->commitTrans();
+		$db->completeTrans();
+	} catch (RollbackException $e) {
+		// 트랜잭션 문제가 발생했을 때
+		$alertMessage = $e->errorMessage();
+		$db->rollbackTrans();
+	} catch (Exception $e) {
+		// 트랜잭션을 사용하지 않을 때
+		$alertMessage = $e->getMessage();
+    } finally {
+        if  ($connection === true) {
+            $db->close();
+        }
+		
+        if (!empty($alertMessage)) {
+            alertMsg($returnUrl, 1, $alertMessage);
+        } else {
+            alertMsg(SITE_DOMAIN, 0);
+        }
+    }

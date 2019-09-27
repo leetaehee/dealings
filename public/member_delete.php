@@ -13,10 +13,8 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_MYPAGE_DEL_MENU . ' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
-		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form action url
-		$actionMode = 'del'; // 회원탈퇴
-		$JsTemplateUrl = JS_URL . '/member_delete.js'; 
-		$idx = htmlspecialchars($_GET['idx']);
+		$actionUrl = MEMBER_PROCESS_ACTION . '/delete_member.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/member_delete.js';
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/member_delete.html.php';
 	} catch (Exception $e) {

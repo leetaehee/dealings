@@ -17,6 +17,7 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -39,6 +40,7 @@
 
 		if ($mode == 'enroll') {
             $dealingsClass = new DealingsClass($db);
+			$sellItemClass = new SellItemClass($db);
 
 			// injection, xss 방지코드
 			$_POST['dealings_state'] = htmlspecialchars($_POST['dealings_state']);
@@ -49,7 +51,6 @@
 			$_POST['item_money'] = htmlspecialchars($_POST['item_money']);
 			$_POST['dealings_mileage'] = htmlspecialchars($_POST['dealings_mileage']);
 			$_POST['memo'] = htmlspecialchars($_POST['memo']);
-			$_POST['commission'] = htmlspecialchars($_POST['commission']);
 
 			$itemObjectNo = null;
 			if (isset($_POST['item_object_no'])) {
@@ -78,6 +79,18 @@
 				// 트랜잭션시작
                 $db->beginTrans();
 
+				// 수수료 가져오기 
+				$itemIdx = $postData['item_no'];
+
+				$commission = $sellItemClass->getCheckSellItemValue($itemIdx);
+				if ($commission === false) {
+					throw new RollbackException('수수료 데이터를 가져 오지 못했습니다.');
+				} 
+				
+				if ($commission == '') {
+					throw new RollbackException('수수료 데이터를 조회 할 수 없습니다.');
+				}
+
 				// 거래상태 가져오기
 				$dealingsStatus = $dealingsClass->getDealingsStatus($postData['dealings_state']);
 				if ($dealingsStatus === false) {
@@ -94,7 +107,7 @@
 					'item_money'=>$postData['item_money'],
 					'item_object_no'=>$itemObjectNo,
 					'dealings_mileage'=>$postData['dealings_mileage'],
-					'dealings_commission'=>$postData['commission'],
+					'dealings_commission'=>$commission,
 					'dealings_status'=>$dealingsStatus,
 					'memo'=>$postData['memo'],
 					'idx'=>$_SESSION['idx']
@@ -359,7 +372,6 @@
 				$alertMessage = '판매가 취소되었습니다!';
 			}
 		} else if ($mode == 'payMileage') {
-			//판매취소 
 			$dealingsClass = new DealingsClass($db);
 			$mileageClass = new MileageClass($db);
 			$memberClass = new MemberClass($db);
@@ -538,17 +550,20 @@
 			}
 			$dealingsMileage = $chargeData->fields['dealings_mileage']; // 거래금액
 			$commission = $chargeData->fields['commission']; // 수수료
-			$finalDealingsMileage = $dealingsMileage-$commission; // 최종금액
-
+	
 			$dealingsStatus = $chargeData->fields['dealings_status']; // 현재 거래상태
 			$itemNo = $chargeData->fields['item_no']; //상품권종류
+
+			if ($isCancel == 'N') {
+				$dealingsMileage -= $commission; // 최종금액
+			}
 
 			$chargeParam = [
 				'idx'=>$getData['member_idx'],
 				'account_bank'=>'아이엠아이',
 				'account_no'=>setEncrypt($chargeData->fields['dealings_subject']),
-				'charge_cost'=>$finalDealingsMileage,
-				'spare_cost'=>$finalDealingsMileage,
+				'charge_cost'=>$dealingsMileage,
+				'spare_cost'=>$dealingsMileage,
 				'charge_name'=>'관리자',
 				'mileageType'=>$mileageType,
 				'dealings_date'=>date('Y-m-d'),
@@ -562,7 +577,7 @@
 			}
 
 			$mileageParam = [
-				'charge_cost'=>$finalDealingsMileage,
+				'charge_cost'=>$dealingsMileage,
 				'idx'=>$getData['member_idx']
 			];
 			$updateResult = $memberClass->updateMileageCharge($mileageParam); // 마일리지변경
@@ -574,15 +589,15 @@
 			if ($memberMileageType == false) {
 				$mileageTypeParam = [
 					$getData['member_idx'], 
-					$finalDealingsMileage
+					$dealingsMileage
 				];
 				$mileageTypeInsert = $mileageClass->mileageTypeInsert($mileageType, $mileageTypeParam);
 				if ($mileageTypeInsert < 1) {
 					throw new RollbackException('마일리지 유형별 합계 삽입 실패 하였습니다.');
-				}
+				} 
 			} else {
 				$mileageTypeParam = [
-					$finalDealingsMileage,
+					$dealingsMileage,
 					$getData['member_idx']
 				];
 				$mileageTypeUpdate = $mileageClass->mileageTypeChargeUpdate($mileageType, $mileageTypeParam);
@@ -591,7 +606,6 @@
 				}
 			}
 
-			// 거래타입도 같이할것
 			if ($isCancel === 'Y') {
 				$nextStatus = 5;
 				$alertMessage = '정상적으로 거래가 취소되었습니다.';
@@ -650,28 +664,29 @@
 				throw new RollbackException('거래 처리과정 생성 실패하였습니다.');
 			}
 
-			// 수수료도 넣기
-			$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx);
-			if ($dealingsIdxFromDB === false){
-				throw new RollbackException('수수료 테이블에서 거래키정보를 가져올 수 없습니다.');
-			}
+			if ($isCancel == 'N') {
+				// 수수료도 넣기
+				$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx);
+				if ($dealingsIdxFromDB === false){
+					throw new RollbackException('수수료 테이블에서 거래키정보를 가져올 수 없습니다.');
+				}
 
-			if(!empty($dealingsIdxFromDB)){
-				throw new RollbackException('이미 거래가 완료되었거나 환불처리 되었습니다.');
-			}
+				if(!empty($dealingsIdxFromDB)){
+					throw new RollbackException('이미 거래가 완료되었거나 환불처리 되었습니다.');
+				}
 
-			$commissionParam = [
-				'dealings_idx'=>$dealingsIdx,
-				'commission'=>$commission,
-				'sell_item_idx'=>$itemNo
-			];
+				$commissionParam = [
+					'dealings_idx'=>$dealingsIdx,
+					'commission'=>$commission,
+					'sell_item_idx'=>$itemNo
+				];
 
-			$insertCommissionResult = $commissionClass->insertDealingsCommission($commissionParam);
-			if ($insertCommissionResult < 1) {
-				throw new RollbackException('수수료 테이블에 삽입을 할 수 없습니다');
-			} else {
-				$db->commitTrans();
+				$insertCommissionResult = $commissionClass->insertDealingsCommission($commissionParam);
+				if ($insertCommissionResult < 1) {
+					throw new RollbackException('수수료 테이블에 삽입을 할 수 없습니다');
+				}
 			}
+			$db->commitTrans();
 		}
 		$db->completeTrans();
 	} catch (RollbackException $e) {

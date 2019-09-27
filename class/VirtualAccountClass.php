@@ -87,4 +87,26 @@
 
 			return ['insert_id'=>$inserId, 'account_no'=>$param['account_no']];
 		}
+
+		/**
+         * @brief: 가상계좌 데이터 가져오기;
+         * @param: 은행명, 회원 PK을 가지는 array
+         * @return: string
+         */
+		public function getVirtualAccountData($memberIdx)
+		{			
+			$query = 'SELECT `virtual_account_no`,
+							 `bank_name`
+					  FROM `imi_member_virtual_account`
+					  WHERE `member_idx` = ?
+					  FOR UPDATE
+					';
+			
+			$result = $this->db->execute($query,$memberIdx);
+			if ($result === false) {
+				return false;
+			}
+
+			return $result;
+		}
 	}

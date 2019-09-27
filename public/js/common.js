@@ -83,3 +83,22 @@ function getCommission(dealingsMileage, commission)
 		return 0;
 	}
 }
+
+function removeComma(str)
+{
+	/*
+	 * 콤마제거
+	 */
+	return str.replace(/,/g,"");
+}
+
+function addComma(str)
+{
+	/*
+	 * 콤마 추가
+	 */
+	
+	var regexp = /\B(?=(\d{3})+(?!\d))/g;
+	return str.toString().replace(regexp, ',');
+	
+}

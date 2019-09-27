@@ -1,6 +1,4 @@
 <form id="card-charge-form" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
-	<input type="hidden" name="mileage_type" value="<?=$mileageType?>">
     
     <p><h3>[신용카드 충전]</h3></p>
 

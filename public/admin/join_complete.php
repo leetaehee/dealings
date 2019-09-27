@@ -11,7 +11,13 @@
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_JOIN_COMPLETE_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$alertMessage = '';
+		$returnUrl = SITE_ADMIN_DOMAIN;
+
+		if (isset($_SESSION['tmp_idx'])) {
+			unset($_SESSION['tmp_idx']);
+		} else {
+			alertMsg($returnUrl, 1, '정상적인 경로가 아닙니다.'); 
+		}
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/join_complete.html.php';
 	} catch (Exception $e) {

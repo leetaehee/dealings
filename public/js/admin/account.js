@@ -1,8 +1,8 @@
 $(function(){
 	$("#submit-btn").on("click",function(){
-		//if (isAccountValidForm()==true) {
+		if (isAccountValidForm()==true) {
 			$("#my-account-form").submit();
-		//}
+		}
 	});
 });
 

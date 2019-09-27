@@ -15,10 +15,8 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/mileage_process.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/phone_charge.js'; 
-		$actionMode = 'charge'; // 충전모드
-		$mileageType = 2;
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/phone_charge.php'; // form action url
+		$JsTemplateUrl = JS_URL . '/phone_charge.js';
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/phone_charge.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

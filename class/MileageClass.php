@@ -332,6 +332,7 @@
 
 					if ($useCost==0) {
 						array_pop($updateData);
+						array_pop($mileageTypeData);
 					}
 
 					if ($tmpCost > 0) {

@@ -23,7 +23,7 @@
 		// 리턴되는 화면 URL 초기화.
 		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php';
 		$alertMessage = '';
-		$chargeCancelUrl = MILEAGE_PROCESS_ACTION.'/mileage_process.php?mode=mileage_cancel'; // 취소처리
+		$chargeCancelUrl = MILEAGE_PROCESS_ACTION.'/mileage_cancel.php'; // 취소처리
 		$idx = $_SESSION['mIdx'];
 
 		if ($connection === false) {

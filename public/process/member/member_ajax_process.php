@@ -18,45 +18,37 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 
 	try {
-		if (isset($_POST['mode'])) {
-			$mode = htmlspecialchars($_POST['mode']);
+		/**
+		 * @author: LeeTaeHee
+		 * @brief: 회원 가입 시 중복 체크(아이디,이메일,핸드폰)
+		 */
+
+		$param = htmlspecialchars($_POST['val']);
+	
+		if (isset($_POST['detail_mode'])) {
+			$detailMode = htmlspecialchars($_POST['detail_mode']);
 		} else {
-			$mode = htmlspecialchars($_GET['mode']);
+			$detailMode = htmlspecialchars($_GET['detail_mode']);
 		}
 
-		if ($mode == 'overlapCheck') {
-			/**
-			 * @author: LeeTaeHee
-			 * @brief: 회원 가입 시 중복 체크(아이디,이메일,핸드폰)
-			 */
+		$memberClass = new MemberClass($db);
+		$resultOverlap = 0;
 
-			$param = htmlspecialchars($_POST['val']);
-        
-			if (isset($_POST['detail_mode'])) {
-				$detailMode = htmlspecialchars($_POST['detail_mode']);
-			} else {
-				$detailMode = htmlspecialchars($_GET['detail_mode']);
-			}
+		if ($detailMode == 'getUserId') {
+			$resultOverlap = $memberClass->getIdOverlapCount($param);
+		} else if ($detailMode == 'getUserEmail') {
+			$resultOverlap = $memberClass->getEmailOverlapCount($param);
+		} else if ($detailMode == 'getUserPhone') {
+			$resultOverlap = $memberClass->getPhoneOverlapCount($param);
+		}
 
-			$memberClass = new MemberClass($db);
-			$resultOverlap = 0;
-
-			if ($detailMode == 'getUserId') {
-				$resultOverlap = $memberClass->getIdOverlapCount($param);
-			} else if ($detailMode == 'getUserEmail') {
-				$resultOverlap = $memberClass->getEmailOverlapCount($param);
-			} else if ($detailMode == 'getUserPhone') {
-				$resultOverlap = $memberClass->getPhoneOverlapCount($param);
-			}
-
-			if ($resultOverlap > 0) {
-				throw new Exception('아이디/이메일/핸드폰은 중복 될 수 없습니다.');
-			} else {
-				$result = [
-					'result'=>0,
-					'detail_mode'=>$detailMode
-				];
-			}
+		if ($resultOverlap > 0) {
+			throw new Exception('아이디/이메일/핸드폰은 중복 될 수 없습니다.');
+		} else {
+			$result = [
+				'result'=>0,
+				'detail_mode'=>$detailMode
+			];
 		}
 	} catch (Exception $e) {
 		$result = [

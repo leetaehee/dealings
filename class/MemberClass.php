@@ -181,18 +181,8 @@
 		 * @param: form 데이터
 		 * @return: true/false
 		 */
-		public function insertMember($postData)
+		public function insertMember($param)
 		{
-			//코드값 참조- grade_code = 3 (신규 가입시 부여되는 가장 낮은 레벨)
-			$bindValue = [$postData['id'],
-						  password_hash($postData['password'], PASSWORD_DEFAULT),
-						  setEncrypt($postData['email']),
-						  setEncrypt($postData['name']),
-						  setEncrypt($postData['phone']),
-						  $postData['sex'],
-						  setEncrypt($postData['birth'])
-						];
-
 			$query = "INSERT INTO `imi_members` SET
 						`id` = ?,
 						`grade_code` = 3,
@@ -205,7 +195,7 @@
 						`join_date` = CURDATE()
 					 ";
 
-			$result = $this->db->execute($query,$bindValue);
+			$result = $this->db->execute($query, $param);
 			$insertId = $this->db->insert_id(); // 추가
 
 			if ($insertId < 1) {
@@ -220,18 +210,8 @@
 		 * @param: form 데이터
 		 * @return: int 
 		 */
-		public function updateMember($postData)
+		public function updateMember($param)
 		{
-			$param = [
-				password_hash($postData['password'], PASSWORD_DEFAULT),
-				setEncrypt($postData['email']),
-				setEncrypt($postData['phone']),
-				setEncrypt($postData['name']),
-				$postData['sex'],
-				setEncrypt($postData['birth']),
-				$postData['idx']
-			];
-
 			$query = 'UPDATE `imi_members` SET
 					   `password` = ?,
 					   `email` = ?,

@@ -45,6 +45,7 @@
 
 	// process (관리자)
 	define('ADMIN_PROCESS_ACTION', SITE_DOMAIN . '/process/admin'); // 로그인
+	define('COUPON_PROCEE_ACTION', SITE_DOMAIN . '/process/coupon'); // 쿠폰
 
 	// 암호화 및 복호화 상수 
 	define('ENCRYPT_TYPE', 'aes-256-cbc');
@@ -60,12 +61,35 @@
 	/**
 	 * 배열
 	 */
+
+	// 은행 종류
 	$CONFIG_BANK_ARRAY = [
 		'기업은행','국민은행','신한은행','외환은행','우리은행','부산은행','광주은행','우체국','카카오뱅크'
 	];
+
+	// 카드사 종류
 	$CONFIG_CARD_ARRAY = [
 		'삼성','BC','현대','KB국민','외환','신한','롯데','하나','NH카드'
 	];
+	
+	// 결제 가능한 마일리지
 	$CONFIG_MILEAGE_ARRAY = [
 		1000,5000,10000,50000,100000
 	];
+
+	// 쿠폰 등록시 상품권 리스트 
+	$CONFIG_COUPON_VOUCHER_ARRAY = [
+		'해피머니상품권','도서문화상품권','문화상품권','스마트문화상품권','모든상품권'
+	];
+
+	// 쿠폰 발행 타입 
+	$CONFIG_COUPON_ISSUE_TYPE = ['구매','판매'];
+
+	// 상품권 금액
+	$CONFIG_VOUCHER_MONEY_ARRAY = [
+		1000,5000,10000,50000,100000
+	];
+
+
+	// 페이지 접근금지
+	$CONFIG_PROHIBIT_ACCESS = 1;

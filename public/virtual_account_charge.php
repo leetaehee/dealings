@@ -15,11 +15,9 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/mileage_process.php'; // form action url
-		$ajaxUrl = VIRTUAL_ACCOUNT_PROCESS_ACTION . '/virtual_account_ajax_process.php'; // ajax url
-		$JsTemplateUrl = JS_URL . '/virtual_account.js'; 
-		$actionMode = 'charge'; // 충전모드
-		$mileageType = 5;
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/virtual_account_charge.php';
+		$ajaxUrl = VIRTUAL_ACCOUNT_PROCESS_ACTION . '/virtual_account_ajax.php';
+		$JsTemplateUrl = JS_URL . '/virtual_account.js';
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/virtual_account_charge.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

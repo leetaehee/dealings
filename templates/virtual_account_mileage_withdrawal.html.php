@@ -1,11 +1,5 @@
 <form id="vitual-withdrawal-form" method="post" action="<?=$actionUrl?>">
-	<input type="hidden" name="mode" value="<?=$actionMode?>">
-	<input type="hidden" id="mileageType" name="mileage_type" value="<?=$mileageType?>">
 	<input type="hidden" id="maxMileage" value="<?=$maxMileage?>">
-
-	<input type="hidden" name="account_bank" value="<?=$accountBank?>">
-	<input type="hidden" name="account_no" value="<?=$accountNo?>">
-	<input type="hidden" name="charge_name" value="<?=$_SESSION['name']?>">
     
     <p><h3>[가상계좌 출금]</h3></p>
 	<br>

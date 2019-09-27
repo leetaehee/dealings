@@ -13,9 +13,8 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_ADMIN_PAGE_DEL_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
 		$alertMessage = ''; 
-
-		$actionUrl = ADMIN_PROCESS_ACTION . '/admin_process.php'; // form action url
-		$actionMode = 'del'; // 회원탈퇴
+		$actionUrl = ADMIN_PROCESS_ACTION . '/delete_member.php';
+		
 		$JsTemplateUrl = JS_ADMIN_URL . '/admin_delete.js'; 
 		$idx = htmlspecialchars($_GET['idx']);
 

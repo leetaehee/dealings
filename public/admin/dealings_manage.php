@@ -20,7 +20,7 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_ADMIN_DEALINGS_STATUS . ' | ' . SITE_ADMIN_DOMAIN;
 		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_process.php';
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/finish_dealings.php';
 		$alertMessage = '';
 		$dealingsType = '구매';
 
@@ -33,12 +33,11 @@
 		$payDealingsList = $dealingsClass->getPayCompletedDealingIngList();
 		if ($payDealingsList === false) {
 			throw new Exception('결제 완료 된 데이터를 가져올 수 없습니다.');
-		} else {
-			$payDealingsListCount = $payDealingsList->recordCount();
 		}
+		$payDealingsListCount = $payDealingsList->recordCount();
 
 		// 거래완료 및 환불 링크
-		$DealingsDetailViewHref = $actionUrl . '?mode=finish_dealings';
+		$DealingsDetailViewHref = $actionUrl;
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/dealings_manage.html.php';
 	} catch (Exception $e) {

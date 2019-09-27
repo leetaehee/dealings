@@ -11,11 +11,9 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_JOIN_MENU . ' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
-		$actionUrl = MEMBER_PROCESS_ACTION . '/member_process.php'; // form action url
+		$actionUrl = MEMBER_PROCESS_ACTION . '/add_member.php'; // form action url
 		$ajaxUrl = MEMBER_PROCESS_ACTION . '/member_ajax_process.php'; // ajax url
-		$JsTemplateUrl = JS_URL . '/join.js'; 
-		$actionMode = 'add'; // 회원가입
-
+		$JsTemplateUrl = JS_URL . '/join.js';
 		$userId = $userName = $userEmail = $userPhone = $userBirth = $userSex = '';
 		$userSexMChecked = 'checked';
 		$userSexWChecked = '';

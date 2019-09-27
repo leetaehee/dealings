@@ -26,10 +26,8 @@
 
 	try {
 		$today = date('Y-m-d');
-        $errorMessage = '';
-        $notErrorMessage = '';
 
-        $db->beginTrans(); // 트랜잭션시작
+        $db->startTrans(); // 트랜잭션시작
 
         $dealingsClass = new DealingsClass($db);
 
