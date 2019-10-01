@@ -35,7 +35,7 @@
 			'is_del'=>'Y'
 		];
 
-		$couponValidCount = $couponClass->getCheckCouponValiDateData($param);
+		$couponValidCount = $couponClass->getCheckCouponValidDateCount($param);
 		if($couponValidCount === false){
 			throw new RollbackException('유효 데이터를 체크하는 중에 오류가 발생하였습니다.');
 		}
@@ -44,6 +44,7 @@
 			throw new RollbackException('유효 데이터가 존재하지 않습니다. 작업을 진행하지 않겠습니다.');
 		}
 
+		// 날짜가 지난 쿠폰 삭제
 		$updateParam = [
 			'is_del'=>'Y',
 			'expiration_date'=> $today,
@@ -53,6 +54,21 @@
 		$updateCouponDeleteResult = $couponClass->updateCouponDelete($updateParam);
 		if ($updateCouponDeleteResult < 1) {
 			throw new RollbackException('유효기간이 만료된 쿠폰을 삭제하는 중에 오류가 발생했습니다.');
+		}
+
+		// 고객에 지급된 쿠폰 중에 사용내역이 없는 것만 삭제 
+		$couponValidList = $couponClass->getCheckCouponValidDateList($param);
+		if ($couponValidList === false) {
+			throw new RollbackException('유효기간 지난 데이터를 찾으면서 오류가 발생했습니다.');
+		}
+
+		$couponValidCount = $couponValidList->recordCount();
+		if ($couponValidCount > 0) {
+			// 지급된 쿠폰이 있는 경우에는 삭제한다.
+			$updateCouponMemberDeleteResult = $couponClass->updateCouponMemberDelete($couponValidList);
+			if ($updateCouponDeleteResult < 1) {
+				throw new RollbackException('지급 된 쿠폰 내역을 삭제 하다가 오류가 발생했습니다.');
+			}
 		}
 
 		$alertMessage = '유효기간이 만료된 쿠폰 데이터가 삭제되었습니다. 감사합니다.';

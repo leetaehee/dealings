@@ -68,18 +68,15 @@
 
 		// 이용가능한 쿠폰 가져오기 
 		$couponParam = [
-            'itemNo'=> $itemNo,
 			'issue_type'=> '구매',
-			'item_money'=> $itemMoney,
+			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
-			'start_date'=> date('Y-m-d'),
-			'end_date'=> date('Y-m-d'),
             'member_idx'=> $_SESSION['idx'],
 			'is_refund'=> 'N'
 		];
 		
 		// 사용가능한 쿠폰 가져오기
-		$couponData = $couponClass->getAvailableCouponData($couponParam);
+		$couponData = $couponClass->getAvailableAllCouponData($couponParam);
 		if ($couponData === false) {
 			throw new Exception('사용가능한 쿠폰을 가져 올 수 없습니다. 가져 올 수 없습니다');
 		} else {
@@ -90,14 +87,6 @@
 		$_SESSION['purchaser_mileage'] = $purchaserData->fields['mileage'];
 
 		$dealingsMileage = $dealingsData->fields['dealings_mileage'];
-		$finalPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
-		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
-		if ($dealingsCommission < 0) {
-			throw new Exception('수수료가 입력되어있지 않습니다.'); 
-		}
-
-		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
-		$finalPaymentSum -= $dealingsCommission;
 
 		// 사용한 쿠폰정보 가져오기
 		$useCouponParam = [

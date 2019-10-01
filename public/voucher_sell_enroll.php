@@ -46,9 +46,8 @@
 		// 이용가능한 쿠폰 가져오기 
 		$couponParam = [
 			'issue_type'=> '판매',
+			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
-			'start_date'=> date('Y-m-d'),
-			'end_date'=> date('Y-m-d'),
             'member_idx'=> $_SESSION['idx'],
 			'is_refund'=> 'N'
 		];

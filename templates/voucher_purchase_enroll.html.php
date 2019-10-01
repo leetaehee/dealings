@@ -51,7 +51,6 @@
 	<p>
 		<label for="dealingsMileage">거래금액:</label>
 		<input type="text" id="dealingsMileage" name="dealings_mileage" value="" size="15">원
-		<span id="display-commission"></span>
 	</p><br>
 
 	<p>

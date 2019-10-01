@@ -16,6 +16,7 @@
 
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -39,6 +40,7 @@
 
 		// 디비에서 거래상태받아오기, 거래타입과 키값 보내기
 		$dealingsClass = new DealingsClass($db);
+		$couponClass = new CouponClass($db);
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
@@ -48,16 +50,39 @@
 		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
 		$_SESSION['dealings_idx'] = $getData['idx'];
 		$_SESSION['dealings_status'] = $getData['type'];
+
+		// 사용한 쿠폰정보 가져오기
+		$useCouponParam = [
+			'dealings_idx'=> $getData['idx'],
+			'member_idx'=> $_SESSION['idx'],
+			'issue_type'=> '판매',
+			'is_refund'=> 'N'
+		];
+
+		$useCouponData = $couponClass->getUseCouponData($useCouponParam);
+		if ($useCouponData === false) {
+			throw new Exception('쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.');
+		}
+		$couponIdx = $useCouponData->fields['idx'];
         
-        $dealingsMileage = $dealingsData->fields['dealings_mileage'];
 		$finalPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
+		
 		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
 		if ($dealingsCommission < 0) {
 			throw new Exception('수수료가 입력되어있지 않습니다.'); 
 		}
-
 		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
+
+		if ($useCouponData->fields['item_money'] == 0) {
+			$discountMoney = ($dealingsCommission*$useCouponData->fields['discount_rate'])/100;
+		} else {
+			$discountMoney =  $useCouponData->fields['discount_money'];
+		}
+
 		$finalPaymentSum -= $dealingsCommission;
+		if (!empty($couponIdx)){
+			$finalPaymentSum += $discountMoney;
+		}
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];

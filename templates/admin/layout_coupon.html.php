@@ -6,27 +6,23 @@
 
 		<link rel="stylesheet" href="<?=NOMALIZE_CSS_URL;?>">
 		<style>
-			body { text-align: center; width: 900px; }
+			body { text-align: center; width: 1300px; }
 			div#wrapper { width: 100%; text-align: left; min-height: 300px; margin: 0 auto;}
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
 			section, aside { height: 500px; float: left; }
-			aside { width: 150px; } 
-			section { width: 685px; overflow: scroll; }
+			aside { width: 172px; } 
+			section { width: 1063px; overflow: scroll; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
 			.ul-nav li { margin: 0 0 0 0; padding: 0 0 0 0; border: 0; float: left; }
             .pl-3 { padding-left: 3px; }
 			.pt-15 { padding-top: 15px; }
-			.table { font-size: 4pt; border: 1px solid #444444; border-collapse: collapse; }
-			.admin-table-width { width: 1090px; }
-			.mileage-table-width { width: 620px; }
-			.login-table-width { width: 630px; }
-			.charge-table-width { width: 670px; }
-			.dealings-table-width { width: 680px; }
+			.table { font-size: 10pt; border: 1px solid #444444; border-collapse: collapse; }
 			.table th, .table td { border: 1px solid #444444; padding: 2px; }
 			.empty-tr-colspan { text-align: center; color: red; }
+			.dealings-table-width { width: 1030px; }
 		</style>
     </head>
     <body>
@@ -63,7 +59,13 @@
 				<p>[쿠폰관리]</p>
 				<ul>
 					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/issue_coupon.php">발행하기</a>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/issue_coupon.php">쿠폰발행</a>
+					</li>
+					<li>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/coupon_member_status.php">쿠폰지급</a>
+					</li>
+					<li>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/coupon_issue_list.php">발행내역</a>
 					</li>
 					<li>
 						<a href="<?=SITE_ADMIN_DOMAIN?>/coupon_use_list.php">사용내역</a>

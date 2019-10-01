@@ -55,6 +55,19 @@
 		if (!empty($postData['coupon_name'])) {
 			// 해당 쿠폰이 실제 있는 쿠폰인지 체크
 			$couponIdx = $postData['coupon_name'];
+			$couponMemberIdx = $couponIdx;
+
+			$memberCouponData = [
+				'coupon_member_idx'=> $couponIdx,
+				'is_del'=> 'N'
+			];
+
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			if ($couponIdx === false) {
+				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
+			}
+
+			$postData['coupon_name'] = $couponIdx;
 
 			$validParam = [
 				'issue_type'=> '구매',
@@ -92,14 +105,25 @@
 			if ($discountMileage === false) {
 				throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
 			} 
-			
-			//imi_mileage_charge 수량 변경을 위한 정보 얻어오기
+
+			$discountRate = $couponClass->getDiscountRate($couponIdx);
+			if ($discountRate === false) {
+				throw new RollbackException('쿠폰 할인률을 조회하는 중에 오류가 발생했습니다.');
+			}
+
+
+			// 쿠폰 생성 시 가격을 정해놓은 경우 
 			if ($discountMileage > 0) {
 				$dealingsMileage = $postData['dealings_mileage'] - $discountMileage; 
 
 				if ($dealingsMileage < 0) {
 					$dealingsMileage = 0;
 				}
+			}
+
+			// 쿠폰 생성시 가격을 정해놓지 않은 경우 (모든가격)
+			if ($discountMileage == 0) {
+				$dealingsMileage = ($postData['dealings_mileage']*$discountRate)/100;
 			}
 		} else {
 			$dealingsMileage = $postData['dealings_mileage']; 
@@ -119,10 +143,15 @@
 		// 거래금액 확인
 		$totalMileage = $memberClass->getTotalMileage($_SESSION['idx']);
 		if ($totalMileage === false) {
-			throw new RollbackException('거래 상태를 가져올 수 없습니다.');
+			throw new RollbackException('회원 마일리지를 가져올 수 없습니다.');
 		}
 
-		if ($dealingsMileage > $totalMileage) {
+		if ($discountRate == 100) {
+			// 할인율이 100퍼센트 이하일때만 체크 (할인율 100%는 무료 구매)
+			$dealingsMileage = 0;
+		}
+
+		if (($dealingsMileage > $totalMileage) && $totalMileage > 0) {
 			throw new RollbackException('거래금액이 부족합니다! 충전하세요');
 		}
 
@@ -152,7 +181,7 @@
 		}
 
 		// 쿠폰을 써서 결제금액이 0원일 때는 차감하지 않는다.
-		if ($dealingsMileage > 0) {
+		if ($dealingsMileage > 0 ) {			
 			$chargeArray = $mileageClass->getMildateChargeInfomationData($mileageWitdrawalList, $dealingsMileage);
 			if ($chargeArray === false) {
 				throw new RollbackException('마일리지 수량정보 데이터를 가져오는 중에 오류가 발생하였습니다.');
@@ -253,7 +282,8 @@
 				'coupon_idx'=> $postData['coupon_name'],
 				'member_idx'=> $_SESSION['idx'],
 				'coupon_use_before_mileage'=> $postData['dealings_mileage'],
-				'coupon_use_mileage'=> $dealingsMileage
+				'coupon_use_mileage'=> $dealingsMileage,
+				'coupon_member_idx'=> $couponMemberIdx
 			];
 
 			$insertUseageDataResult = $couponClass->insertCouponUseage($useageData);

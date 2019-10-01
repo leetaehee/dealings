@@ -51,6 +51,19 @@
 		if (!empty($postData['coupon_name'])) {
 			// 해당 쿠폰이 실제 있는 쿠폰인지 체크
 			$couponIdx = $postData['coupon_name'];
+			$couponMemberIdx = $couponIdx;
+
+			$memberCouponData = [
+				'coupon_member_idx'=> $couponIdx,
+				'is_del'=> 'N'
+			];
+
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			if ($couponIdx === false) {
+				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
+			}
+
+			$postData['coupon_name'] = $couponIdx;
 
 			$validParam = [
 				'issue_type'=> '판매',
@@ -65,6 +78,16 @@
 
 			if ($isValidCoupon == null) {
 				throw new RollbackException('유효하지 않은 쿠폰은 사용 할 수 없습니다.');
+			}
+
+			$memberCouponData = [
+				'coupon_member_idx'=> $isValidCoupon,
+				'is_del'=> 'N'
+			];
+
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			if ($couponIdx === false) {
+				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
 			}
 
 			// 쿠폰을 사용했는지 체크 
@@ -84,19 +107,27 @@
 				throw new RollbackException('해당 쿠폰은 이미 사용했습니다.');
 			}
 
-			$discountMileage = $couponClass->getDiscountMileage($couponIdx);
-			if ($discountMileage === false) {
-				throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
-			} 
-			
-			//imi_mileage_charge 수량 변경을 위한 정보 얻어오기
-			if ($discountMileage > 0) {
-				$dealingsMileage = $_SESSION['dealings_mileage'] - $discountMileage; 
-
-				if ($dealingsMileage < 0) {
-					$dealingsMileage = 0;
+			/*
+				$discountMileage = $couponClass->getDiscountMileage($couponIdx);
+				if ($discountMileage === false) {
+					throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
 				}
+			*/
+
+			$discountRate = $couponClass->getDiscountRate($couponIdx);
+			if ($discountRate === false) {
+				throw new RollbackException('쿠폰 할인률을 조회하는 중에 오류가 발생했습니다.');
 			}
+
+			$dealingsCommission = $dealingsClass->getCommission($_SESSION['dealings_idx']);
+			if ($discountRate === false) {
+				throw new RollbackException('거래 수수료를 가져오는 중에 오류가 발생했습니다.');
+			}
+			
+			// 원래 내야 하는 수수료
+			$couponUseBeforeMileage = ($_SESSION['dealings_mileage']*$dealingsCommission)/100;
+			// 쿠폰을 적용 받아서 내야 하는 수수료 
+			$couponUseMileage = ($couponUseBeforeMileage*$discountRate)/100;
 		}
 		
 		$param = [
@@ -185,8 +216,9 @@
 				'dealings_idx'=> $_SESSION['dealings_idx'],
 				'coupon_idx'=> $postData['coupon_name'],
 				'member_idx'=> $_SESSION['idx'],
-				'coupon_use_before_mileage'=> $_SESSION['dealings_mileage'],
-				'coupon_use_mileage'=> $dealingsMileage
+				'coupon_use_before_mileage'=> $couponUseBeforeMileage,
+				'coupon_use_mileage'=> $couponUseMileage,
+				'coupon_member_idx'=> $couponMemberIdx,
 			];
 
 			$insertUseageDataResult = $couponClass->insertCouponUseage($useageData);

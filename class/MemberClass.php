@@ -478,6 +478,36 @@
             
 			return $result;
 		}
+
+		/**
+         * @brief: [관리자 메뉴] 현재 활동 중인 회원 리스트 
+         * @param: 없음
+         * @return: array 
+         */
+		public function getActivityMemberList()
+		{
+			$query = 'SELECT `idx`,
+							 `id`,
+							 `name`,
+							 `email`,
+							 `phone`,
+							 `sex`,
+							 `join_approval_date`,
+							 `mileage`,
+							 CASE WHEN `sex` = "M" then "남성" else "여성" end sex_name
+					  FROM `imi_members`
+					  WHERE `forcedEviction_date` IS NULL
+					  AND `withdraw_date` IS NULL
+					  AND `join_approval_date` IS NOT NULL';
+
+			$result = $this->db->execute($query);
+
+			if ($result === false) {
+				return false;
+			}
+            
+			return $result;
+		}
 	
 		/**
          * @brief: 회원 전체 마일리지 가져오기 

@@ -78,7 +78,7 @@
 				<select id="coupon-name" name="coupon_name">
 					<option value="">선택하세요.</option>
 					<?php foreach($couponData as $key => $value): ?>
-						<option value="<?=$couponData->fields['idx']?>" data-discount_mileage="<?=$couponData->fields['discount_mileage']?>">
+						<option value="<?=$couponData->fields['idx']?>" data-discount_rate="<?=$couponData->fields['discount_rate']?>">
 							<?=$couponData->fields['subject']?>(<?=$couponData->fields['discount_rate']?>%)
 						</option>	
 					<?php endforeach;?>
@@ -136,16 +136,24 @@
 				[쿠폰 사용 내용]
 			</p>
 			<p>
-				1. 사용한 쿠폰명: "<?=$useCouponData->fields['subject']?>" 
-				<?=$useCouponData->fields['item_money']?>원
-				(<?=$useCouponData->fields['discount_rate']?>% 쿠폰)
+				1. 사용한 쿠폰정보: "<?=$useCouponData->fields['subject']?>" 
 			</p>
 			<p>
-                2. 쿠폰할인율: <?=$useCouponData->fields['item_money']?>원
+				2. 쿠폰할인율 : 
+				<?php if($useCouponData->fields['item_money'] == 0): ?>
+					모든금액 적용쿠폰
+				<?php else: ?>
+					<?=$useCouponData->fields['item_money']?>원
+				<?php endif; ?>
 				(<?=$useCouponData->fields['discount_rate']?>% 쿠폰)
             </p>
 			<p>
-				3. 할인금액: <?=number_format($useCouponData->fields['discount_money'])?>원
+				3. 할인금액: 
+				<?php if($useCouponData->fields['item_money'] == 0): ?>
+					<?=number_format(($dealingsData->fields['dealings_mileage']*$useCouponData->fields['discount_rate'])/100)?>원
+				<?php else: ?>
+					<?=number_format($useCouponData->fields['discount_money'])?>원
+				<?php endif; ?>
 			</p>
 		<?php endif; ?>
 	<?php endif; ?>

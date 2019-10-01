@@ -40,24 +40,51 @@
 		8. 상품권 거래금액: <?=$dealingsData->fields['dealings_mileage']?>원 
 	</p>
 
+	<p>
+		9. 수수료: <?=number_format($dealingsCommission)?>원
+	</p>
+
     <p>
-		9. 판매 후 실수령액: <span id="realPaymentSum"><?=number_format($finalPaymentSum);?></span>원
-	</p>
-
-
-	<p>
-		10. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
+		10. 판매 후 실수령액: <span id="realPaymentSum"><?=number_format($finalPaymentSum);?></span>원
 	</p>
 
 	<p>
-		11. 상품권 핀번호: 결제 및 관리자가 확인 후 문자로 보내드립니다.
+		11. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
+	</p>
+
+	<p>
+		12. 상품권 핀번호: 결제 및 관리자가 확인 후 문자로 보내드립니다.
 	</p>
 
 	<?php if(!empty($dealingsData->fields['memo'])): ?>
 		<p>
-			12. 비고: <?=$dealingsData->fields['memo']?>
+			13. 비고: <?=$dealingsData->fields['memo']?>
 		</p>
 	<?php endif;?>
+
+	<?php if (!empty($couponIdx)): ?>
+		<p>
+			---------------------------------------
+		</p>
+		<p>
+			[쿠폰 사용 내용]
+		</p>
+		<p>
+			1. 사용한 쿠폰 정보: "<?=$useCouponData->fields['subject']?>"
+		</p>
+		<p>
+			2. 쿠폰할인율 : 
+			<?php if($useCouponData->fields['item_money'] == 0): ?>
+				모든금액 적용쿠폰
+			<?php else: ?>
+				<?=$useCouponData->fields['item_money']?>원
+			<?php endif; ?>
+			(<?=$useCouponData->fields['discount_rate']?>% 쿠폰)
+		</p>
+		<p>
+			3. 할인금액:  <?=number_format($discountMoney)?>원
+		</p>
+	<?php endif; ?>
 	
 	<?php if($dealingsData->fields['dealings_status'] == 2): ?>
 		<p>

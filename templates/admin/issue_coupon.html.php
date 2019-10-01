@@ -43,7 +43,10 @@
 						<?=$CONFIG_VOUCHER_MONEY_ARRAY[$i]?>
 					</option>
 				<?php endfor; ?>
+				<option value="0">모든금액</option>
 			</select>
+		<?php else: ?>
+			관리자에게 문의하세요
 		<?php endif; ?>
 	</p><br>
 
@@ -59,7 +62,8 @@
 
 	<p>
 		<label for="discount-rate">할인율:</label>
-		<input type="text" id="discount-rate" name="discount_rate" value="" size="13"> %
+		<input type="text" id="discount-rate" name="discount_rate" value="" size="13"> % 
+		(발행쿠폰타입이 '판매'인 경우 할인율은 수수료를 기준으로 계산됩니다.)
 	</p><br>
 
 	<p>

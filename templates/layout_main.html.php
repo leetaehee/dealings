@@ -6,24 +6,24 @@
 
 		<link rel="stylesheet" href="<?=NOMALIZE_CSS_URL;?>">
 		<style>
-			body { text-align: center; width: 900px; }
+			body { text-align: center; width: 1300px; }
 			div#wrapper { width: 100%; text-align: left; min-height: 300px; margin: 0 auto;}
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
 			section, aside { height: 500px; float: left; }
-			aside { width: 150px; } 
-			section { width: 685px; }
+			aside { width: 172px; } 
+			section { width: 1063px; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
 			.ul-nav li { margin: 0 0 0 0; padding: 0 0 0 0; border: 0; float: left; }
             .pl-3 { padding-left: 3px; }
 			.pt-15 { padding-top: 15px; }
-			.table { font-size: 4pt; border: 1px solid #444444; border-collapse: collapse; }
-			.admin-table-width { width: 1090px; }
-			.mileage-table-width { width: 620px; }
-			.login-table-width { width: 630px; }
-			.charge-table-width { width: 650px; }
+			.table { font-size: 10pt; border: 1px solid #444444; border-collapse: collapse; }
+			.admin-table-width { width: 1030px; }
+			.mileage-table-width { width: 1030px; }
+			.login-table-width { width: 1030px; }
+			.charge-table-width { width: 1030px; }
 			.table th, .table td { border: 1px solid #444444; padding: 2px; }
 			.empty-tr-colspan { text-align: center; color: red; }
 		</style>

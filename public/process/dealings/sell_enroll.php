@@ -50,6 +50,7 @@
 				$itemObjectNo = setEncrypt($_POST['item_object_no']);
 			}
 		}
+
 		$postData = $_POST;
 		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
 
@@ -74,6 +75,19 @@
 		if (!empty($postData['coupon_name'])) {
 			// 해당 쿠폰이 실제 있는 쿠폰인지 체크
 			$couponIdx = $postData['coupon_name'];
+			$couponMemberIdx = $couponIdx;
+
+			$memberCouponData = [
+				'coupon_member_idx'=> $couponIdx,
+				'is_del'=> 'N'
+			];
+
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			if ($couponIdx === false) {
+				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
+			}
+
+			$postData['coupon_name'] = $couponIdx;
 
 			$validParam = [
 				'issue_type'=> '판매',
@@ -90,18 +104,25 @@
 				throw new RollbackException('유효하지 않은 쿠폰은 사용 할 수 없습니다.');
 			}
 
-			$itemData = [
-				'item_money'=> $postData['item_money'],
-				'sell_item_idx'=> $postData['item_no']
-			];
-			
-			$couponKeyIdx = $couponClass->getCheckUserCouponMatch($itemData);
-			if ($couponKeyIdx === false) {
-				throw new RollbackException('쿠폰 일치 확인하는 중에 오류가 발생했습니다.');
+			$itemMoney = $couponClass->getItemMoney($couponIdx);
+			if ($isValidCoupon === false) {
+				throw new RollbackException('쿠폰에 적용된 가격을 가져오면서 오류가 발생했습니다.');
 			}
-			
-			if (empty($couponKeyIdx)) {
-				throw new RollbackException('선택하신 상품권과 쿠폰은 일치하지 않습니다.');
+
+			if ($itemMoney > 0) {
+				$itemData = [
+					'item_money'=> $postData['item_money'],
+					'sell_item_idx'=> $postData['item_no']
+				];
+
+				$couponKeyIdx = $couponClass->getCheckUserCouponMatch($itemData);
+				if ($couponKeyIdx === false) {
+					throw new RollbackException('쿠폰 일치 확인하는 중에 오류가 발생했습니다.');
+				}
+				
+				if (empty($couponKeyIdx)) {
+					throw new RollbackException('선택하신 상품권과 쿠폰은 일치하지 않습니다.');
+				}
 			}
 
 			// 쿠폰을 사용했는지 체크 
@@ -121,18 +142,16 @@
 				throw new RollbackException('해당 쿠폰은 이미 사용했습니다.');
 			}
 
-			$discountMileage = $couponClass->getDiscountMileage($couponIdx);
-			if ($discountMileage === false) {
-				throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
-			} 
-			
-			//imi_mileage_charge 수량 변경을 위한 정보 얻어오기
-			if ($discountMileage > 0) {
-				$dealingsMileage = $postData['dealings_mileage'] - $discountMileage; 
-
-				if ($dealingsMileage < 0) {
-					$dealingsMileage = 0;
+			/*
+				$discountMileage = $couponClass->getDiscountMileage($couponIdx);
+				if ($discountMileage === false) {
+					throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
 				}
+			*/
+
+			$discountRate = $couponClass->getDiscountRate($couponIdx);
+			if ($discountRate === false) {
+				throw new RollbackException('쿠폰 할인률을 조회하는 중에 오류가 발생했습니다.');
 			}
 		}
 
@@ -141,6 +160,7 @@
 
 		// 수수료 가져오기 
 		$itemIdx = $postData['item_no'];
+
 
 		$commission = $sellItemClass->getCheckSellItemValue($itemIdx);
 		if ($commission === false) {
@@ -190,13 +210,20 @@
 
 		// 구매 시 쿠폰 적용했다면 사용내역에 데이터 생성.
 		if (!empty($postData['coupon_name'])) {
+
+			// 원래 내야 하는 수수료
+			$couponUseBeforeMileage = ($postData['dealings_mileage']*$commission)/100;
+			// 쿠폰을 적용 받아서 내야 하는 수수료 
+			$couponUseMileage = ($couponUseBeforeMileage*$discountRate)/100;
+
 			$useageData = [
 				'type'=> '판매',
 				'dealings_idx'=> $insertResult,
 				'coupon_idx'=> $postData['coupon_name'],
 				'member_idx'=> $_SESSION['idx'],
-				'coupon_use_before_mileage'=> $postData['dealings_mileage'],
-				'coupon_use_mileage'=> $dealingsMileage
+				'coupon_use_before_mileage'=> $couponUseBeforeMileage,
+				'coupon_use_mileage'=> $couponUseMileage,
+				'coupon_member_idx'=> $couponMemberIdx
 			];
 
 			$insertUseageDataResult = $couponClass->insertCouponUseage($useageData);

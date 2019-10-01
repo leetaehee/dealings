@@ -47,6 +47,7 @@
 	define('TITLE_VOUCHER_SELL_STATUS', '상품권 판매 결제현황'); // 상품권 판매 결제 현황 목록
 	define('TITLE_VOUCHER_PURCHASE_ENROLL_STATUS', '상품권 구매 등록현황'); // MY 구매 등록 현황 목록
 	define('TITLE_VOUCHER_SELL_ENROLL_STATUS', '상품권 판매 등록현황'); // MY 판매 등록 현황 목록
+	define('TITLE_MY_COUPON_LIST', '나의 쿠폰 조회'); // MY 쿠폰리스트
 
 	/*
 	 * 관리자
@@ -60,9 +61,12 @@
 	define('TITLE_ADMIN_CHARGE_STATUS', '마일리지 결제내역'); // 결제내역
 	define('TITLE_ADMIN_DEALINGS_STATUS', '상품권 거래관리'); // 거래관리
 	define('TITLE_COUPON_MAXIMUM_DISCOUNT_RATE', '쿠폰 할인률 제한'); // 할인률 제한
-	define('TITLE_COUPON_ISSUE', '쿠폰 발행'); // 쿠폰 발행
 	define('TITLE_COUPON_MAIN', '쿠폰 관리'); // 쿠폰 관리
 	define('TITLE_COUPON_USEAGE', '쿠폰 사용내역'); // 쿠폰 사용내역
+	define('TITLE_COUPON_ISSUE', '쿠폰 발행내역'); // 쿠폰 발행내역
+	define('TITLE_COUPON_ISSUE_MEMBER', '쿠폰 지급 가능 회원 목록'); // 쿠폰 지급 회원 목록 
+	define('TITLE_COUPON_PROVIDER', '쿠폰 관리'); // 쿠폰 지급 등록
+	define('TITLE_COUPON_PROVIDER_STATUS', '쿠폰 지급 현황'); // 쿠폰 지급 현황
 
 	/*
 	 * @author: LeeTaeHee

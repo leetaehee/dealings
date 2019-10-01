@@ -77,7 +77,11 @@
 			throw new RollbackException("상품권 고유번호가 존재하지 않습니다.");
 		}
 
-		$discountMileage = ceil(($postData['voucher_price']*$postData['discount_rate'])/100);
+		if ($postData['voucher_price'] > 0) {
+			$discountMileage = ceil(($postData['voucher_price']*$postData['discount_rate'])/100);
+		} else {
+			$discountMileage = 0;
+		}
 
 		$insertData = [
 			'issue_type'=> $postData['coupon_issue_type'],

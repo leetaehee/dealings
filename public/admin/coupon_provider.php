@@ -1,7 +1,7 @@
 <?php
 	/*
 	 *  @author: LeeTaeHee
-	 *	@brief: 쿠폰 사용내역 
+	 *	@brief: 쿠폰 발행하기
 	 */
 	
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
@@ -18,24 +18,42 @@
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
-		$title = TITLE_COUPON_USEAGE . ' | ' . TITLE_ADMIN_SITE_NAME;
+		$title = TITLE_COUPON_PROVIDER . ' | ' . TITLE_ADMIN_SITE_NAME;
+
 		$returnUrl = SITE_ADMIN_DOMAIN.'/coupon.php'; // 리턴되는 화면 URL 초기화
+		$JsTemplateUrl = JS_ADMIN_URL . '/.js';
+		$btnName = '';
+
 		$alertMessage = '';
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
+		$_GET['idx'] = htmlspecialchars($_GET['idx']);
+		$getData = $_GET;
+
+		$memberIdx = $getData['idx'];
+
 		$couponClass = new CouponClass($db);
 
-		$couponUseList = $couponClass->getCouponUseList();
-		if ($couponUseList === false) {
-			throw new Exception('사용자 쿠폰 사용내역을 가져오다가 오류가 발생했습니다.');
-		} 
+		$couponParam = [
+			'member_idx'=> $memberIdx,
+			'is_del'=> 'N',
+			'is_coupon_del'=> 'N'
+		];
 
-		$couponUseListCount = $couponUseList->recordCount();
+		$couponList = $couponClass->getMemberAvailableCouponList($couponParam);
+		if ($couponList === false) {
+			throw new Exception('회원 쿠폰 데이터를 가져오는 중에 오류가 발생했습니다.');
+		}
 
-		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/coupon_use_list.html.php';
+		$couponListCount = $couponList->recordCount();
+
+		// 쿠폰 발급해주는 URL
+		$couponAddURL = COUPON_PROCEE_ACTION . '/add_member_coupon.php';
+
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/coupon_provider.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {

@@ -8,20 +8,6 @@ $(function(){
 	$("#itemNo").on("change",function(){
 		$("#display-commission").html("");
 	});
-
-	$("#dealingsMileage").on("keyup",function(event){
-		var dealingsMileage = $(this).val();
-		var commission = $("#itemNo > option:selected").prop('class');
-		var commissionStr = '';
-
-		var result = getCommission(dealingsMileage, commission);
-
-		if(result > 0)
-		{
-			commissionStr = "(수수료: "+commission+"% / 실수령액: "+result+"원)";
-		}
-		$("#display-commission").html(commissionStr);
-	});
 });
 
 function isVourcherPurchaseValidForm(){

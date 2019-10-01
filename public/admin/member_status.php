@@ -33,12 +33,12 @@
 		$memberList = $memberClass->getMemberList();
 
 		if ($memberList === false) {
-			throw new Exception('회원 리스트 가져오다가 오류 발생! 관리자에게 문의하세요');
-		} else {
-			$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/member_status.html.php';
+			throw new Exception('회원 리스트 가져오면서 오류가 발생했습니다.');
 		}
 
 		$rocordCount = $memberList->recordCount();
+		
+		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/member_status.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {

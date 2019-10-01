@@ -90,6 +90,8 @@
 		$couponIdx = $useCouponData->fields['idx'];
 		$coupon_use_mileage = $useCouponData->fields['coupon_use_mileage'];
 
+		$commissionMemberIdx = 0;
+
 		if ($isCancel == 'N') {
 			if (!empty($couponIdx)){
 				$dealingsMileage = $useCouponData->fields['coupon_use_before_mileage'];
@@ -103,6 +105,7 @@
 					'issue_type'=>'판매',
 					'is_refund'=>'N'
 				];
+				$commissionMemberIdx = $dealingsMemberIdx;
 			} else if ($getData['target'] == 'writer_idx') {
 				$commissionInfoParam = [
 					'dealings_idx'=>$dealingsIdx,
@@ -110,6 +113,7 @@
 					'issue_type'=>'판매',
 					'is_refund'=>'N'
 				];
+				$commissionMemberIdx = $dealingsWriterIdx;
 			}
 
 			// 수수료 할인금액 가져오기
@@ -117,21 +121,17 @@
 			if ($commissionData === false) {
 				throw new RollbackException("수수료 할인금액을 가져오면서 오류가 발생했습니다.");
 			}
+
 			$commisionCouponIdx = $commissionData->fields['idx'];
-			$discountMoney = $commissionData->fields['discount_money'];
-
 			if (!empty($commisionCouponIdx)) {
+				// 할인쿠폰 사용
 
-				echo $commission.">>";
+				$discountMoney = $commissionData->fields['discount_money'];
+				$couponUseMileage = $commissionData->fields['coupon_use_mileage'];
 
-				if ($discountMoney > $commission) {
-					$commission = 0;
-				}
-
-				if ($discountMoney <= $commission) {
-					$commission = ($commission - $discountMoney);
-				}
+				$commission = ($commission - $couponUseMileage);
 			}
+
 			$dealingsMileage -= $commission; // 최종금액
 		}
 		
@@ -145,9 +145,7 @@
 			if ($coupon_use_mileage == 0){
 				$dealingsMileage = 0;
 			}
-		}
 
-		if ($isCancel === 'Y') {
 			$nextStatus = 5;
 			$alertMessage = '정상적으로 거래가 취소되었습니다.';
 			
@@ -235,8 +233,6 @@
 			if ($mileagechangeIdx === false) {
 				throw new RollbackException("거래 마일리지 변동정보를 읽어오다가 오류가 발생했습니다.");
 			}
-
-
 
 			// 마일리지 변동내역 상태 수정 (100% 쿠폰 할인인경우 결제 안했기 때문에 안해도 됨)		
 			if(!empty($mileagechangeIdx)){

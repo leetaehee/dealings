@@ -36,7 +36,7 @@ function isIssueCouponValidForm()
 		return false;
 	}
 
-	if (voucherPrice.length < 1){
+	if (voucherPrice == ''){
 		alert("상품권 가격을 선택하세요.");
 		return false;
 	}

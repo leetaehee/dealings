@@ -14,10 +14,7 @@
 
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -32,6 +29,7 @@
 
 		// 글삭제
 		$dealingsClass = new DealingsClass($db);
+		$couponClass = new CouponClass($db);
 
 		// return시 url 설정
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
@@ -48,6 +46,41 @@
 		$dealingsStatus = 6;
 
 		$db->startTrans();
+
+		// 거래타입 가져오기
+		$dealingsType = $dealingsClass->getDealingsType($dealingsIdx);
+		if ($dealingsType === false) {
+			throw new RollbackException('거래타입을 가져오는 중에 오류가 발생했습니다.');
+		}
+
+		$couponUseParam = [
+			'dealings_idx'=>$dealingsIdx,
+			'member_idx'=>$_SESSION['idx'],
+			'issue_type'=>$dealingsType == '판매' ? '판매' : '구매',
+			'is_refund'=>'N'
+		];
+
+		$useCouponData = $couponClass->getUseCouponData($couponUseParam);
+		if ($useCouponData === false) {
+			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
+		}
+
+		$couponIdx = $useCouponData->fields['idx'];
+
+		if (!empty($couponIdx)){
+
+			// 판매삭제 시 쿠폰복구 
+			$couponStatusParam = [
+					'coupon_use_end_date'=> date('Y-m-d'),
+					'is_refund'=> 'Y',
+					'idx'=>$couponIdx
+			];
+
+			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);
+			if ($updateCouponResult < 1) {
+				throw new RollbackException('판매취소로 쿠폰 복구 중에 문제가 생겼습니다.');
+			}
+		}
 
 		$deleteParam = [
 			'is_del'=>'Y',

@@ -681,4 +681,36 @@
 			}
 
 		}
+
+		/* @brief: 거래 수수료 가져오기
+		 * @param: 거래 키 값
+		 * @return: int
+		 */
+		public function getCommission($dealingsIdx)
+		{	
+			$query = 'SELECT `dealings_commission` FROM `imi_dealings` WHERE `idx` = ?';
+
+			$result = $this->db->execute($query, $dealingsIdx);
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['dealings_commission'];
+		}
+
+		/* @brief: 거래 타입 가져오기
+		 * @param: 거래 키 값
+		 * @return: int
+		 */
+		public function getDealingsType($dealingsIdx)
+		{	
+			$query = 'SELECT `dealings_type` FROM `imi_dealings` WHERE `idx` = ?';
+
+			$result = $this->db->execute($query, $dealingsIdx);
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['dealings_type'];
+		}
 	}
