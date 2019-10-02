@@ -683,6 +683,7 @@
 							 `im`.`name`,
 							 `im`.`phone`,
 							 `im`.`id`,
+							 `imcd`.`idx` `charge_target_idx`,
 							 `imcd`.`charge_taget_name`
 					  FROM `imi_mileage_charge` `imc`
 						INNER JOIN `imi_members` `im`
@@ -694,6 +695,7 @@
 					  FOR UPDATE';
 			
 			$result = $this->db->execute($query,$param);
+
 			if ($result == false) {
 				return false;
 			}

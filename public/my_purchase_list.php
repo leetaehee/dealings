@@ -54,4 +54,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

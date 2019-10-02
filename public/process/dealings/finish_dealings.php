@@ -123,11 +123,16 @@
 			}
 
 			$commisionCouponIdx = $commissionData->fields['idx'];
+
 			if (!empty($commisionCouponIdx)) {
 				// 할인쿠폰 사용
-
 				$discountMoney = $commissionData->fields['discount_money'];
 				$couponUseMileage = $commissionData->fields['coupon_use_mileage'];
+
+				// 쿠폰 사용해서 100% 할인 받는 경우
+				if ($couponUseMileage == 0) {
+					$commission = $couponUseMileage;
+				}
 
 				$commission = ($commission - $couponUseMileage);
 			}
@@ -291,27 +296,30 @@
 				}
 			}
 
-			// 수수료도 넣기
-			$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx);
-			if ($dealingsIdxFromDB === false){
-				throw new RollbackException('수수료 테이블에서 거래키정보를 가져올 수 없습니다.');
-			}
+			// 수수료가 있는 경우에만 실행 (쿠폰을 사용해서 내지 않는 경우는 실행안함)
+			if ($commission > 0) {
+				// 수수료도 넣기
+				$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx);
+				if ($dealingsIdxFromDB === false){
+					throw new RollbackException('수수료 테이블에서 거래키정보를 가져올 수 없습니다.');
+				}
 
-			if(!empty($dealingsIdxFromDB)){
-				throw new RollbackException('이미 거래가 완료되었거나 환불처리 되었습니다.');
-			}
+				if(!empty($dealingsIdxFromDB)){
+					throw new RollbackException('이미 거래가 완료되었거나 환불처리 되었습니다.');
+				}
 
-			// 수수료 할인해주기
-			// 쿠폰정보 업데이트 (날짜), 취소도 동일 취소는 환불까지 체크 할것 
-			$commissionParam = [
-				'dealings_idx'=>$dealingsIdx,
-				'commission'=>$commission,
-				'sell_item_idx'=>$itemNo
-			];
+				// 수수료 할인해주기
+				// 쿠폰정보 업데이트 (날짜), 취소도 동일 취소는 환불까지 체크 할것 
+				$commissionParam = [
+					'dealings_idx'=>$dealingsIdx,
+					'commission'=>$commission,
+					'sell_item_idx'=>$itemNo
+				];
 
-			$insertCommissionResult = $commissionClass->insertDealingsCommission($commissionParam);
-			if ($insertCommissionResult < 1) {
-				throw new RollbackException('수수료 테이블에 삽입을 할 수 없습니다');
+				$insertCommissionResult = $commissionClass->insertDealingsCommission($commissionParam);
+				if ($insertCommissionResult < 1) {
+					throw new RollbackException('수수료 테이블에 삽입을 할 수 없습니다');
+				}
 			}
 		}
 

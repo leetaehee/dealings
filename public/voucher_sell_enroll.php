@@ -48,10 +48,11 @@
 			'issue_type'=> '판매',
 			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
+            'p_member_idx'=> $_SESSION['idx'],
             'member_idx'=> $_SESSION['idx'],
 			'is_refund'=> 'N'
 		];
-		
+        	
 		// 사용가능한 쿠폰 리스트 가져오기
 		$couponData = $couponClass->getAvailableAllCouponData($couponParam);
 		if ($couponData === false) {

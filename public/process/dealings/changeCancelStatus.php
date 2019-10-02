@@ -38,7 +38,7 @@
 		$postData = $_POST;
 
 		// returnURL
-		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
+		$returnUrl = SITE_DOMAIN . '/mypage.php';
 
 		$dealingsTypeArray = ['구매', '판매'];
 		if (!in_array($postData['dealings_type'], $dealingsTypeArray)) {
@@ -107,7 +107,7 @@
 			}
 		}
 
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+		$returnUrl = SITE_DOMAIN.'/mypage.php';
 		$alertMessage = '판매가 취소되었습니다!';
 
 		$db->commitTrans();

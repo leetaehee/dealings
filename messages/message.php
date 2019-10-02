@@ -43,10 +43,10 @@
 	define('TITLE_VOUCHER_SELL_LIST', '상품권 판매목록'); // 상품권 판매 목록
 	define('TITLE_VOUCHER_PURCHASE_DETAIL_VIEW', '상품권 구매 거래 상세내역'); // 상품권 구매 거래 상세화면
 	define('TITLE_VOUCHER_SELL_DETAIL_VIEW', '상품권 판매 거래 상세내역'); // 상품권 판매 거래 상세화면
-	define('TITLE_VOUCHER_PURCHASE_STATUS', '상품권 구매 결제현황'); // 상품권 구매 결제 현황 목록
-	define('TITLE_VOUCHER_SELL_STATUS', '상품권 판매 결제현황'); // 상품권 판매 결제 현황 목록
-	define('TITLE_VOUCHER_PURCHASE_ENROLL_STATUS', '상품권 구매 등록현황'); // MY 구매 등록 현황 목록
-	define('TITLE_VOUCHER_SELL_ENROLL_STATUS', '상품권 판매 등록현황'); // MY 판매 등록 현황 목록
+	define('TITLE_VOUCHER_PURCHASE_STATUS', '판매중인물품'); // 상품권 구매 결제 현황 목록
+	define('TITLE_VOUCHER_SELL_STATUS', '구매중인물품'); // 상품권 판매 결제 현황 목록
+	define('TITLE_VOUCHER_PURCHASE_ENROLL_STATUS', '구매등록물품'); // MY 구매 등록 현황 목록
+	define('TITLE_VOUCHER_SELL_ENROLL_STATUS', '판매등록물품'); // MY 판매 등록 현황 목록
 	define('TITLE_MY_COUPON_LIST', '나의 쿠폰 조회'); // MY 쿠폰리스트
 
 	/*
@@ -67,6 +67,7 @@
 	define('TITLE_COUPON_ISSUE_MEMBER', '쿠폰 지급 가능 회원 목록'); // 쿠폰 지급 회원 목록 
 	define('TITLE_COUPON_PROVIDER', '쿠폰 관리'); // 쿠폰 지급 등록
 	define('TITLE_COUPON_PROVIDER_STATUS', '쿠폰 지급 현황'); // 쿠폰 지급 현황
+	define('TITLE_COUPON_MODIFY', '쿠폰 수정 목록'); // 쿠폰 수정 목록
 
 	/*
 	 * @author: LeeTaeHee

@@ -51,7 +51,24 @@
 
 		$couponData = $couponClass->getMemberCouponData($couponIdx);
 		if ($couponData === false) {
-			throw new Exception('회원 쿠폰 정보를 가져오는 중에 오류가 발생했습니다.');
+			throw new Exception('쿠폰 정보를 가져오는 중에 오류가 발생했습니다.');
+		}
+
+		$couponOverlapParam = [
+			'coupon_idx'=> $couponIdx,
+			'member_idx'=> $getData['member_idx'],
+			'issue_type'=> $couponData->fields['issue_type'],
+			'is_coupon_del'=> 'N',
+			'is_del'=> 'N'
+		];
+
+		$overlapCount = $couponClass->getCheckCouponOverlapData($couponOverlapParam);
+		if ($overlapCount === false) {
+			throw new RollbackException('쿠폰 발행 중복검사 중에 오류가 발생했습니다.');
+		}
+
+		if ($overlapCount > 0) {
+			throw new RollbackException('쿠폰이 이미 발행되어서 등록 할 수 없습니다.');
 		}
 
 		$insertMemberData = [
@@ -69,7 +86,7 @@
 			throw new RollbackException('회원 쿠폰정보에 데이터를 삽입중에 오류가 발생했습니다.');
 		}
 
-		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_provider.php?idx=' . $getData['member_idx'];
+		$returnUrl = SITE_ADMIN_DOMAIN . '/courpon_provider_status.php?idx=' . $getData['member_idx'];
 		$alertMessage = '정상적으로 지급이 되었습니다.';
 
 		$db->commitTrans();

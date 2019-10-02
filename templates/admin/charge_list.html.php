@@ -2,6 +2,7 @@
 <p>
 	<h5>- 충전 후 사용금액이 존재하는 경우 취소를 할 수 없습니다!</h5>
 	<h5>- 취소 한 내역은 다시 복구 할 수 없습니다.!</h5>
+	<h5>- 아이템 거래를 통해 들어온 금액은 취소 할 수 없습니다!</h5>
 </p>
 <table class="table charge-table-width">
 	<colgroup>
@@ -43,7 +44,11 @@
 					<td><?=number_format($value['use_cost'])?></td>
 					<td>
 						<?php if($value['use_cost'] == 0): ?>
-							<a href="<?=$chargeCancelUrl?>?idx=<?=$value['idx']?>">[취소]</a>
+							<?php if($value['charge_target_idx']!=7): ?>
+								<a href="<?=$chargeCancelUrl?>?idx=<?=$value['idx']?>">
+									[취소]
+								</a>
+							<?php endif; ?>
 						<?php endif; ?>
 					</td>
 				</tr>

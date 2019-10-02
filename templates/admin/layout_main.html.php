@@ -11,8 +11,8 @@
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
 			section, aside { height: 500px; float: left; }
-			aside { width: 172px; } 
-			section { width: 1063px; overflow: scroll; }
+			aside { width: 182px; } 
+			section { width: 1052px; overflow: scroll; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }

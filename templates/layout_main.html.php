@@ -10,9 +10,9 @@
 			div#wrapper { width: 100%; text-align: left; min-height: 300px; margin: 0 auto;}
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
-			section, aside { height: 500px; float: left; }
-			aside { width: 172px; } 
-			section { width: 1063px; }
+			section, aside { height: 720px; float: left; }
+			aside { width: 182px; overflow: scroll; } 
+			section { width: 1052px; overflow: scroll; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
@@ -24,6 +24,7 @@
 			.mileage-table-width { width: 1030px; }
 			.login-table-width { width: 1030px; }
 			.charge-table-width { width: 1030px; }
+			.dealings-table-width { width: 1030px; }
 			.table th, .table td { border: 1px solid #444444; padding: 2px; }
 			.empty-tr-colspan { text-align: center; color: red; }
 		</style>
@@ -98,6 +99,32 @@
 					<li>
 						<a href="<?=SITE_DOMAIN?>/virtual_account_mileage_withdrawal.php">가상계좌 출금</a>
 					</li>
+				</ul>
+				<p class="pt-15">[구매]</p>
+				<ul>
+					<li>
+						<a href="<?=SITE_DOMAIN?>/sell_status.php">구매중인물품</a>
+					</li>
+					<li>
+						<a href="<?=SITE_DOMAIN?>/my_purchase_list.php">구매등록물품</a>
+					</li>
+				</ul>
+				<p class="pt-15">[판매]</p>
+				<ul>
+					<li>
+						<a href="<?=SITE_DOMAIN?>/purchase_status.php">판매중인물품</a>
+					</li>
+
+					<li>
+						<a href="<?=SITE_DOMAIN?>/my_sell_list.php">판매등록물품</a>
+					</li>
+				</ul>
+				<p class="pt-15">[쿠폰관리]</p>
+				<ul>
+					<li>
+						<a href="<?=SITE_DOMAIN?>/my_coupon_list.php">지급 된 쿠폰조회</a>
+					</li>
+					<li>
 				</ul>
 			</aside>
 			<section>

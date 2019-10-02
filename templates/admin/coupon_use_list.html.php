@@ -1,6 +1,12 @@
 <p>
 	<h3>[<?=TITLE_COUPON_USEAGE?>]</h3>
 </p>
+<p>
+	- 모든상품권/금액 쿠폰은 결제금액이 0원으로 표시 됩니다.
+</p>
+<p>
+	- 실제 거래되는 물건 거래금액에 할인율을 계산하면됩니다.
+</p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 5%;">

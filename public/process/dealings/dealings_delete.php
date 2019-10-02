@@ -32,7 +32,7 @@
 		$couponClass = new CouponClass($db);
 
 		// return시 url 설정
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+		$returnUrl = SITE_DOMAIN.'/mypage.php';
 
 		// xss, injection 방지
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);

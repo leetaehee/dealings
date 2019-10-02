@@ -51,7 +51,7 @@
 		$postData = $_POST;
 
 		// 폼 데이터 받아서 유효성 검증 실패시 리다이렉트 경로
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+		$returnUrl = SITE_DOMAIN.'/mypage.php';
 
 		$resultDealingsValidCheck = $dealingsClass->checkDealingFormValidate($postData);
 		if ($resultDealingsValidCheck['isValid'] == false) {

@@ -21,7 +21,7 @@
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_SELL_ENROLL_STATUS . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN.'/voucher_purchase_list.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_DOMAIN.'/mypage.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
 		$actionUrl = DEALINGS_PROCESS_ACCTION . '/myChangeCancelStatus.php';
@@ -100,4 +100,4 @@
 		}
 	} 
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_main.html.php'; // 전체 레이아웃

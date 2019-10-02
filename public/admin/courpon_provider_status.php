@@ -19,10 +19,7 @@
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_COUPON_PROVIDER_STATUS . ' | ' . TITLE_ADMIN_SITE_NAME;
-
 		$returnUrl = SITE_ADMIN_DOMAIN.'/coupon.php'; // 리턴되는 화면 URL 초기화
-		$actionUrl = COUPON_PROCEE_ACTION . '/.php';
-		$JsTemplateUrl = JS_ADMIN_URL . '/.js';
 		$btnName = '';
 
 		$alertMessage = '';
@@ -40,7 +37,8 @@
 
 		$providerParam = [
 			'is_refund'=> 'N',
-			'member_idx'=> $memberIdx
+			'member_idx'=> $memberIdx,
+			'is_del'=> 'N'
 		];
 
 		$couponProviderList = $couponClass->getCouponProvierStatus($providerParam);
@@ -51,7 +49,9 @@
 		$couponProviderListCount = $couponProviderList->recordCount();
 
 		// 발급한 쿠폰삭제 URL
-		$couponDeleteURL = COUPON_PROCEE_ACTION . '/delete_member_coupon.php';
+		$couponDeleteURL = COUPON_PROCEE_ACTION . '/delete_coupon.php';
+		// 발급한 쿠폰수정 URL 
+		$couponUpdateURL =  SITE_ADMIN_DOMAIN . '/member_coupon_update.php';
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/coupon_provider_status.html.php';
 	} catch (Exception $e) {

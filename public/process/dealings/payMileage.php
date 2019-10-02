@@ -43,7 +43,7 @@
 		}
 		$postData = $_POST;
 
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+		$returnUrl = SITE_DOMAIN.'/mypage.php';
 
 		$db->startTrans();
 

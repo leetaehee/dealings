@@ -25,6 +25,7 @@
 		$alertMessage = '';
 		$actionUrl = MEMBER_PROCESS_ACTION . '/add_account.php'; // form 전송시 전달되는 URL. 
 		$JsTemplateUrl = JS_URL . '/account.js'; 
+		
 		$idx = $_SESSION['idx'];
 
 		if ($connection === false) {

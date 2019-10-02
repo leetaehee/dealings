@@ -10,9 +10,9 @@
 			div#wrapper { width: 100%; text-align: left; min-height: 300px; margin: 0 auto;}
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
-			section, aside { height: 500px; float: left; }
-			aside { width: 172px; } 
-			section { width: 1063px; overflow: scroll; }
+			section, aside { height: 720px; float: left; }
+			aside { width: 182px; overflow: scroll; } 
+			section { width: 1052px; overflow: scroll; }
 			header { height: 50px; }
 			footer { clear: both; } 
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
@@ -73,31 +73,6 @@
 					<li>
 						<a href="<?=SITE_DOMAIN?>/voucher_sell_list.php">상품권 판매목록</a>
 					</li>
-				</ul>
-				<p class="pt-15">[결제현황]</p>
-				<ul>
-					<li>
-						<a href="<?=SITE_DOMAIN?>/purchase_status.php">상품권 구매현황</a>
-					</li>
-					<li>
-						<a href="<?=SITE_DOMAIN?>/sell_status.php">상품권 판매현황</a>
-					</li>
-				</ul>
-				<p class="pt-15">[나의거래]</p>
-				<ul>
-					<li>
-						<a href="<?=SITE_DOMAIN?>/my_purchase_list.php">상품권 구매등록현황</a>
-					</li>
-					<li>
-						<a href="<?=SITE_DOMAIN?>/my_sell_list.php">상품권 판매등록현황</a>
-					</li>
-				</ul>
-				<p class="pt-15">[쿠폰관리]</p>
-				<ul>
-					<li>
-						<a href="<?=SITE_DOMAIN?>/my_coupon_list.php">나의쿠폰조회</a>
-					</li>
-					<li>
 				</ul>
 			</aside>
 			<section>

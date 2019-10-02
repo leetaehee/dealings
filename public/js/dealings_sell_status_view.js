@@ -40,6 +40,7 @@ $(function(){
 
 		var finalPaymentSum = dealingsMileage;
 		var discountRate = $(this).find("option:selected").data("discount_rate");
+        var tmp = 0;
 
 		couponDiscount = false;
 
@@ -52,18 +53,26 @@ $(function(){
 
 			if (finalPaymentSum == total) {
 				// 쿠폰으로 전액 할인
+                tmp = total;
 				total = 0;
 				couponDiscount = true;
 			} else {
 				// 일부잔액으로 거래한 경우
 				isDiscount = true;
 			}
+            
+            if (tmp > 0){
+                finalPaymentSum -= tmp;       
+            } else{
+                finalPaymentSum -= total;
+            }
+            
 		} else {
 			total = finalPaymentSum;
 		}
 
 		total = Math.floor(total);
 
-		$("#finalPaymentSum").html(addComma(total));
+		$("#finalPaymentSum").html(addComma(finalPaymentSum));
 	});
 });

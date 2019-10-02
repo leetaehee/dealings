@@ -30,7 +30,8 @@
         }
 
 		$memberClass = new MemberClass($db);
-		$idx = htmlspecialchars($_SESSION['idx']);
+
+		$idx = $_SESSION['idx'];
 
 		$myInfomation = $memberClass->getMyInfomation($idx);
 

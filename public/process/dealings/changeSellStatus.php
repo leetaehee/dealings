@@ -35,7 +35,10 @@
 		$couponClass = new CouponClass($db);
 
 		$_POST['dealings_type'] = htmlspecialchars($_POST['dealings_type']);
-		$_POST['coupon_name'] = htmlspecialChars($_POST['coupon_name']);
+
+		if(isset($_POST['coupon_name'])){
+			$_POST['coupon_name'] = htmlspecialChars($_POST['coupon_name']);
+		}
 		$postData = $_POST;
 
 		// returnURL
@@ -191,7 +194,7 @@
 			'nextStatus'=>$nextStatus,
 			'idx'=>$_SESSION['dealings_idx']
 		];
-		
+
 		// 거래테이블 상태변경 
 		$updateDealingsStatus = $dealingsClass->updateDealingsStatus($dealingsParam);
 		if ($updateDealingsStatus < 1) {

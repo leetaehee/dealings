@@ -189,6 +189,7 @@
 					   WHERE `icm`.`issue_type` = ?
                        AND `icm`.`is_coupon_del` = ?
 					   AND `icm`.`is_del` = ?
+                       AND `icm`.`member_idx` = ?
 					   AND NOT EXISTS (
 						SELECT `coupon_idx`
 						FROM `imi_coupon_useage` `icu`
@@ -197,7 +198,7 @@
 						AND `icu`.`is_refund` = ?
 						AND `icu`.`coupon_use_start_date` IS NOT NULL
 					)';
-			
+            
 			$result = $this->db->execute($query, $param);
             
 			if ($result === false) {
@@ -411,7 +412,7 @@
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 						INNER JOIN `imi_members` `im`
 							ON `icu`.`member_idx` = `im`.`idx`
-					  ORDER BY `icu`.`member_idx` ASC, `ic`.`subject` ASC, `icu`.`coupon_use_end_date` DESC';
+					  ORDER BY `ic`.`subject` ASC, `ic`.`idx` DESC, `icu`.`coupon_use_end_date` DESC';
 			
 			$result = $this->db->execute($query);
 			if ($result === false) {
@@ -608,6 +609,7 @@
 							 `ic`.`discount_rate`,
 							 `ic`.`discount_mileage`,
 							 `ic`.`sell_item_idx`,
+							 `ic`.`is_del`,
 							 `isi`.`item_name`
 					  FROM `imi_coupon` `ic`
 						LEFT JOIN `imi_sell_item` `isi`
@@ -673,7 +675,11 @@
 		 */
 		public function getCheckCouponMemberIdx($param)
 		{
-			$query = 'SELECT `coupon_idx` FROM `imi_coupon_member` WHERE `idx` = ? AND is_del = ?';
+			$query = 'SELECT `coupon_idx` 
+					  FROM `imi_coupon_member` 
+					  WHERE `idx` = ? 
+					  AND is_del = ?
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query, $param);
 
@@ -700,7 +706,8 @@
 							 `isi`.`item_name`,
 							 `icu`.`idx` `use_idx`,
 							 `icu`.`coupon_use_mileage`,
-							 `icm`.`is_del`
+							 `icm`.`is_del`,
+							 `ic`.`idx` `coupon_idx`
 					  FROM `imi_coupon_member` `icm`
 						INNER JOIN `imi_sell_item` `isi`
 							ON `icm`.`sell_item_idx` = `isi`.`idx`
@@ -709,7 +716,9 @@
 						LEFT JOIN `imi_coupon_useage` `icu`
 							ON `icm`.`idx` = `icu`.`coupon_member_idx`
 							AND `icu`.`is_refund` = ?
-					  WHERE `icm`.`member_idx` = ?';
+					  WHERE `icm`.`member_idx` = ?
+					  AND `icm`.`is_del` = ?
+					  ORDER BY `ic`.`start_date` DESC, `icm`.`idx` ASC';
 
 			$result = $this->db->execute($query, $param);
 
@@ -727,7 +736,11 @@
 		 */
 		public function getCouponMemberIdx($param)
 		{
-			$query = 'SELECT `idx` FROM `imi_coupon_member` WHERE `idx` = ? AND is_del = ?';
+			$query = 'SELECT `idx`
+					  FROM `imi_coupon_member` 
+					  WHERE `idx` = ? 
+					  AND is_del = ? 
+					  FOR UPDATE';
 
 			$result = $this->db->execute($query, $param);
 
@@ -764,11 +777,15 @@
 		 * @param: 지급된 쿠폰의 고유 키
 		 * @return: int 
 		 */
-		public function getCheckIsUseCouponByMember($couponMemberIdx)
+		public function getCheckIsUseCouponByMember($param)
 		{
-			$query = 'SELECT `idx` FROM `imi_coupon_useage` WHERE `coupon_idx` = ?';
+			$query = 'SELECT `idx` 
+					  FROM `imi_coupon_useage`
+					  WHERE `coupon_member_idx` = ?
+					  AND `coupon_idx` = ?
+					  AND `is_refund` = ?';
 
-			$result = $this->db->execute($query, $couponMemberIdx);
+			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
 				return false;
@@ -802,6 +819,7 @@
 						LEFT JOIN `imi_coupon_useage` `icu`
 							ON `icm`.`idx` = `icu`.`coupon_member_idx`
 							AND `icu`.`is_refund` = ?
+							AND `icu`.`coupon_use_start_date` IS NOT NULL
 					  WHERE `icm`.`is_coupon_del` = ?
 					  AND `icm`.`is_del` = ?
 					  AND `icm`.`member_idx` = ?';
@@ -815,4 +833,96 @@
 			return $result;
 		}
 
+		/**
+		 * @brief: 쿠폰 발행 시 이중등록 방지
+		 * @param: 회원 키, 쿠폰 키, 쿠폰삭제여부  
+		 * @return: int 
+		 */
+		public function getCheckCouponOverlapData($param)
+		{
+			$query = 'SELECT count(`idx`) `count`
+					  FROM `imi_coupon_member`
+					  WHERE `coupon_idx` = ?
+					  AND `member_idx` = ?
+					  AND `issue_type` = ?
+					  AND `is_coupon_del` = ?
+					  AND `is_del` = ?
+					  FOR UPDATE
+					';
+			
+			$result = $this->db->execute($query, $param);
+
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['count'];
+		}
+
+		/**
+		 * @brief: 지급된 쿠폰의 삭제여부 가져오기
+		 * @param: 지급된 쿠폰의 고유키  
+		 * @return: string
+		 */
+		public function getCheckCouponMemeberDelete($idx)
+		{
+			$query = 'SELECT `is_del` FROM `imi_coupon_member` WHERE `idx` = ?';
+
+			$result = $this->db->execute($query, $idx);
+
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['is_del'];
+		}
+
+		/**
+		 * @brief: 쿠폰을 변경하기전에, 다른사람에 의해 등록되어있는지 확인합니다.
+		 * @param: 지급된 쿠폰 키, 쿠폰 키, 쿠폰 삭제 유무   
+		 * @return: int
+		 */
+		public function getExistCouponMemberIdx($param)
+		{
+			$query = 'SELECT `coupon_idx`
+					  FROM `imi_coupon_member`
+					  WHERE `coupon_idx` = ?
+					  AND `member_idx` = ?
+					  AND `is_del` = ? ';
+
+			$result = $this->db->execute($query, $param);
+
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['coupon_idx'];
+		}
+
+		/**
+		 * @brief: 쿠폰 지급 정보를 수정
+		 * @param: 쿠폰 지급 수정 정보
+		 * @return: int
+		 */
+		public function updateCouponMember($param)
+		{
+			$query = 'UPDATE `imi_coupon_member` SET 
+					  `issue_type` = ?,
+					  `coupon_idx` = ?,
+					  `sell_item_idx` = ?,
+					  `subject` = ?,
+					  `discount_rate` = ?,
+					  `item_money` = ?,
+					  `is_del` = ?
+					  WHERE `idx` = ?';
+			
+			$result = $this->db->execute($query, $param);
+
+			$affected_row = $this->db->affected_rows();
+			if ($affected_row < 1) {
+				return false;
+			}
+
+			return $affected_row;
+		}
 	}

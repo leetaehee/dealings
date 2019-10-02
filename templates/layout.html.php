@@ -11,7 +11,7 @@
 			header, footer, nav, aisde, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
 			header { height: 50px; }
-			section { width: 1270px; overflow: scroll; }
+			section { width: 1270px; height: 720px; overflow: scroll; }
 			.ul-nav { list-style: none; margin: 0; padding: 0; }
 			.ul-nav li { margin: 0 0 0 0; padding: 0 0 0 0; border: 0; float: left; }
 

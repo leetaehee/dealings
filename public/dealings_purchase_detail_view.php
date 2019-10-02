@@ -61,6 +61,7 @@
 			'issue_type'=> '판매',
 			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
+			'p_member_idx'=> $_SESSION['idx'],
             'member_idx'=> $_SESSION['idx'],
 			'is_refund'=> 'N'
 		];

@@ -35,9 +35,9 @@
 			throw new Exception('내 정보를 가져오는데 오류 발생! 관리자에게 문의하세요.');
 		}
 
-		$memberDeleteUrl = SITE_DOMAIN . '/member_delete.php?idx=' . $idx; // 회원탈퇴 
-		$memberModifyUrl = SITE_DOMAIN . '/member_modify.php?idx=' . $idx; // 회원수정 
-		$myAccountSetUrl = SITE_DOMAIN . '/my_account.php?idx=' . $idx; // 계좌설정
+		$memberDeleteUrl = SITE_DOMAIN . '/member_delete.php'; // 회원탈퇴 
+		$memberModifyUrl = SITE_DOMAIN . '/member_modify.php'; // 회원수정 
+		$myAccountSetUrl = SITE_DOMAIN . '/my_account.php'; // 계좌설정
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/mypage.html.php';
 	} catch (Exception $e) {
