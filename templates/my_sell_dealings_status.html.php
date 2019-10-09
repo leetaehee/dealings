@@ -37,38 +37,42 @@
 	</p>
 
 	<p>
-		8. 상품권 거래금액: <?=$dealingsData->fields['dealings_mileage']?>원 
-	</p>
-
-	<p>
-		9. 수수료: <?=number_format($dealingsCommission)?>원
-	</p>
-
-    <p>
-		10. 판매 후 실수령액: <span id="realPaymentSum"><?=number_format($finalPaymentSum);?></span>원
-	</p>
-
-	<p>
-		11. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
+		8. 거래상태: <?=$dealingsData->fields['dealings_status_name']?>
 	</p>
 
 	<?php if(!empty($dealingsData->fields['item_object_no'])): ?>
 		<?php if($dealingsData->fields['dealings_status']==4): ?>
 			<p>
-				12. 상품권 핀번호: <?=setDecrypt($dealingsData->fields['item_object_no'])?>
+				9. 상품권 핀번호: <?=setDecrypt($dealingsData->fields['item_object_no'])?>
 			</p>
 		<?php else: ?>
 			<p>
-				12. 상품권 핀번호: 핀번호는 결제를 진행한 후 관리자가 승인해야 노출됩니다.
+				9. 상품권 핀번호: 핀번호는 결제를 진행한 후 관리자가 승인해야 노출됩니다.
 			</p>
 		<?php endif; ?>
 	<?php endif; ?>
 
 	<?php if(!empty($dealingsData->fields['memo'])): ?>
 		<p>
-			13. 비고: <?=$dealingsData->fields['memo']?>
+			10. 비고: <?=$dealingsData->fields['memo']?>
 		</p>
 	<?php endif;?>
+
+	<p>
+		11. 상품권 거래금액: <?=$dealingsData->fields['dealings_mileage']?>원 
+	</p>
+
+	<p>
+		12. 수수료: <?=number_format($dealingsCommission)?>원 (<?=$commission?>%)
+	</p>
+
+    <p>
+		13. 판매 후 실수령액: <span id="realPaymentSum"><?=number_format($finalPaymentSum);?></span>원
+	</p>
+
+	<?php if (!empty($couponIdx)): ?>
+		14. 쿠폰 적용 했을 때 실수령액: <?=number_format($finalRealPaymentSum)?>원
+	<?php endif; ?>
 
 	<?php if (!empty($couponIdx)): ?>
 		<p>

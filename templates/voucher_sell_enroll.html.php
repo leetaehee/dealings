@@ -8,12 +8,12 @@
 
 	<p>
 		<label for="dealingsSubject">제목: </label>
-		<input type="text" id="dealingsSubject" name="dealings_subject" value="" size="60">
+		<input type="text" id="dealingsSubject" name="dealings_subject" value="<?php echo isset($postData['dealings_subject']) ? $postData['dealings_subject'] : '';?>" size="60">
 	</p><br>
 
 	<p>
 		<label for="dealingsContent">내용: </label>
-		<input type="text" id="dealingsContent" name="dealings_content" value="" size="60">
+		<input type="text" id="dealingsContent" name="dealings_content" value="<?php echo isset($postData['dealings_content']) ? $postData['dealings_content'] : '';?>" size="60">
 	</p><br>
 
 	<p>
@@ -22,7 +22,7 @@
 			<select id="itemNo" name="item_no">
 				<option value="">선택하세요.</option>
 				<?php foreach($voucherList as $key => $value): ?>
-					<option value="<?=$value['idx']?>" class="<?=$value['commission']?>">
+					<option value="<?=$value['idx']?>" class="<?=$value['commission']?>" <?php echo $value['idx'] == $itemNo ? 'selected' : ''; ?>>
 						<?=$value['item_name']?>
 					</option>
 				<?php endforeach; ?>
@@ -38,7 +38,7 @@
 			<select id="itemMoney" name="item_money">
 				<option value="">선택하세요.</option>
 				<?php for($i=0; $i<count($CONFIG_MILEAGE_ARRAY); $i++): ?>
-					<option value="<?=$CONFIG_MILEAGE_ARRAY[$i]?>">
+					<option value="<?=$CONFIG_MILEAGE_ARRAY[$i]?>" <?php echo $CONFIG_MILEAGE_ARRAY[$i] == $itemMoney ? 'selected' : '';?>>
 						<?=$CONFIG_MILEAGE_ARRAY[$i];?>
 					</option>
 				<?php endfor; ?> 
@@ -50,18 +50,18 @@
 
 	<p>
 		<label for="itemObjectNo">상품권 핀번호:</label>
-		<input type="text" id="itemObjectNo" name="item_object_no" value="" size="25">
+		<input type="text" id="itemObjectNo" name="item_object_no" value="<?php echo isset($postData['item_object_no']) ? $postData['item_object_no'] : '';?>" size="25">
 	</p><br>
 
 	<p>
 		<label for="dealingsMileage">거래금액:</label>
-		<input type="text" id="dealingsMileage" name="dealings_mileage" value="" size="15">원
+		<input type="text" id="dealingsMileage" name="dealings_mileage" value="<?php echo isset($postData['dealings_mileage']) ? $postData['dealings_mileage'] : '';?>" size="15">원
 		<span id="display-commission"></span>
 	</p><br>
 
 	<p>
 		<label for="">비고:</label>
-		<input type="text" id="memo" name="memo" value="" size="50">
+		<input type="text" id="memo" name="memo" value="<?php echo isset($postData['memo']) ? $postData['memo'] : '';?>" size="50">
 	</p><br>
 
 	<?php if($couponDataCount > 0): ?>
@@ -80,8 +80,8 @@
 						<?=$couponData->fields['subject']?>(<?=$couponData->fields['discount_rate']?>%)
 					</option>	
 				<?php endforeach;?>
-			</select>
-			<br>(쿠폰을 사용하실 경우 판매 수수료에 할인을 받을 수 있습니다.)
+			</select><br>
+			(쿠폰이 조회되지 않을때는 상품권과 상품권금액을 선택하시면 해당되는 쿠폰이 조회됩니다.<br>
 		</p>
 	<?php else: ?>
 		<p>

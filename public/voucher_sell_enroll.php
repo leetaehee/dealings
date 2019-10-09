@@ -43,18 +43,53 @@
 			$vourcherListCount = $voucherList->recordCount();
 		}
 
-		// 이용가능한 쿠폰 가져오기 
+		if (count($_POST) > 0) {
+			$_POST['item_no'] = htmlspecialchars($_POST['item_no']);
+			$_POST['item_money'] = htmlspecialchars($_POST['item_money']);
+			$_POST['dealings_subject'] = htmlspecialchars($_POST['dealings_subject']);
+			$_POST['dealings_content'] = htmlspecialchars($_POST['dealings_content']);
+			$_POST['item_object_no'] = htmlspecialchars($_POST['item_object_no']);
+			$_POST['dealings_mileage'] = htmlspecialchars($_POST['dealings_mileage']);
+			$_POST['memo'] = htmlspecialchars($_POST['memo']);
+			$postData = $_POST;
+		}
+
+		$itemNo = $itemMoney ='';
+
+		if (isset($postData['item_no']) && !empty($postData['item_no'])) {
+			$itemNo = $postData['item_no'];
+		}
+
+		if (isset($postData['item_money']) && !empty($postData['item_money'])) {
+			$itemMoney = $postData['item_money'];
+		}
+
+		// 이용가능한 쿠폰 가져오기
+		/*
+			$couponParam = [
+				'sell_item_idx'=> $itemNo ?? '',
+				'issue_type'=> '판매',
+				'item_money'=> $itemMoney ?? '',
+				'is_coupon_del'=> 'N',
+				'is_del'=> 'N',
+				'p_member_idx'=> $_SESSION['idx'],
+				'member_idx'=> $_SESSION['idx'],
+				'is_refund'=> 'N'
+			];
+		*/
+
 		$couponParam = [
+			'sell_item_idx'=> $itemNo ?? '',
 			'issue_type'=> '판매',
+			'item_money'=> $itemMoney ?? '',
 			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
-            'p_member_idx'=> $_SESSION['idx'],
-            'member_idx'=> $_SESSION['idx'],
-			'is_refund'=> 'N'
+			'member_idx'=> $_SESSION['idx'],
+			'coupon_status'=> 1
 		];
         	
 		// 사용가능한 쿠폰 리스트 가져오기
-		$couponData = $couponClass->getAvailableAllCouponData($couponParam);
+		$couponData = $couponClass->getAvailableCouponData($couponParam);
 		if ($couponData === false) {
 			throw new Exception('사용가능한 쿠폰을 가져 올 수 없습니다. 가져 올 수 없습니다');
 		} else {

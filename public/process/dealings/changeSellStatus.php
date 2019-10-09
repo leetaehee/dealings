@@ -53,21 +53,18 @@
 
 		if (!empty($postData['coupon_name'])) {
 			// 해당 쿠폰이 실제 있는 쿠폰인지 체크
-			$couponIdx = $postData['coupon_name'];
-			$couponMemberIdx = $couponIdx;
+			$couponMemberIdx =  $postData['coupon_name']; // 쿠폰 지급 고유키
 
 			$memberCouponData = [
-				'coupon_member_idx'=> $couponIdx,
+				'coupon_member_idx'=> $couponMemberIdx,
 				'is_del'=> 'N'
 			];
-
+			// 쿠폰 검증을 위한 쿠폰 고유 키 가져오기
 			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
 			if ($couponIdx === false) {
 				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
 			}
-
-			$postData['coupon_name'] = $couponIdx;
-
+	
 			$validParam = [
 				'issue_type'=> '판매',
 				'idx'=> $couponIdx,
@@ -84,7 +81,7 @@
 			}
 
 			$memberCouponData = [
-				'coupon_member_idx'=> $isValidCoupon,
+				'coupon_member_idx'=> $couponMemberIdx,
 				'is_del'=> 'N'
 			];
 
@@ -109,21 +106,16 @@
 			if ($isAvailableCoupon != null) {
 				throw new RollbackException('해당 쿠폰은 이미 사용했습니다.');
 			}
-
-			/*
-				$discountMileage = $couponClass->getDiscountMileage($couponIdx);
-				if ($discountMileage === false) {
-					throw new RollbackException('쿠폰 할인 금액을 조회하는 중에 오류가 발생했습니다.');
-				}
-			*/
-
-			$discountRate = $couponClass->getDiscountRate($couponIdx);
-			if ($discountRate === false) {
-				throw new RollbackException('쿠폰 할인률을 조회하는 중에 오류가 발생했습니다.');
+			
+			$couponDiscountData = $couponClass->getCouponDiscountData($couponIdx);
+			if ($couponDiscountData === false) {
+				throw rollbackException('쿠폰 할인 정보 가져오면서 오류가 발생했습니다.');
 			}
 
+			$discountRate = $couponDiscountData->fields['discount_rate'];
+
 			$dealingsCommission = $dealingsClass->getCommission($_SESSION['dealings_idx']);
-			if ($discountRate === false) {
+			if ($dealingsCommission === false) {
 				throw new RollbackException('거래 수수료를 가져오는 중에 오류가 발생했습니다.');
 			}
 			
@@ -217,7 +209,7 @@
 			$useageData = [
 				'type'=> '판매',
 				'dealings_idx'=> $_SESSION['dealings_idx'],
-				'coupon_idx'=> $postData['coupon_name'],
+				'coupon_idx'=> $couponIdx,
 				'member_idx'=> $_SESSION['idx'],
 				'coupon_use_before_mileage'=> $couponUseBeforeMileage,
 				'coupon_use_mileage'=> $couponUseMileage,
@@ -227,6 +219,27 @@
 			$insertUseageDataResult = $couponClass->insertCouponUseage($useageData);
 			if ($insertUseageDataResult < 1) {
 				throw new RollbackException('쿠폰 사용 내역을 입력하는 중에 오류가 발생했습니다.');
+			}
+
+			$couponStatusName = '사용완료';
+
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			if ($couponStatusCode === false) {
+				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
+			}
+
+			if (empty($couponStatusCode)) {
+				throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
+			}
+
+			$couponMbStParam = [
+				'coupon_status'=> $couponStatusCode,
+				'idx'=> $couponMemberIdx
+			];
+
+			$updateCouponMbStatusResult = $couponClass->updateCouponMemberStatus($couponMbStParam);
+			if ($updateCouponMbStatusResult < 1) {
+				throw new RollbackException('쿠폰 상태 코드를 변경하면서 오류가 발생했습니다.');
 			}
 		}
 
@@ -238,12 +251,13 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '정상적으로 거래 상태가 변경되었습니다.';
 
-		$db->commitTrans();
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
-		$alertMessage = $e->errorMessage();
-		$db->rollbackTrans();
+		$alertMessage = $e->getMessage();
+
+		$db->failTrans();
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();

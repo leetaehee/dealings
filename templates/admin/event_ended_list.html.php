@@ -1,0 +1,45 @@
+<p>
+	<h3>[<?=TITLE_EVENT_ENDED_RESULT?>]</h3>
+</p>
+<table class="table dealings-table-width">
+	<colgroup>
+		<col style="width: 7%;">
+		<col style="width: 11%;">
+		<col style="width: 35%;">
+		<col style="width: 17%;">
+		<col style="width: 17%;">
+		<col style="width: 13%;">
+	</colgroup>
+	<thead>
+		<tr>
+			<th>순번</th>
+			<th>구분</th>
+			<th>이벤트명</th>
+			<th>시작일자</th>
+			<th>종료일자</th>
+			<th>종료여부</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?php if($eventListCount > 0): ?>
+			<?php foreach($eventList as $key => $value): ?>
+				<tr>
+					<td><?=$key+1?></td>
+					<td><?=$value['event_type']?></td>
+					<td>
+						<a href="<?=$issueEventResultURL?>?idx=<?=$value['idx']?>">
+							<?=$value['name']?>
+						</a>
+					</td>
+					<td><?=$value['start_date']?></td>
+					<td><?=$value['end_date']?></td>
+					<td>진행완료</td>
+				</tr>
+			<?php endforeach; ?>
+		<?php else: ?>
+			<tr>
+				<td colspan="6" class="empty-tr-colspan">내역이 없습니다.</td>
+			</tr>
+		<?php endif; ?>
+	</tbody>
+</table>

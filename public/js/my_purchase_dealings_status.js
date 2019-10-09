@@ -62,9 +62,9 @@ $(function(){
             
 			if (tmp > 0){
                 finalPaymentSum -= tmp;       
-            } else {
-				total = finalPaymentSum - total;
-			}
+            } else{
+                finalPaymentSum -= total;
+            }
             
 		} else {
 			total = finalPaymentSum;

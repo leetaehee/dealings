@@ -51,7 +51,7 @@
 					</td>
 					<td>
 						<?php if(empty($value['use_idx'])): ?>
-							<a href="<?=$couponUpdateURL?>?idx=<?=$value['idx']?>&coupon_idx=<?=$value['coupon_idx']?>">
+							<a href="<?=$couponUpdateURL?>?idx=<?=$value['idx']?>&coupon_idx=<?=$value['coupon_idx']?>&member_idx=<?=$getData['idx']?>">
 								[수정]
 							</a>
 						<?php endif; ?>
@@ -61,7 +61,7 @@
 							<p>지급삭제</p>
 						<?php else: ?>
 							<?php if(empty($value['use_idx'])): ?>
-								<a href="<?=$couponDeleteURL?>?idx=<?=$value['idx']?>&coupon_idx=<?=$value['coupon_idx']?>">
+								<a href="<?=$couponDeleteURL?>?idx=<?=$value['idx']?>&coupon_idx=<?=$value['coupon_idx']?>&member_idx=<?=$getData['idx']?>">
 									[삭제]
 								</a>
 							<?php endif; ?>

@@ -49,26 +49,29 @@
 				<ul class="ul-nav">
 					<?php if(isset($_SESSION['mIdx'])): ?>
 						<li>
-						<a href="<?=SITE_DOMAIN?>/admin/imi.php">Home|</a>
-					</li>
-						<li>
-							<a href="<?=SITE_DOMAIN?>/admin/logout.php">로그아웃|</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/imi.php">Home|</a>
 						</li>
 						<li>
-							<a href="<?=SITE_DOMAIN?>/admin/coupon.php">쿠폰관리|</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/logout.php">로그아웃|</a>
+						</li>
+						<li>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/coupon.php">쿠폰관리|</a>
 						</li>
 						<li> 
-							<a href="<?=SITE_DOMAIN?>/admin/admin_page.php">관리자</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/admin_event.php">이벤트|</a>
+						</li>
+						<li> 
+							<a href="<?=SITE_ADMIN_DOMAIN?>/admin_page.php">관리자</a>
 						</li>
 					<?php else: ?>
 						<li>
-							<a href="<?=SITE_DOMAIN?>/admin/index.php">Home|</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/index.php">Home|</a>
 						</li>
 						<li>
-							<a href="<?=SITE_DOMAIN?>/admin/login.php">로그인|</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/login.php">로그인|</a>
 						</li>
 						<li>
-							<a href="<?=SITE_DOMAIN?>/admin/join.php">회원가입</a>
+							<a href="<?=SITE_ADMIN_DOMAIN?>/join.php">회원가입</a>
 						</li>
 					<?php endif; ?>
 				</ul>

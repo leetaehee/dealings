@@ -68,9 +68,9 @@
 				<select id="coupon-name" name="coupon_name">
 					<option value="">선택하세요.</option>
 					<?php foreach($couponData as $key => $value): ?>
-						<option value="<?=$couponData->fields['idx']?>" data-discount_mileage="<?=$couponData->fields['discount_mileage']?>">
+						<option value="<?=$couponData->fields['idx']?>">
 							<?=$couponData->fields['subject']?>(<?=$couponData->fields['discount_rate']?>%)
-						</option>	
+						</option>
 					<?php endforeach;?>
 				</select>
 				<br>(쿠폰을 사용하실 경우 판매 수수료에 할인을 받을 수 있습니다.)

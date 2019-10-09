@@ -41,4 +41,21 @@
 			
 			return $result->fields['commission'];
 		}
+
+		/**
+		 * @brief: 판매물품 항목 가져오기 
+		 * @param: 판매물품의 고유 키
+		 * @return: array
+		 */
+		public function getSellItemData($itemNo)
+		{
+			$query = 'SELECT * FROM `imi_sell_item` WHERE `idx` = ?';
+
+			$result = $this->db->execute($query,$itemNo);
+			if ($result === false) {
+				return false;
+			}
+			
+			return $result;
+		}
 	}

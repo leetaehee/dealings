@@ -69,8 +69,6 @@
 					'isSuccess'=>true,
 					'account_no'=>setDecrypt($insertResult['account_no'])
 				];
-
-				$db->commitTrans();
 			} else {
 				$result = [
 					'isSuccess'=>true,
@@ -83,9 +81,11 @@
 		// 트랜잭션 문제가 발생했을 때
 		$result = [
 			'isSuccess'=>false, 
-			'errorMessage'=> $e->errorMessage()
+			'errorMessage'=> $e->getMessage()
 		];
-		$db->rollbackTrans();
+
+		$db->failTrans();
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$result = [

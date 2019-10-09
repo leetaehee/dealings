@@ -44,7 +44,8 @@
 					<td><?=number_format($value['use_cost'])?></td>
 					<td>
 						<?php if($value['use_cost'] == 0): ?>
-							<?php if($value['charge_target_idx']!=7): ?>
+							<!-- 아래 값을 비교할 때 php 배열로 정의 후 in_array 함수로 개선하도록 수정 필요. --> 
+							<?php if($value['charge_target_idx']!=7 && $value['charge_target_idx']!=8): ?>
 								<a href="<?=$chargeCancelUrl?>?idx=<?=$value['idx']?>">
 									[취소]
 								</a>

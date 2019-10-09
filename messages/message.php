@@ -68,12 +68,16 @@
 	define('TITLE_COUPON_PROVIDER', '쿠폰 관리'); // 쿠폰 지급 등록
 	define('TITLE_COUPON_PROVIDER_STATUS', '쿠폰 지급 현황'); // 쿠폰 지급 현황
 	define('TITLE_COUPON_MODIFY', '쿠폰 수정 목록'); // 쿠폰 수정 목록
+	define('TITLE_EVENT_MAIN', '이벤트 메인'); // 이벤트 메인
+	define('TITLE_EVENT_STATUS', '진행중인 이벤트'); // 진행중인 이벤트 목록
+	define('TITLE_EVENT_ING_RESULT', '진행중인 이벤트 결과'); // 진행중인 이벤트 결과
+	define('TITLE_EVENT_ENDED_STATUS', '종료된 이벤트'); // 종료된 이벤트 목록
+	define('TITLE_EVENT_ENDED_RESULT', '종료된 이벤트 결과'); // 종료된 이벤트 결과
 
 	/*
 	 * @author: LeeTaeHee
 	 * @brief: 회원가입시 사용자에게 보여지는 안내 메세지 
 	 */
-
 	 define('JOIN_FORM_EMAIL_CAUTION_WRITE', '(imi@imi.com과 같이 입력해주세요.)');
 	 define('JOIN_FORM_PHONE_CAUTION_WRITE', '(휴대번호에는 하이픈(\'-\')을 넣을 수없습니다.)');	
 	 define('JOIN_FORM_BIRTH_CAUTION_WRITE', '(1989-11-17와 같이 입력해주세요.)');

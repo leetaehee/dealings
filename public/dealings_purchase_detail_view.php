@@ -56,18 +56,31 @@
 		$_SESSION['dealings_status'] = $getData['type'];
 		$_SESSION['dealings_mileage'] = $dealingsMileage;
 
-		// 이용가능한 쿠폰 가져오기 
+		// 이용가능한 쿠폰 가져오기
+		/*
+			$couponParam = [
+				'sell_item_idx'=> $itemNo,
+				'issue_type'=> '판매',
+				'item_money'=> $itemMoney,
+				'is_coupon_del'=> 'N',
+				'is_del'=> 'N',
+				'p_member_idx'=> $_SESSION['idx'],
+				'member_idx'=> $_SESSION['idx'],
+				'is_refund'=> 'N'
+			];
+		*/
 		$couponParam = [
+			'sell_item_idx'=> $itemNo ?? '',
 			'issue_type'=> '판매',
+			'item_money'=> $itemMoney ?? '',
 			'is_coupon_del'=> 'N',
 			'is_del'=> 'N',
-			'p_member_idx'=> $_SESSION['idx'],
-            'member_idx'=> $_SESSION['idx'],
-			'is_refund'=> 'N'
+			'member_idx'=> $_SESSION['idx'],
+			'coupon_status'=> 1
 		];
 		
 		// 사용가능한 쿠폰 리스트 가져오기
-		$couponData = $couponClass->getAvailableAllCouponData($couponParam);
+		$couponData = $couponClass->getAvailableCouponData($couponParam);
 		if ($couponData === false) {
 			throw new Exception('사용가능한 쿠폰을 가져 올 수 없습니다. 가져 올 수 없습니다');
 		} else {

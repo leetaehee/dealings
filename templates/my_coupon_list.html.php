@@ -43,7 +43,7 @@
 					<td><?=$value['start_date']?></td>
 					<td><?=$value['expiration_date']?></td>
 					<td>
-						<?php if(!empty($value['use_idx'])): ?>
+						<?php if($value['coupon_status'] == 2): ?>
 							사용함
 						<?php else: ?>
 							미사용

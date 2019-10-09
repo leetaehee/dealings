@@ -120,7 +120,7 @@
                 }
 
 				$alertMessage = '유효기간 만료데이터를 정상적으로 삭제하였습니다.';
-				$db->commitTrans();
+
 				$db->completeTrans();
             } else {
                 throw new RollbackException('회원별 마일리 타입 데이터 가져오는 중에 오류가 발생했습니다. |');
@@ -135,8 +135,10 @@
         }
     } catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
-		$alertMessage = $e->errorMessage();
-		$db->rollbackTrans();
+		$alertMessage = $e->getMessage();
+
+		$db->failTrans();
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();

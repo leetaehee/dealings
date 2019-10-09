@@ -10,7 +10,7 @@
 			div#wrapper { width: 100%; text-align: left; min-height: 300px; margin: 0 auto;}
 			header, footer, nav, aside, section { border: 1px solid #999; margin: 5px; padding: 10px; }
 			nav { height: 30px;}
-			section, aside { height: 500px; float: left; }
+			section, aside { height: 720px; float: left; }
 			aside { width: 182px; } 
 			section { width: 1052px; overflow: scroll; }
 			header { height: 50px; }
@@ -20,11 +20,10 @@
             .pl-3 { padding-left: 3px; }
 			.pt-15 { padding-top: 15px; }
 			.table { font-size: 10pt; border: 1px solid #444444; border-collapse: collapse; }
-			.login-table-width { width: 1030px; }
-			.charge-table-width { width: 1030px; }
-			.dealings-table-width { width: 1030px; }
 			.table th, .table td { border: 1px solid #444444; padding: 2px; }
 			.empty-tr-colspan { text-align: center; color: red; }
+			.dealings-table-width { width: 1030px; }
+			.event-result-table-width { width: 710px; }
 		</style>
     </head>
     <body>
@@ -61,25 +60,13 @@
 				</ul>
 			</nav>
 			<aside>
-				<p>[마이룸]</p>
+				<p>[이벤트현황]</p>
 				<ul>
 					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/admin_page.php">내 정보 조회</a>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/event_list.php">진행중인 이벤트</a>
 					</li>
 					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/login_access_list.php">로그인 내역</a>
-					</li>
-				</ul>
-				<p class="pt-15">[관리자메뉴]</p>
-				<ul>
-					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/member_status.php">회원현황</a>
-					</li>
-					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/charge_list.php">마일리지 결제내역</a>
-					</li>
-					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/dealings_manage.php">상품권 거래관리</a>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/event_ended_list.php">종료된 이벤트</a>
 					</li>
 				</ul>
 			</aside>

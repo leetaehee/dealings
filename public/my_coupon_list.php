@@ -31,7 +31,6 @@
 		$couponClass = new CouponClass($db);
 
 		$myCouponParam = [
-			'is_refund'=> 'N',
 			'is_coupon_del'=> 'N',
 			'is_del'=>'N',
 			'member_idx'=> $memberIdx

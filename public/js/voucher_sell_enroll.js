@@ -22,6 +22,11 @@ $(function(){
 		}
 		$("#display-commission").html(commissionStr);
 	});
+
+	$("#itemNo, #itemMoney").on("change", function(){
+		$("#vourcher-sell-form").attr('action','http://imi.th-study.co.kr/voucher_sell_enroll.php');
+		$("#vourcher-sell-form").submit();	
+	});
 });
 
 function isVourcherPurchaseValidForm(){

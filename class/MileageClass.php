@@ -38,6 +38,9 @@
 				case 7:
 					$colName = 'dealings_sum';
 					break;
+				case 8:
+					$colName = 'event_sum';
+					break;
 			}
 			return $colName;
 		}

@@ -31,6 +31,7 @@
 		// injection, xss 방지코드
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
 		$_GET['coupon_idx'] = htmlspecialchars($_GET['coupon_idx']);
+		$_GET['member_idx'] = htmlspecialchars($_GET['member_idx']);
 		$getData = $_GET;
 
 		// returnURL
@@ -90,15 +91,16 @@
 			throw new RollbackException('지급된 쿠폰을 삭제하다가 오류가 발생하였습니다.');
 		}
 
-		$returnUrl = SITE_ADMIN_DOMAIN . '/courpon_provider_status.php?idx=' . $_SESSION['idx'];
+		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_member_status.php';
 		$alertMessage = '지급된 쿠폰이 정상적으로 삭제되었습니다.';
 
-		$db->commitTrans();
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
-		$alertMessage = $e->errorMessage();
-		$db->rollbackTrans();
+		$alertMessage = $e->getMessage();
+
+		$db->failTrans();
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();

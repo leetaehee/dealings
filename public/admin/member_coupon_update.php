@@ -22,7 +22,6 @@
 		$title = TITLE_COUPON_MODIFY . ' | ' . TITLE_ADMIN_SITE_NAME;
 
 		$returnUrl = SITE_ADMIN_DOMAIN.'/coupon.php'; // 리턴되는 화면 URL 초기화
-		$actionUrl = COUPON_PROCEE_ACTION . '/modify_coupon.php';
         $alertMessage = '';
 
 		if ($connection === false) {
@@ -34,6 +33,7 @@
 		// injection, xss 방지코드
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
 		$_GET['coupon_idx'] = htmlspecialchars($_GET['coupon_idx']);
+		$_GET['member_idx'] = htmlspecialchars($_GET['member_idx']);
 		$getData = $_GET;
 
 		$idx = $getData['idx'];

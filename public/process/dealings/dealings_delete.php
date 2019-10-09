@@ -66,19 +66,42 @@
 		}
 
 		$couponIdx = $useCouponData->fields['idx'];
+		$couponMemberIdx = $useCouponData->fields['coupon_member_idx'];
 
 		if (!empty($couponIdx)){
 
-			// 판매삭제 시 쿠폰복구 
+			// 판매삭제 시 사용내역에 쿠폰 환불입력
 			$couponStatusParam = [
 					'coupon_use_end_date'=> date('Y-m-d'),
 					'is_refund'=> 'Y',
 					'idx'=>$couponIdx
 			];
-
+		
 			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);
 			if ($updateCouponResult < 1) {
 				throw new RollbackException('판매취소로 쿠폰 복구 중에 문제가 생겼습니다.');
+			}
+			
+			// 판매삭제 시 쿠폰 복구
+			$couponStatusName = '사용대기';
+
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			if ($couponStatusCode === false) {
+				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
+			}
+
+			if (empty($couponStatusCode)) {
+				throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
+			}
+
+			$couponMbStParam = [
+				'coupon_status'=> $couponStatusCode,
+				'idx'=> $couponMemberIdx
+			];
+
+			$updateCouponMbStatusResult = $couponClass->updateCouponMemberStatus($couponMbStParam);
+			if ($updateCouponMbStatusResult < 1) {
+				throw new RollbackException('쿠폰 상태 코드를 변경하면서 오류가 발생했습니다.');
 			}
 		}
 
@@ -95,12 +118,13 @@
 
 		$alertMessage = '거래 데이터가 정상적으로 삭제 되었습니다.';
 
-		$db->commitTrans();
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
-		$alertMessage = $e->errorMessage();
-		$db->rollbackTrans();
+		$alertMessage = $e->getMessage();
+
+		$db->failTrans();
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();

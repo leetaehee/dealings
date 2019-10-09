@@ -43,6 +43,9 @@
 							<a href="<?=SITE_ADMIN_DOMAIN?>/coupon.php">쿠폰관리|</a>
 						</li>
 						<li> 
+							<a href="<?=SITE_ADMIN_DOMAIN?>/admin_event.php">이벤트|</a>
+						</li>
+						<li> 
 							<a href="<?=SITE_ADMIN_DOMAIN?>/admin_page.php">관리자</a>
 						</li>
 					<?php else: ?>

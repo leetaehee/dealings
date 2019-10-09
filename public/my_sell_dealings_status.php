@@ -46,6 +46,7 @@
 		if ($dealingsData === false) {
 			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
 		}
+		$commission = $dealingsData->fields['dealings_commission'];
 
 		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
 		$_SESSION['dealings_idx'] = $getData['idx'];
@@ -64,8 +65,11 @@
 			throw new Exception('쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.');
 		}
 		$couponIdx = $useCouponData->fields['idx'];
+		$couponUseBeforeMileage = $useCouponData->fields['coupon_use_before_mileage'];
+		$couponUseMileage = $useCouponData->fields['coupon_use_mileage'];
+		$discountRate = $useCouponData->fields['discount_rate'];
 
-		$finalPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
+		$finalPaymentSum = $finalRealPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
 		
 		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
 		if ($dealingsCommission < 0) {
@@ -73,17 +77,13 @@
 		}
 		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
 
-		if ($useCouponData->fields['item_money'] == 0) {
-			$discountMoney = ($dealingsCommission*$useCouponData->fields['discount_rate'])/100;
-		} else {
-			$discountMoney =  $useCouponData->fields['discount_money'];
-		}
-
 		$finalPaymentSum -= $dealingsCommission;
-		if (!empty($couponIdx)){
-			$finalPaymentSum += $discountMoney;
-		}
+		$discountMoney =  $useCouponData->fields['coupon_use_before_mileage'];
 
+		if (!empty($couponIdx) && $discountRate < 100) {
+			$finalRealPaymentSum -= $couponUseMileage;
+			$discountMoney =  $useCouponData->fields['coupon_use_mileage'];
+		}
 
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['idx'];

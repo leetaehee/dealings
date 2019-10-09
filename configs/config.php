@@ -42,10 +42,11 @@
 	define('LOGIN_PROCESS_ACTION', SITE_DOMAIN . '/process/login'); // 세션 
 	define('VIRTUAL_ACCOUNT_PROCESS_ACTION', SITE_DOMAIN . '/process/virtual'); // 마일리지
 	define('DEALINGS_PROCESS_ACCTION', SITE_DOMAIN . '/process/dealings'); // 거래
+	define('EVENT_PROCEE_ACTION', SITE_DOMAIN . '/process/event'); // 이벤트
+	define('COUPON_PROCEE_ACTION', SITE_DOMAIN . '/process/coupon'); // 쿠폰
 
 	// process (관리자)
 	define('ADMIN_PROCESS_ACTION', SITE_DOMAIN . '/process/admin'); // 로그인
-	define('COUPON_PROCEE_ACTION', SITE_DOMAIN . '/process/coupon'); // 쿠폰
 
 	// 암호화 및 복호화 상수 
 	define('ENCRYPT_TYPE', 'aes-256-cbc');
@@ -57,6 +58,7 @@
 	$ajaxUrl = '';
 	$JsTemplateUrl = '';
 	$templateFileName = '404.html.php';
+	$today = date('Y-m-d');
 
 	/**
 	 * 배열
@@ -88,6 +90,20 @@
 	// 상품권 금액
 	$CONFIG_VOUCHER_MONEY_ARRAY = [
 		1000,5000,10000,50000,100000
+	];
+
+	// 판매이벤트 환급률
+	$CONFIG_EVENT_SELL_RETRUN_FEE = [
+		'1'=> 100,
+		'2'=> 50,
+		'3'=> 20,
+		'4'=> 20,
+		'5'=> 20,
+		'6'=> 10,
+		'7'=> 10,
+		'8'=> 10,
+		'9'=> 10,
+		'10'=> 10
 	];
 
 	// 페이지 접근금지

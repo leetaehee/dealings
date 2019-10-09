@@ -38,7 +38,8 @@
 		$providerParam = [
 			'is_refund'=> 'N',
 			'member_idx'=> $memberIdx,
-			'is_del'=> 'N'
+			'is_del'=> 'N',
+			'is_coupon_del'=> 'N'
 		];
 
 		$couponProviderList = $couponClass->getCouponProvierStatus($providerParam);

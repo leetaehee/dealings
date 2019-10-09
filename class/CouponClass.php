@@ -120,29 +120,44 @@
 		 */
 		public function getAvailableCouponData($param)
 		{
-
-				$query  = 'SELECT `ic`.`idx`,
-							  `ic`.`subject`,
-							  `ic`.`item_money`,
-							  `ic`.`discount_rate`,
-							  `ic`.`discount_mileage`
-					   FROM `imi_coupon` `ic` 
-					   WHERE `ic`.`sell_item_idx` IN (?,5) 
-                       AND `ic`.`issue_type` = ?
-                       AND `ic`.`item_money` IN (?,0)
-                       AND `ic`.`is_del` = ?
-                       AND `ic`.`start_date` <= ?
-					   AND `ic`.`expiration_date` >= ?
-                       AND NOT EXISTS (
+			// 잘못된 쿼리이므로 아래 쿼리로 대체함.
+			/*
+			$query  = 'SELECT `icm`.`idx`,
+							  `icm`.`subject`,
+							  `icm`.`item_money`,
+							  `icm`.`discount_rate`
+					   FROM `imi_coupon_member` `icm` 
+					   WHERE `icm`.`sell_item_idx` IN (?,5)  
+					   AND `icm`.`issue_type` = ?
+					   AND `icm`.`item_money` IN (?,0)
+                       AND `icm`.`is_coupon_del` = ?
+					   AND `icm`.`is_del` = ?
+                       AND `icm`.`member_idx` = ?
+					   AND NOT EXISTS (
 						SELECT `coupon_idx`
 						FROM `imi_coupon_useage` `icu`
-						WHERE `icu`.`coupon_idx` = `ic`.`idx`
+						WHERE `icm`.`coupon_idx` = `icu`.`coupon_idx`
                         AND `icu`.`member_idx` = ?
 						AND `icu`.`is_refund` = ?
-						AND `icu`.`coupon_use_start_date` IS NOT NULL
+						AND `icu`.`coupon_use_end_date` IS NOT NULL
 					)';
-	
+			*/
+
+			$query = 'SELECT `icm`.`idx`,
+							 `icm`.`subject`,
+							 `icm`.`item_money`,
+							 `icm`.`discount_rate`
+					   FROM `imi_coupon_member` `icm` 
+					   WHERE `icm`.`sell_item_idx` IN (?,5)  
+					   AND `icm`.`issue_type` = ?
+					   AND `icm`.`item_money` IN (?,0)
+                       AND `icm`.`is_coupon_del` = ?
+					   AND `icm`.`is_del` = ?
+                       AND `icm`.`member_idx` = ?
+					   AND `icm`.`coupon_status` = ?';
+
 			$result = $this->db->execute($query, $param);
+
 			if ($result === false) {
 				return false;
 			}
@@ -151,36 +166,14 @@
 		}
 
 		/**
-		 * @brief: 이용 가능한 모든 쿠폰 조회
+		 * @brief: 이용 가능한 모든 쿠폰 조회 (사용안함)
 		 * @param: 거래되는 제품, 타입(구매/판매)을 담은 array
 		 * @return: array
 		 */
 		public function getAvailableAllCouponData($param)
-		{	
-			// 첫번째 쿼리는 고객이 연결되어있지 않은 쿠폰내역을 보여주도록 쿼리 (잘못된 설계)
-			// 두번째 쿼리가 쿠폰이 고객에게 지급되었을 때만 보여주도록 하는 쿼리
-
-			/*
-            $query  = 'SELECT `ic`.`idx`,
-							  `ic`.`subject`,
-							  `ic`.`item_money`,
-							  `ic`.`discount_rate`,
-							  `ic`.`discount_mileage`
-					   FROM `imi_coupon` `ic` 
-					   WHERE `ic`.`issue_type` = ?
-                       AND `ic`.`is_del` = ?
-                       AND `ic`.`start_date` <= ?
-					   AND `ic`.`expiration_date` >= ?
-                       AND NOT EXISTS (
-						SELECT `coupon_idx`
-						FROM `imi_coupon_useage` `icu`
-						WHERE `icu`.`coupon_idx` = `ic`.`idx`
-                        AND `icu`.`member_idx` = ?
-						AND `icu`.`is_refund` = ?
-						AND `icu`.`coupon_use_start_date` IS NOT NULL
-					)';
-			*/
-
+		{
+			// 판매등록 메뉴 사용 해야 하며
+			// 해당 쿼리는 모든 쿠폰을 조회하기 때문에 process에서 사용자가 선택한 쿠폰과 상품권 맞는지 체크해야함
 			$query  = 'SELECT `icm`.`idx`,
 							  `icm`.`subject`,
 							  `icm`.`item_money`,
@@ -257,37 +250,24 @@
 		}
 
 		/**
-		 * @brief: 쿠폰을 적용 받았을 때 할인되는 금액 가져오기 
-		 * @param: 쿠폰의 키 값 
-		 * @return: int 
+		 * @brief: 쿠폰 키 값을 받아서 쿠폰 정보를 받아오기 
+		 * @param: 쿠폰 키 값 
+		 * @return: array 
 		 */
-		public function getDiscountMileage($couponIdx)
+		public function getCouponDiscountData($couponIdx)
 		{
-			$query = 'SELECT `discount_mileage` FROM `imi_coupon` WHERE `idx` = ? FOR UPDATE';
-
+			$query = 'SELECT `discount_mileage`,
+							 `discount_rate`
+					  FROM `imi_coupon` 
+					  WHERE `idx` = ? 
+					  FOR UPDATE';
+			
 			$result = $this->db->execute($query, $couponIdx);
 			if ($result === false) {
 				return false;
 			}
 
-			return $result->fields['discount_mileage'];
-		}
-
-		/**
-		 * @brief: 쿠폰 할인율 가져오기
-		 * @param: 쿠폰의 키 값 
-		 * @return: int 
-		 */
-		public function getDiscountRate($couponIdx)
-		{
-			$query = 'SELECT `discount_rate` FROM `imi_coupon` WHERE `idx` = ? FOR UPDATE';
-
-			$result = $this->db->execute($query, $couponIdx);
-			if ($result === false) {
-				return false;
-			}
-
-			return $result->fields['discount_rate'];
+			return $result;
 		}
 
 		/**
@@ -344,6 +324,7 @@
 							 `ic`.`discount_rate`,
 							 `ic`.`item_money`,
 							 `icu`.`idx`,
+							 `icu`.`coupon_member_idx`,
 							 `icu`.`coupon_use_before_mileage`,
 							 `icu`.`coupon_use_mileage`,
 							 ROUND((`ic`.`item_money` * `ic`.`discount_rate`)/100) `discount_money`
@@ -366,7 +347,7 @@
 		}
 
 		/**
-		 * @brief: 관리자가 생성한 쿠폰정보 변경하기 
+		 * @brief: 쿠폰 취소(환불) 시  취소(환불)정보 수정
 		 * @param: 쿠폰 키값과 완료일자, 환불일자을 담은 배열 
 		 * @return: int 
 		 */
@@ -545,7 +526,6 @@
 					return false;
 				}
 			}
-
 			return $affected_row;
 		}
 
@@ -644,6 +624,24 @@
 		}
 
 		/**
+		 * @brief: 쿠폰의 상태코드 가져오기 
+		 * @param: 쿠폰 상태
+		 * @return: int 
+		 */
+		public function getCouponStatusCode($couponStatusName)
+		{
+			$query = 'SELECT `idx` FROM `imi_coupon_status_code` WHERE `coupon_status_name` = ?';
+
+			$result = $this->db->execute($query, $couponStatusName);
+
+			if ($result === false) {
+				return false;
+			}
+
+			return $result->fields['idx'];
+		}
+
+		/**
 		 * @brief: 쿠폰 유저 테이블에 삽입하기 
 		 * @param: 쿠폰 유저 데이터
 		 * @return: int 
@@ -657,7 +655,8 @@
 						`member_idx` = ?,
 						`subject` = ?,
 						`discount_rate` = ?,
-						`item_money` = ?';
+						`item_money` = ?,
+						`coupon_status` = ?';
 			
 			$result = $this->db->execute($query,$param);
 			$inserId = $this->db->insert_id();
@@ -718,6 +717,7 @@
 							AND `icu`.`is_refund` = ?
 					  WHERE `icm`.`member_idx` = ?
 					  AND `icm`.`is_del` = ?
+					  AND `icm`.`is_coupon_del` = ?
 					  ORDER BY `ic`.`start_date` DESC, `icm`.`idx` ASC';
 
 			$result = $this->db->execute($query, $param);
@@ -809,17 +809,13 @@
 							 `ic`.`start_date`,
 							 `ic`.`expiration_date`,
 							 `icm`.`idx`,
-							 `isi`.`item_name`,
-							 `icu`.`idx` `use_idx`
+							 `icm`.`coupon_status`,
+							 `isi`.`item_name`
 					  FROM `imi_coupon_member` `icm`
 						INNER JOIN `imi_sell_item` `isi`
 							ON `icm`.`sell_item_idx` = `isi`.`idx`
 						INNER JOIN `imi_coupon` `ic`
 							ON `icm`.`coupon_idx` = `ic`.`idx`
-						LEFT JOIN `imi_coupon_useage` `icu`
-							ON `icm`.`idx` = `icu`.`coupon_member_idx`
-							AND `icu`.`is_refund` = ?
-							AND `icu`.`coupon_use_start_date` IS NOT NULL
 					  WHERE `icm`.`is_coupon_del` = ?
 					  AND `icm`.`is_del` = ?
 					  AND `icm`.`member_idx` = ?';
@@ -915,6 +911,27 @@
 					  `item_money` = ?,
 					  `is_del` = ?
 					  WHERE `idx` = ?';
+			
+			$result = $this->db->execute($query, $param);
+
+			$affected_row = $this->db->affected_rows();
+			if ($affected_row < 1) {
+				return false;
+			}
+
+			return $affected_row;
+		}
+
+		/**
+		 * @brief: 쿠폰 지급 정보에 상태를 수정
+		 * @param: 쿠폰 지급정보 키, 상태정보를 담은 array
+		 * @return: int
+		 */
+		public function updateCouponMemberStatus($param)
+		{
+			$query = 'UPDATE `imi_coupon_member` SET 
+						`coupon_status` = ?
+						WHERE `idx` = ?';
 			
 			$result = $this->db->execute($query, $param);
 
