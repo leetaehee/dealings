@@ -59,6 +59,7 @@
 	$JsTemplateUrl = '';
 	$templateFileName = '404.html.php';
 	$today = date('Y-m-d');
+	$isUseForUpdate = true;
 
 	/**
 	 * 배열

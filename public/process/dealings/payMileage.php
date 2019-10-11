@@ -61,7 +61,7 @@
 				'is_del'=> 'N'
 			];
 
-			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData, $isUseForUpdate);
 			if ($couponIdx === false) {
 				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
 			}
@@ -72,7 +72,7 @@
 				'is_del'=> 'N'
 			];
 			
-			$isValidCoupon = $couponClass->getCheckValidCoupon($validParam);
+			$isValidCoupon = $couponClass->getCheckValidCoupon($validParam, $isUseForUpdate);
 			if ($isValidCoupon === false) {
 				throw new RollbackException('쿠폰의 키 값을 검사하는 중에 오류가 발생했습니다.');
 			}
@@ -89,7 +89,7 @@
 				'is_refund'=> 'N'
 			];
 
-			$isAvailableCoupon = $couponClass->getCheckAvailableCoupon($availableCouponParam);
+			$isAvailableCoupon = $couponClass->getCheckAvailableCoupon($availableCouponParam, $isUseForUpdate);
 			if ($isAvailableCoupon === false) {
 				throw new RollbackException('쿠폰 사용 내역을 조회하는 중에 오류가 발생했습니다.');
 			}
@@ -98,7 +98,7 @@
 				throw new RollbackException('해당 쿠폰은 이미 사용했습니다.');
 			}
 
-			$couponDiscountData = $couponClass->getCouponDiscountData($couponIdx);
+			$couponDiscountData = $couponClass->getCouponDiscountData($couponIdx, $isUseForUpdate);
 			if ($couponDiscountData === false) {
 				throw rollbackException('쿠폰 할인 정보 가져오면서 오류가 발생했습니다.');
 			}
@@ -129,7 +129,7 @@
 		}
 
 		// 거래정보 추출(폼데이터 검증)
-		$validDealingsData = $dealingsClass->getValidDealingsData($_SESSION['dealings_idx']);
+		$validDealingsData = $dealingsClass->getValidDealingsData($_SESSION['dealings_idx'], $isUseForUpdate);
 		if ($validDealingsData === false) {
 			throw new RollbackException('유효한 거래정보 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -140,7 +140,7 @@
 		}
 
 		// 거래금액 확인
-		$totalMileage = $memberClass->getTotalMileage($_SESSION['idx']);
+		$totalMileage = $memberClass->getTotalMileage($_SESSION['idx'], $isUseForUpdate);
 		if ($totalMileage === false) {
 			throw new RollbackException('회원 마일리지를 가져올 수 없습니다.');
 		}
@@ -160,7 +160,7 @@
 		];
 
 		// 거래가능한 마일리지 리스트 가져오기
-		$mileageWitdrawalList = $mileageClass->getMileageWithdrawalPossibleList($param);
+		$mileageWitdrawalList = $mileageClass->getMileageWithdrawalPossibleList($param, $isUseForUpdate);
 		if ($mileageWitdrawalList === false) {
 			throw new RollbackException('마일리지 충전 내역을 가져오는 중에 오류가 발생하였습니다.');
 		}
@@ -170,7 +170,7 @@
 			'dealings_status'=>$_SESSION['dealings_status']
 		];
 
-		$nextStatus = $dealingsClass->getNextDealingsStatus($statusData);
+		$nextStatus = $dealingsClass->getNextDealingsStatus($statusData, $isUseForUpdate);
 		if ($nextStatus === false) {
 			throw new RollbackException('마일리지 거래상태 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -189,7 +189,7 @@
 				throw new RollbackException('마일리지 출금 시 수량 정보 수정 실패하였습니다.');
 			}
 
-			$spareZeroCount = $mileageClass->getCountChargeSpareCountZero();
+			$spareZeroCount = $mileageClass->getCountChargeSpareCountZero($isUseForUpdate);
 			if ($spareZeroCount < 0) {
 				throw new RollbackException('마일리지 사용금액이 0인 항목은 존재하지 않습니다.');
 			}
@@ -288,7 +288,7 @@
 
 			$couponStatusName = '사용완료';
 
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 			if ($couponStatusCode === false) {
 				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 			}

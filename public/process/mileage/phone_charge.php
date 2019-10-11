@@ -56,7 +56,7 @@
 
 		$db->startTrans();
 
-		$expirationData = $mileageClass->getExpirationDay($mileageType); //유효기간 만료일 구하기
+		$expirationData = $mileageClass->getExpirationDay($mileageType, $isUseForUpdate); //유효기간 만료일 구하기
         if ($expirationData === false) {
             throw new RollbackException('마일리지 만료정보 가져오는데 실패했습니다.');
 		}
@@ -99,7 +99,7 @@
 			throw new RollbackException('마일리지 충전 변경 실패했습니다.');
 		}
 
-		$memberMileageType = $mileageClass->getMemberMileageTypeIdx($idx);
+		$memberMileageType = $mileageClass->getMemberMileageTypeIdx($idx, $isUseForUpdate);
 		if ($memberMileageType == false) {
 			$mileageTypeParam = [
 				'idx'=> $idx, 

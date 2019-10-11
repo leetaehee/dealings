@@ -1,13 +1,17 @@
 <?php
     /**
-	 * @file MileageClass.php
-	 * @brief 마일리지에 대한 클래스
-	 * @author 이태희
+	 * 마일리지 클래스 
 	 */
 	Class MileageClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -16,10 +20,12 @@
 			return true;
 		}
 		
-		 /**
-         * @brief: 마일리지 타입 코드에 대해 테이블 컬럼 값으로 반환  
-         * @param: 마일리지 타입 
-		 * @return: string
+		/**
+         * 마일리지 타입별 합계 테이블의 컬럼명 리턴
+         *
+         * @param string $mileageTypeCode
+         *
+         * @return string
          */
 		private function getMileageTypeColumn($mileageTypeCode){
 			switch($mileageTypeCode){
@@ -46,18 +52,23 @@
 		}
 		
         /**
-         * @brief: 데이터베이스 커넥션 생성 
-         * @param: 커넥션 파라미터
-         */
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
+		 */
 		public function __construct($db) 
         {
 			$this->db = $db;
 		}
-
+        
         /**
-         * @brief: 유효성 검증(마일리지 충전폼)
-         * @param: 폼 데이터
-         * @return: array
+         * 마일리지 충전 폼 유효성 검증
+         *
+         * @param array $postData
+         *
+         * @return array
          */
 		public function checkChargeFormValidate($postData)
 		{	
@@ -79,16 +90,24 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
-
+        
         /**
-         * @brief: 마일리지 만료 주기 가져오기
-         * @param: 마일리지 타입
-         * @return: string
+         * 마일리지 만료 주기 가져오기
+         *
+         * @param int $mileageType
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getExpirationDay($mileageType)
+		public function getExpirationDay($mileageType, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `expiration_day`,`period` FROM `imi_mileage` WHERE `idx` = ? FOR UPDATE';
-			$result = $this->db->execute($query,$mileageType);
+			$query = 'SELECT `expiration_day`,`period` FROM `imi_mileage` WHERE `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $mileageType);
 
 			if ($result == false) {
 				return false;
@@ -103,9 +122,11 @@
 		}
         
         /**
-         * @brief: 마일리지 충전
-         * @param: 마일리지 충전에 필요한 데이터 배열
-         * @return: int
+         * 마일리지 충전
+         *
+         * @param array $param
+         *
+         * @return int/bool
          */
 		public function insertMileageCharge($param)
 		{
@@ -133,11 +154,13 @@
 
 			return $insertId;
 		}
-
+        
         /**
-         * @brief: 충전을 제외한 출금,취소 등 데이터 삽입
-         * @param: 회원PK, 충전PK, 금액, 상태, 처리일자을 담은 array
-         * @return: int
+         * 충전을 제외한 출금,취소 등 데이터 삽입
+         *
+         * @param array $param
+         *
+         * @return int/bool
          */
 		public function insertMileageChange($param)
 		{
@@ -157,7 +180,7 @@
 								`charge_cost` = ?
 							';
 
-					$result = $this->db->execute($query,$param[$i]);
+					$result = $this->db->execute($query, $param[$i]);
 					$insertId = $this->db->insert_id(); // 추가
 
 					if ($insertId < 1) {
@@ -170,11 +193,13 @@
 
 			return $insertId;
 		}
-
-		/**
-         * @brief: 거래를 통해 사용한 마일리지 내역 저장
-         * @param: 거래시 거래제안자, 거래자, 상태코드, 비용을 담은 array
-         * @return: int
+        
+        /**
+         * 거래 마일리지 변동내역 추가 
+         *
+         * @param array $param
+         *
+         * @return int/bool
          */
 		public function insertDealingsMileageChange($param)
 		{
@@ -191,7 +216,7 @@
 								`dealings_date` = CURDATE(),
 								`dealings_money` = ?';
 
-					$result = $this->db->execute($query,$param[$i]);
+					$result = $this->db->execute($query, $param[$i]);
 					$insertId = $this->db->insert_id(); // 추가
 
 					if ($insertId < 1) {
@@ -204,13 +229,15 @@
 
 			return $insertId;
 		}
-		
-		/**
-         * @brief: 가상계좌를 제외한 마일리지 충전 데이터 중 유효기간 만료된 데이터 받아오기
-         * @param: none
-         * @return: array
+        
+        /**
+         * 가상계좌를 제외한 마일리지 충전 데이터 중 유효기간 만려된 데이터 받아오기
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getMileageExcessValidDateList()
+		public function getMileageExcessValidDateList($isUseForUpdate = false)
 		{
 			$today = date('Y-m-d');
 			$param = [$today];
@@ -228,10 +255,13 @@
 					  WHERE `mileage_idx` <> 5
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
-					  ORDER BY `member_idx` ASC, `expiration_date` ASC
-					  FOR UPDATE';
+					  ORDER BY `member_idx` ASC, `expiration_date` ASC';
 			
-			$result = $this->db->execute($query,$param);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
+			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
 				return false;
@@ -239,13 +269,16 @@
 			
 			return $result;
 		}
-
-		/**
-         * @brief: 가상계좌로 충전된 마일리지 리스트(for update 적용- 트랜잭션 처리 필요함)
-         * @param: 회원PK, 마일리지 타입
-         * @return: array
+        
+        /**
+         * 가상 계좌로 충전된 마일리지 리스트 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getVirutalAccountWithdrawalPossibleList($param)
+		public function getVirutalAccountWithdrawalPossibleList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`,
 							 `charge_cost`,
@@ -255,10 +288,13 @@
 					  AND `member_idx` = ?
 					  AND `charge_status` = ?
 					  AND `spare_cost` > 0
-					  ORDER BY `charge_date` ASC
-					  FOR UPDATE
-					';
-			$result = $this->db->execute($query,$param);
+					  ORDER BY `charge_date` ASC';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
 
 			if ($result == false) {
 				return false;
@@ -266,13 +302,16 @@
 			
 			return $result;
 		}
-
-		/**
-         * @brief: 충전된 마일리지 리스트(for update 적용- 트랜잭션 처리 필요함)
-         * @param: 회원PK, 마일리지 타입
-         * @return: array
+        
+        /**
+         * 충전된 마일리지 리스트
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         * 
+         * @return array/bool
          */
-		public function getMileageWithdrawalPossibleList($param)
+		public function getMileageWithdrawalPossibleList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `imc`.`idx`,
 							 `imc`.`charge_cost`,
@@ -284,11 +323,13 @@
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` = ?
 					  AND `imc`.`spare_cost` > 0
-					  ORDER BY `im`.`priority` ,`imc`.`expiration_date` ASC, `imc`.`charge_date` ASC
-					  FOR UPDATE
-					';
+					  ORDER BY `im`.`priority` ,`imc`.`expiration_date` ASC, `imc`.`charge_date` ASC';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
-			$result = $this->db->execute($query,$param);
+			$result = $this->db->execute($query, $param);
 
 			if ($result == false) {
 				return false;
@@ -296,11 +337,14 @@
 			
 			return $result;
 		}
-		
-		/**
-         * @brief: 출금시 마일리지 충전내역에서 차감해야 할 정보 산출 (Key 정보)
-         * @param: 충전금액과 키값을 배열로 전달
-         * @return: array
+        
+        /**
+         * 출금 시 마일리지 충전내역에서 차감해야할 정보를 배열로 리턴
+         *
+         * @param array $list, int $chageCost
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
 		public function getMildateChargeInfomationData($list,$chargeCost)
 		{
@@ -348,11 +392,13 @@
 	
 			return ['update_data'=>$updateData, 'mileage_type_data'=>$mileageTypeData];
 		}
-		
-		/**
-         * @brief: 두 개의 배열 내용 합치기(출금데이터)
-         * @param: array 
-         * @return: array
+        
+        /**
+         * 두 개의 배열 내용 합치기 (출금데이터))
+         *
+         * @param array $chageData, array $mileageChangeParam
+         *
+         * @return array/bool
          */
 		public function updateMileageArray($chargeData, $mileageChangeParam)
 		{
@@ -379,9 +425,11 @@
 		}
 
 		/**
-         * @brief: 두 개의 배열 내용 합치기(거래 시 출금데이터)
-         * @param: array 
-         * @return: array
+         * 두 개의 배열 내용 합치기 (출금데이터))
+         *
+         * @param array $chageData, array $mileageChangeParam
+         *
+         * @return array/bool
          */
 		public function updateDealingsMileageArray($chargeData, $mileageChangeParam)
 		{
@@ -404,11 +452,13 @@
 			}
 			return $changeData;
 		}
-
-		/**
-         * @brief: 출금 시  충전정보 업데이트(imi_mileage_charge)
-         * @param: 충전금액과 키값을 배열로 전달
-         * @return: array
+        
+        /**
+         * 출금 시 충전정보 업데이트 
+         *
+         * @param array $param
+         *
+         * @return int/bool
          */
 		public function updateMileageCharge($param)
 		{
@@ -422,7 +472,7 @@
 							   WHERE `idx` = ?  
 							';
 					
-					$result = $this->db->execute($query,$param[$i]);
+					$result = $this->db->execute($query, $param[$i]);
                     $affected_row = $this->db->affected_rows();
 
 					if ($affected_row < 1) {
@@ -434,18 +484,21 @@
 			}
 			return $affected_row;
 		}
-
+        
         /**
-         * @brief: 충전내역 출력 (충전,충전취소만 보여짐)
-         * @param: 회원PK
-         * @return: array
+         * 충전내역 출력 (충전, 충전취소만)
+         *
+         * @param int $idx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getMileageCharge($idx)
+		public function getMileageCharge($idx, $isUseForUpdate = false)
 		{
 			$param = [
-					'memberIdx'=>$idx,
-					'is_expiration'=>'N'
-				];
+				'memberIdx'=> $idx,
+				'is_expiration'=> 'N'
+			];
 		
 			$query = 'SELECT `imc`.`idx`,
 							 `imc`.`charge_cost`,
@@ -464,10 +517,13 @@
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` IN (1,3)
-					  AND `imc`.`is_expiration` = ?
-					  FOR UPDATE
-					';
-			$result = $this->db->execute($query,$param);
+					  AND `imc`.`is_expiration` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
 				return false;
@@ -475,17 +531,20 @@
 			
 			return $result;
 		}
-
+        
         /**
-         * @brief: 출금내역 출력
-         * @param: 회원PK
-         * @return: array
+         * 출금 내역 출력
+         *
+         * @param int $idx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getMileageWithdrawal($idx)
+		public function getMileageWithdrawal($idx, $isUseForUpdate = false)
 		{
 			$param = [
-					'memberIdx'=>$idx
-				];
+                'memberIdx'=>$idx
+            ];
 
 			$query = 'SELECT `imc`.`idx`,
 							 `imc`.`charge_cost`,
@@ -502,10 +561,13 @@
 						INNER JOIN `imi_mileage` `im`
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
-					  AND `imc`.`charge_status` IN (2,4,5)
-					  FOR UPDATE
-					';
-			$result = $this->db->execute($query,$param);
+					  AND `imc`.`charge_status` IN (2,4,5)';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
 				return false;
@@ -513,16 +575,24 @@
 			
 			return $result;
 		}
-
-		/**
-         * @brief: `imi_mileage_type_sum`에 회원에 대한 데이터 있는지 찾기
-         * @param: 회원PK
-         * @return: string
-         */
-		public function getMemberMileageTypeIdx($idx)
+        
+        /**
+         * 마일리지 타입별 합계 테이블에 회원 데이터 있는지 조회
+         *
+         * @param int $idx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */ 
+		public function getMemberMileageTypeIdx($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_mileage_type_sum` WHERE `member_idx` = ? FOR UPDATE';
-			$result = $this->db->execute($query,$idx);
+			$query = 'SELECT `idx` FROM `imi_mileage_type_sum` WHERE `member_idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $idx);
 
 			if ($result == false) {
 				return false;
@@ -530,11 +600,13 @@
 			
 			return $result->fields['idx'];
 		}
-
-		/**
-         * @brief: 회원 마일리지별 데이터 생성 
-         * @param: 회원 PK, 마일리지 타입, 누적값
-         * @return: array 
+        
+        /**
+         * 마일리지 타입별 합계 테이블에 회원, 컬럼 찾아서 마일리지 삽입 
+         *
+         * @param int $mileageType, array $mileageTypeParam
+         *
+         * @return int/bool
          */
 		public function mileageTypeInsert($mileageType, $mileageTypeParam)
 		{
@@ -557,9 +629,11 @@
 		}
 
 		/**
-         * @brief: 개별 충전 마일리지 타입 누적 
-         * @param: 회원 PK, 마일리지 타입, 값
-         * @return: int 
+         * 마일리지 타입별 합계 테이블에 회원, 컬럼 찾아서 마일리지 수정 (누적) 
+         *
+         * @param int $mileageType, array $mileageTypeParam
+         *
+         * @return int/bool
          */
 		public function mileageTypeChargeUpdate($mileageType, $mileageTypeParam)
 		{
@@ -582,9 +656,11 @@
 		}
 		
 		/**
-         * @brief: 개별 출금 마일리지 타입 감소 
-         * @param: 회원 PK, 마일리지 타입, 값
-         * @return: int 
+         * 마일리지 타입별 합계 테이블에 회원, 컬럼 찾아서 마일리지 수정 (감소) 
+         *
+         * @param int $mileageType, array $mileageTypeParam
+         *
+         * @return int/bool
          */
 		public function mileageTypeWithdrawalUpdate($mileageType, $mileageTypeParam)
 		{
@@ -604,11 +680,13 @@
 			}
 			return $affected_row;
 		}
-
-		/**
-         * @brief: 전체 마일리지를 가지고 계산할 경우 타입별로 감소 
-         * @param: 회원 PK, 마일리지 배열 데이터를 담은 array
-         * @return: int 
+        
+        /**
+         * 전체 마일리지를 가지고 계산할 경우 타입별로 감소
+         *
+         * @param int $purchaser_idx, array $chageData
+         *
+         * @return int/bool
          */
 		public function mileageAllTypeWithdrawalUpdate($purchaser_idx, $chargeData)
 		{
@@ -641,23 +719,29 @@
 			}
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 출금 가능한 마일리지 가져오기
-		 * @param: 마일리지타입, 회원PK 을 담는 배열 
-		 * @return: int 
-		 */
-		public function getAvailableMileage($mileageTypeParam)
+        
+        /**
+         * 출금 가능한 마일리지 가져오기
+         *
+         * @param array $mileageTypeParam
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getAvailableMileage($mileageTypeParam, $isUseForUpdate = false)
 		{
 			$colName = $this->getMileageTypeColumn($mileageTypeParam['mileageType']);
 			$memberIdx = $mileageTypeParam['idx'];
 
 			$query = "SELECT `{$colName}` `{$colName}`
 					  FROM `imi_mileage_type_sum`
-					  WHERE `member_idx` = ?
-					  FOR UPDATE";
+					  WHERE `member_idx` = ?";
 			
-			$result = $this->db->execute($query,$memberIdx);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
+			$result = $this->db->execute($query, $memberIdx);
 
 			if ($result == false) {
 				return false;
@@ -665,13 +749,15 @@
 			
 			return $result->fields[$colName];
 		}
-
-		/**
-		 * @brief: 충전내역 보여주기
-		 * @param: 없음 
-		 * @return: arrray 
-		 */
-		public function getChargeList()
+        
+        /**
+         * 충전내역 보여주기
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getChargeList($isUseForUpdate = false)
 		{
 			$param = ['N',1];
 
@@ -694,10 +780,13 @@
 						INNER JOIN `imi_mileage` `imcd`
 							ON `imc`.`mileage_idx` = `imcd`.`idx`
 					  WHERE `imc`.`is_expiration` = ?
-					  AND `imc`.`charge_status` <> ?
-					  FOR UPDATE';
+					  AND `imc`.`charge_status` <> ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
-			$result = $this->db->execute($query,$param);
+			$result = $this->db->execute($query, $param);
 
 			if ($result == false) {
 				return false;
@@ -705,12 +794,14 @@
 			
 			return $result;
 		}
-
-		/**
-		 * @brief: 유효기간 만료된 충전내역을 배열로 받기
-		 * @param: 충전정보 PK, 상태정보를 array
-		 * @return: array
-		 */
+        
+        /**
+         * 유효기간 만료된 충전내역 배열로 받기
+         *
+         * @param array $list
+         *
+         * @return array/bool
+         */
 		public function getExpirationArrayData($list)
 		{
 			$count = $list->recordCount();
@@ -734,12 +825,14 @@
 			}
 			return $expirationData;
 		}
-
-		/**
-		 * @brief: 충전내역 유효기간 만료여부 수정 
-		 * @param: 충전정보 PK, 상태정보를 배열로 받음.
-		 * @return: int
-		 */
+        
+        /**
+         * 충전내역 유효기간 만료여부 수정 
+         *
+         * @param array $chageData
+         *
+         * @return int/bool
+         */
 		public function updateExpirationDate($chargeData)
 		{
 			$count = count($chargeData);
@@ -775,12 +868,14 @@
 
 			return $affected_row;
 		}
-		
-		/**
-		 * @brief: 현재일자보다 유효기간이 작은 경우 충전상태, 만료여부 변경 
-		 * @param: 날짜, 충전상태 array 
-		 * @return: int
-		 */
+        
+        /**
+         * 현재 일자보다 유효기간이 작은 경우 충전상태, 만료여부 변경
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateStatusByExpirationDate($param)
 		{
 			$query = 'UPDATE `imi_mileage_charge` SET
@@ -798,13 +893,14 @@
 
 			return $affected_row;
 		}
-
-		
-		/**
-		 * @brief: 충전내역 상태 변경하기(금액, 상태)
-		 * @param: 충전정보 PK, 상태정보를 배열로 받음.
-		 * @return: int
-		 */
+        
+        /**
+         * 충전 상태 변경 
+         * 
+         * @param array $param
+         *
+         * @return int
+         */
 		public function updateChargeStatus($param)
 		{
 			$query = 'UPDATE `imi_mileage_charge` SET
@@ -821,20 +917,24 @@
 			}
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 충전내역의 사용금액이 0원인 항목에 대해 카운트
-		 * @param: 없음 
-		 * @return: int
-		 */
-		public function getCountChargeSpareCountZero()
+        
+        /**
+         * 충전내역의 사용금액이 0원인 항목에 대해서 카운트
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCountChargeSpareCountZero($isUseForUpdate = false)
 		{
 			$query = 'SELECT COUNT(`spare_cost`) spare_cost
 					  FROM `imi_mileage_charge`
 					  WHERE `spare_cost` < 1
-					  AND `charge_status` <> 6
-					  FOR UPDATE
-					';
+					  AND `charge_status` <> 6';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query);
 
@@ -844,12 +944,12 @@
 			
 			return $result->fields['spare_cost'];
 		}
-
-		/**
-		 * @brief: 충전내역의 사용금액이 0원인 항목에 대해 일괄처리 (사용안함: imi_mileage_code.mileage_code = 6)
-		 * @param: 충전내역 키 값만 받아서 처리(array)
-		 * @return: int
-		 */
+        
+        /**
+         * 충전내역의 사용금액이 0원인 항목에 대해 일괄 처리 
+         *
+         * @return int/bool
+         */
 		public function updateChargeZeroStatus()
 		{
 			$query = 'UPDATE `imi_mileage_charge` SET
@@ -864,14 +964,16 @@
 			}
 			return $affected_row;
 		}
-
-
-		/**
-		 * @brief: imi_mileage_change에 들어갈 내용 가져오기(FOR UPDATE)
-		 * @param: 충전정보 키 값
-		 * @return: array
-		 */
-		public function getChargeInsertData($idx)
+        
+        /**
+         * imi_mileage_charge에 들어갈 내용 추출
+         *
+         * @param int $idx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getChargeInsertData($idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `member_idx`,
 							 `mileage_idx`,
@@ -882,10 +984,13 @@
 							 `idx`,
 							 `charge_cost`
 					  FROM `imi_mileage_charge`
-					  WHERE `idx` = ? 
-					  FOR UPDATE';
+					  WHERE `idx` = ?';
 			
-			$result = $this->db->execute($query,$idx);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
+			$result = $this->db->execute($query, $idx);
 
 			if ($result == false) {
 				return false;
@@ -893,13 +998,15 @@
 			
 			return $result;
 		}
-
-		/**
-         * @brief: 모든 회원 마일리지 합계 가져오기
-         * @param: NONE
-         * @return: array
+        
+        /**
+         * 모든 회원 마일리지 합계 가져오기
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getAllMemberMileageTotal()
+		public function getAllMemberMileageTotal($isUseForUpdate = false)
 		{
 			$today = date('Y-m-d');
 
@@ -912,10 +1019,13 @@
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
 					  GROUP BY `member_idx`
-					  ORDER BY `member_idx`
-					  FOR UPDATE';
+					  ORDER BY `member_idx`';
 			
-			$result = $this->db->execute($query,$param);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
+			$result = $this->db->execute($query, $param);
 
 			if ($result == false) {
 				return false;
@@ -923,13 +1033,15 @@
 			
 			return $result;
 		}
-
-		/**
-         * @brief: 모든 회원 마일리지 유형별 합계 가져오기
-         * @param: NONE
-         * @return: array
+        
+        /**
+         * 모든 회원 마일리지 유형별 합계 가져오기
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부 
+         *
+         * @return array/bool
          */
-		public function getAllMemberPartMileageTotal()
+		public function getAllMemberPartMileageTotal($isUseForUpdate = false)
 		{
 			$today = date('Y-m-d');
 
@@ -942,10 +1054,13 @@
 					  WHERE `mileage_idx` <> 5
 					  AND `expiration_date` < ?
 					  AND `charge_status` = 3
-                      GROUP BY `member_idx`, `mileage_idx`
-					  FOR UPDATE';
+                      GROUP BY `member_idx`, `mileage_idx`';
 
-			$result = $this->db->execute($query,$param);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
 
 			if ($result == false) {
 				return false;

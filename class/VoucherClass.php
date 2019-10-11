@@ -1,13 +1,17 @@
 <?php
 	/**
-	 * @file VoucherClass.php
-	 * @brief 상품권 클래스, 상품권에 대한 기능 서술
-	 * @author 이태희
+	 * 상품권 클래스
 	 */
 	Class VoucherClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,26 +21,36 @@
 		}
 		
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-
-		/**
-		 * @brief: 상품권 고유번호 가져오기
-		 * @param: 상품권 이름 
-		 * @return: int
-		 */
-		public function getVoucherItemIdx($voucherName)
+        
+        /**
+         * 상품권 고유번호 가져오기
+         *
+         * @param string $voucherName
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getVoucherItemIdx($voucherName, $isUseForUpdate = false)
 		{
 			$param = [
 				'item_name'=> $voucherName
 			];
 
-			$query = 'SELECT `idx` FROM `imi_sell_item` WHERE `item_name` = ? FOR UPDATE';
+			$query = 'SELECT `idx` FROM `imi_sell_item` WHERE `item_name` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {

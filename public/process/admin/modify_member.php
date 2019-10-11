@@ -67,7 +67,7 @@
 			$isNewData = true;  // 핸드폰번호를 변경하는 경우
 		}
 		if ($isNewData === true) {
-			$accountOverlapCount = $adminClass->getAccountOverlapCount($accountData);
+			$accountOverlapCount = $adminClass->getAccountOverlapCount($accountData, $isUseForUpdate);
 			
 			if ($accountOverlapCount === false) {
 				throw new RollbackException('계정중복확인 오류 발생! 관리자에게 문의하세요');

@@ -61,7 +61,7 @@
 			'account_bank'=> $postData['account_bank']
 		];
 
-		$accountNo = $virtualClass->getVirtualAccount($virtualAccountParam);
+		$accountNo = $virtualClass->getVirtualAccount($virtualAccountParam, $isUseForUpdate);
 		if ($accountNo === false) {
 			throw new RollbackException('가상계좌를 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -71,7 +71,7 @@
 			throw new RollbackException('유효하지 않은 가상 계좌입니다. 본인 이외에 가상계좌는 사용 할 수없습니다.');
 		}
 
-		$expirationData = $mileageClass->getExpirationDay($mileageType); //유효기간 만료일 구하기
+		$expirationData = $mileageClass->getExpirationDay($mileageType, $isUseForUpdate); //유효기간 만료일 구하기
         if ($expirationData === false) {
             throw new RollbackException('마일리지 만료정보 가져오는데 실패했습니다.');
 		}
@@ -114,7 +114,7 @@
 			throw new RollbackException('마일리지 충전 변경 실패했습니다.');
 		}
 
-		$memberMileageType = $mileageClass->getMemberMileageTypeIdx($idx);
+		$memberMileageType = $mileageClass->getMemberMileageTypeIdx($idx, $isUseForUpdate);
 		if ($memberMileageType == false) {
 			$mileageTypeParam = [
 				$idx, 

@@ -51,7 +51,7 @@
 			'dealinges_status'=>$_SESSION['dealings_status'],
 		];
 
-		$existCount = $dealingsClass->isDealingsDataExist($param);
+		$existCount = $dealingsClass->isDealingsDataExist($param, $isUseForUpdate);
 		if ($existCount === false){
 			throw new RollbackException('거래 데이터 이중등록 체크에 오류가 발생했습니다.');
 		}
@@ -65,12 +65,12 @@
 			'dealings_status'=>$_SESSION['dealings_status']
 		];
 
-		$nextStatus = $dealingsClass->getNextDealingsStatus($statusData);
+		$nextStatus = $dealingsClass->getNextDealingsStatus($statusData, $isUseForUpdate);
 		if ($nextStatus === false) {
 			throw new RollbackException('거래 상태에 오류가 발생했습니다.');
 		}
 
-		$dealingsExistCount = $dealingsClass->isExistDealingsIdx($_SESSION['dealings_idx']);
+		$dealingsExistCount = $dealingsClass->isExistDealingsIdx($_SESSION['dealings_idx'], $isUseForUpdate);
 		if ($dealingsExistCount === false) {
 			throw new RollbackException('거래 유저 테이블에 오류가 발생했습니다.');
 		}

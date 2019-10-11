@@ -1,13 +1,18 @@
 <?php
 	/**
-	 * @file DealingsCommissionClass.php
-	 * @brief 거래 수수료 클래스, 거래시 수수료 관련된 기능 서술
-	 * @author 이태희
-	 */
+     *  수수료 클래스 
+     */
 	Class DealingsCommissionClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-
+        
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,22 +22,32 @@
 		}
 		
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-
-		/**
-		 * @brief: 한 거래당 수수료는 한번만 받을 수 있음 
-		 * @param: 거래테이블 키
-		 * @return: string
-		 */
-		public function isExistDealingsNo($dealingsIdx)
+        
+        /**
+         * 수수료를 냈는지 체크 (이중등록 방지)
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function isExistDealingsNo($dealingsIdx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `dealings_idx` FROM `imi_dealings_commission` WHERE `dealings_idx` = ? FOR UPDATE';
+			$query = 'SELECT `dealings_idx` FROM `imi_dealings_commission` WHERE `dealings_idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $dealingsIdx);
 			if ($result === false) {
@@ -40,12 +55,15 @@
 			}
 			return $result->fields['dealings_idx'];
 		}
-
-		/**
-		 * @brief: 수수료 데이터 생성 
-		 * @param: 거래테이블 키와 수수료 정보를 포함한 array
-		 * @return: int
-		 */
+        
+        /**
+         * 수수료 데이터 삽입
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
 		public function insertDealingsCommission($param)
 		{
 			$query = 'INSERT INTO `imi_dealings_commission` SET
@@ -54,7 +72,7 @@
 						`dealings_complete_date` = CURDATE(),
 						`sell_item_idx` = ?';
 			
-			$result = $this->db->execute($query,$param);
+			$result = $this->db->execute($query, $param);
 			$inserId = $this->db->insert_id();
 
 			if ($inserId < 1) {

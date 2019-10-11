@@ -87,7 +87,7 @@
 			'is_refund'=>'N'
 		];
 
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam);
+		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
 		if ($useCouponData === false) {
 			throw new RollbackException("쿠폰 사용 내역을 가져오면 오류가 발생했습니다.");
 		}
@@ -110,7 +110,7 @@
 			// 판매취소로 쿠폰 복구
 			$couponStatusName = '사용대기';
 
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 			if ($couponStatusCode === false) {
 				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 			}

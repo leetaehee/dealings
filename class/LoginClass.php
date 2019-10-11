@@ -1,13 +1,17 @@
 <?php
 	/**
-	 * @file LoginClass.php
-	 * @brief Login/Logout에 대한 클래스
-	 * @author 이태희
-	 */
+     * 로그인 클래스
+     */ 
 	Class LoginClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,20 +21,26 @@
 		}
 		
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터 
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-
-		/**
-		 * @brief: 로그인 정보가 맞는지 체크 
-		 * @param: 로그인 데이터 
-		 * @return: true/false
-		 */
-		public function getIsLogin($id)
+        
+        /**
+         * 로그인 정보 체크
+         *
+         * @param string $id
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool 
+         */
+		public function getIsLogin($id, $isUseForUpdate = false)
 		{ 
 			$query = 'SELECT `imi`.`id`,
 							 `imi`.`idx`,
@@ -45,13 +55,15 @@
 						FROM `imi_members` `imi`
 							INNER JOIN `imi_member_grades` `img`
 								ON `imi`.`grade_code` = `img`.`grade_code`
-						WHERE `imi`.`id` = ?
-						FOR UPDATE
-					';
+						WHERE `imi`.`id` = ?';
 
 			// 탈퇴일 AND `imi`.`withdraw_date` IS NULL
 			// 강제탈퇴일 AND `imi`.`is_forcedEviction` = ?
             // 가입일 AND `imi`.`join_approval_date` IS NOT NULL
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $id);
 
@@ -62,12 +74,15 @@
 			return $result;
 		}
 		
-		/**
-		 * @brief: 로그인 정보가 맞는지 체크
-		 * @param: 관리자 PK (admin) 
-		 * @return: true/false
-		 */
-		public function getIsAdminLogin($id)
+        /**
+         * 관리자 로그인 정보 체크
+         * 
+         * @param string $id
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getIsAdminLogin($id, $isUseForUpdate = false)
 		{ 
 			$query = 'SELECT `id`,
 							 `idx`,
@@ -79,9 +94,11 @@
 							 `withdraw_date`,
 							 `is_superadmin`
 						FROM `imi_admin`
-						WHERE `id` = ?
-						FOR UPDATE
-					';
+						WHERE `id` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $id);
 
@@ -91,12 +108,14 @@
 
 			return $result;
 		}
-
-		/**
-		 * @brief: 유효성 검증
-		 * @param: 로그인 폼 데이터(array)
-		 * @return: true/false
-		 */
+        
+        /**
+         * 로그인 유효성 체크
+         *
+         * @param array $postData
+         *
+         * @return array
+         */
 		public function checkLoginFormValidate($postData)
 		{
 			if (isset($postData['id']) && empty($postData['id'])) {
@@ -109,12 +128,14 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
-
-		/**
-		 * @brief: 로그인 시 로그인 이력 남기기
-		 * @param: 회원의 접속 정보(array)
-		 * @return: int
-		 */
+        
+        /**
+         * 회원 접속 정보 삽입
+         *
+         * @param array $param
+         *
+         * @param int/bool
+         */
 		public function insertIP($param)
 		{
 			$query = ' insert into `imi_access_ip` set
@@ -134,12 +155,14 @@
 
 			return $inserId;
 		}
-
-		/**
-		 * @brief: 로그인 시 로그인 이력 남기기 (admin)
-		 * @param: 회원의 접속 정보(array)
-		 * @return: int
-		 */
+        
+        /**
+         * 관리자 접속 정보 삽입
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function insertAdminIP($param)
 		{
 			$query = ' insert into `imi_admin_access_ip` set
@@ -159,14 +182,22 @@
 			return $inserId;
 		}
         
-		/**
-		 * @brief: 사용자가 입력한 비밀번호가 맞는지 체크 
-		 * @param: 패스워드
-		 * @return: boolean
-		 */
-        public function checkPasswordByUser($param)
+        /**
+         * 사용자 비밀번호 체크 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+        public function checkPasswordByUser($param, $isUseForUpdate = false)
         {
-            $query = 'SELECT `password` FROM `imi_members` where `idx` = ? FOR UPDATE';
+            $query = 'SELECT `password` FROM `imi_members` where `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
             $result = $this->db->execute($query, $param['idx']);
             
             if ($result === false) {
@@ -182,13 +213,21 @@
         }
 
 		/**
-		 * @brief: 관리자가 입력한 비밀번호가 맞는지 체크
-		 * @param: 패스워드
-		 * @return: boolean
-		 */
-		public function checkPasswordByAdmin($param)
+         * 관리자 비밀번호 체크 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function checkPasswordByAdmin($param, $isUseForUpdate = false)
         {
-            $query = 'SELECT `password` FROM `imi_admin` where `idx` = ? FOR UPDATE';
+            $query = 'SELECT `password` FROM `imi_admin` where `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
             $result = $this->db->execute($query, $param['idx']);
             
             if ($result === false) {
@@ -202,13 +241,16 @@
             }        
             return $result;
         }
-
-		/**
-		 * @brief: 사용자의 로그인 기록 
-		 * @param: 회원PK, 접근일자 (array)
-		 * @return: array
-		 */
-		public function getLoginAccessList($param)
+        
+        /**
+         * 사용자 로그인 기록 출력
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getLoginAccessList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`,
 							 `member_idx`,
@@ -217,9 +259,11 @@
 							 `access_datetime`
 					  FROM `imi_access_ip`
 					  WHERE `member_idx` = ?
-					  AND `access_date` = ?
-					  FOR UPDATE
-					';
+					  AND `access_date` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
 
@@ -231,11 +275,14 @@
 		}
 
 		/**
-		 * @brief: 관리자의 로그인 기록
-		 * @param: 관리자PK, 접근일자 (array)
-		 * @return: array
-		 */
-		public function getAdminLoginAccessList($param)
+         * 관리자 로그인 기록 출력
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getAdminLoginAccessList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`,
 							 `admin_idx`,
@@ -244,9 +291,11 @@
 							 `access_datetime`
 					  FROM `imi_admin_access_ip`
 					  WHERE `admin_idx` = ?
-					  AND `access_date` = ?
-					  FOR UPDATE
-					';
+					  AND `access_date` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
 

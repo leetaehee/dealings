@@ -60,7 +60,7 @@
 			'idx'=>$idx
 		];
 
-		$maxMileage = $mileageClass->getAvailableMileage($maxMileageParam);
+		$maxMileage = $mileageClass->getAvailableMileage($maxMileageParam, $isUseForUpdate);
 		if ($maxMileage === false) {
 			throw new RollbackException('출금 가능한 마일리지 가져오는 중에 오류 발생! 관리자에게 문의하세요!');
 		}
@@ -76,13 +76,13 @@
 		];
 
 		// 충전가능한 내역 리스트
-		$virtualWitdrawaLlist = $mileageClass->getVirutalAccountWithdrawalPossibleList($param);
+		$virtualWitdrawaLlist = $mileageClass->getVirutalAccountWithdrawalPossibleList($param, $isUseForUpdate);
 		if ($virtualWitdrawaLlist === false) {
 			throw new RollbackException('충전 내역을 가져오는 중에 오류가 발생하였습니다.');
 		}
 		
 		// 회원 가상 계좌 가져오기
-		$accountData = $virtualClass->getVirtualAccountData($idx);
+		$accountData = $virtualClass->getVirtualAccountData($idx, $isUseForUpdate);
 		if ($accountData === false) {
 			throw new RollbackException('가상계좌를 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -103,7 +103,7 @@
 			throw new RollbackException('출금 수정 실패! 관리자에게 문의하세요');
 		}
 
-		$spareZeroCount = $mileageClass->getCountChargeSpareCountZero();
+		$spareZeroCount = $mileageClass->getCountChargeSpareCountZero($isUseForUpdate);
 		if ($spareZeroCount < 0) {
 			throw new RollbackException('마일리지 상태 조회 오류! 관리자에게 문의하세요');
 		}

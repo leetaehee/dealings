@@ -50,7 +50,7 @@
 			'is_del'=> 'N'
 		];
 
-		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam);
+		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam, $isUseForUpdate);
 		if ($couponMemberIdx === false) {
 			throw new RollbackException('지급된 쿠폰의 고유키를 가져오면서 오류가 발생했습니다.'); 
 		}
@@ -61,11 +61,11 @@
 
 		$existMemberParam = [
 			'coupon_idx'=> $couponIdx,
-			'member_idx' => $_SESSION['idx'],
+			'member_idx' => $_SESSION['mIdx'],
 			'is_del'=> 'N'
 		];
 
-		$isExistMemberIdx = $couponClass->getExistCouponMemberIdx($existMemberParam);
+		$isExistMemberIdx = $couponClass->getExistCouponMemberIdx($existMemberParam, $isUseForUpdate);
 		if ($isExistMemberIdx === false) {
 			throw new RollbackException('쿠폰이 지급되어있는지 확인인하면서 오류가 발생했습니다.');
 		}
@@ -74,7 +74,7 @@
 			throw new RollbackException('쿠폰이 이미 등록되어있습니다. 다시 등록하세요.');
 		}
 
-		$couponData = $couponClass->getMemberCouponData($couponIdx);
+		$couponData = $couponClass->getMemberCouponData($couponIdx, $isUseForUpdate);
 		if ($couponData === false) {
 			throw new RollbackException('쿠폰 정보를 가져오는 중에 오류가 발생했습니다.');
 		}

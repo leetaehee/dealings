@@ -91,6 +91,11 @@
 		$dealingsModifyUrl = SITE_DOMAIN . '/sell_dealings_modify.php?idx=' . $getData['idx']; // 판매거래수정 
 		$dealingsDeleteUrl = DEALINGS_PROCESS_ACCTION . '/dealings_delete.php?idx=' . $getData['idx']; // 거래삭제
 
+		$dealingsCompleteParam = '?idx=' . $getData['idx'] . '&target=writer_idx'; // 파라미터
+
+		$dealingsApproval = DEALINGS_PROCESS_ACCTION . '/seller_dealings_approval.php' . $dealingsCompleteParam; // 거래승인
+		$dealingsCancel = DEALINGS_PROCESS_ACCTION . '/seller_dealings_cancel.php' . $dealingsCompleteParam; // 거래취소
+
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_sell_dealings_status.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

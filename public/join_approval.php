@@ -39,17 +39,15 @@
 			$db->startTrans();
 
 			$memberClass = new MemberClass($db);
-			$join_approval_date = $memberClass->getJoinApprovalMailDate($idx);
+			$join_approval_date = $memberClass->getJoinApprovalMailDate($idx, $isUseForUpdate);
 			if ($join_approval_date !== null) {
 				throw new RollbackException('이미 가입승인 메일을 통해 승인 하였습니다!');
 			}else{	
 				$updateApprovalResult = $memberClass->updateJoinApprovalMailDate($idx);
 				if ($updateApprovalResult < 1) {
 					throw new RollbackException('가입 승인 수정 중에 오류가 발생했습니다.');
-				} else {
-					$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
 				}
-
+				$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
 				$db->completeTrans();
 			}
 		} else {

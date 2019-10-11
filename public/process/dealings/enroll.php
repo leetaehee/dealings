@@ -77,7 +77,7 @@
 		// 수수료 가져오기 
 		$itemIdx = $postData['item_no'];
 
-		$commission = $sellItemClass->getCheckSellItemValue($itemIdx);
+		$commission = $sellItemClass->getCheckSellItemValue($itemIdx, $isUseForUpdate);
 		if ($commission === false) {
 			throw new RollbackException('수수료 데이터를 가져 오지 못했습니다.');
 		} 
@@ -87,7 +87,7 @@
 		}
 
 		// 거래상태 가져오기
-		$dealingsStatus = $dealingsClass->getDealingsStatus($postData['dealings_state']);
+		$dealingsStatus = $dealingsClass->getDealingsStatus($postData['dealings_state'], $isUseForUpdate);
 		if ($dealingsStatus === false) {
 			throw new RollbackException('거래 테이블 상태를 가져올 수 없습니다.');
 		}

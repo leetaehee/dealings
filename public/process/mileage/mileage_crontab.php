@@ -33,7 +33,7 @@
         $mileageClass = new MileageClass($db);
         $memberClass = new MemberClass($db);
 
-        $excessValidDateList = $mileageClass->getMileageExcessValidDateList();
+        $excessValidDateList = $mileageClass->getMileageExcessValidDateList($isUseForUpdate);
         $excessDataCount = $excessValidDateList->recordCount();
         if ($excessDataCount > 0) {
             // 결제내역 데이터를 배열로 변환하기
@@ -55,7 +55,7 @@
             }
 
              // 전체 마일리지 조회
-            $memberTotalMileage = $mileageClass->getAllMemberMileageTotal();
+            $memberTotalMileage = $mileageClass->getAllMemberMileageTotal($isUseForUpdate);
             if ($memberTotalMileage == false) {
                 throw new RollbackException('마일리지 조회 오류 발생 했습니다. |');
             }
@@ -66,7 +66,7 @@
                 throw new RollbackException('회원 마일리지 수정 실패 했습니다. |');
             }
             
-            $mileageTypeData = $mileageClass->getAllMemberPartMileageTotal();
+            $mileageTypeData = $mileageClass->getAllMemberPartMileageTotal($isUseForUpdate);
             if ($mileageTypeData == false) {
                 throw new RollbackException('회원 마일리지 유형별 합계 조회 오류 발생했습니다. |');
             }
@@ -79,7 +79,7 @@
                     $chargeCost = $value['charge_cost'];
                     $memberIdx = $value['member_idx'];
 
-                    $idx = $mileageClass->getMemberMileageTypeIdx($memberIdx);
+                    $idx = $mileageClass->getMemberMileageTypeIdx($memberIdx, $isUseForUpdate);
 
                     if (empty($idx)) {
                         $param = [

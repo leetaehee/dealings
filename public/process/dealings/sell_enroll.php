@@ -85,7 +85,7 @@
 				'is_del'=> 'N'
 			];
 
-			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData);
+			$couponIdx = $couponClass->getCheckCouponMemberIdx($memberCouponData, $isUseForUpdate);
 			if ($couponIdx === false) {
 				throw new RollbackException('쿠폰의 고객 정보를 가져오면서 오류가 발생했습니다.');
 			}
@@ -96,7 +96,7 @@
 				'is_del'=> 'N'
 			];
 			
-			$isValidCoupon = $couponClass->getCheckValidCoupon($validParam);
+			$isValidCoupon = $couponClass->getCheckValidCoupon($validParam, $isUseForUpdate);
 			if ($isValidCoupon === false) {
 				throw new RollbackException('쿠폰의 키 값을 검사하는 중에 오류가 발생했습니다.');
 			}
@@ -105,7 +105,6 @@
 				throw new RollbackException('유효하지 않은 쿠폰은 사용 할 수 없습니다.');
 			}
 
-			$itemMoney = $couponClass->getItemMoney($couponIdx);
 			if ($isValidCoupon === false) {
 				throw new RollbackException('쿠폰에 적용된 가격을 가져오면서 오류가 발생했습니다.');
 			}
@@ -118,7 +117,7 @@
 				'is_refund'=> 'N'
 			];
 
-			$isAvailableCoupon = $couponClass->getCheckAvailableCoupon($availableCouponParam);
+			$isAvailableCoupon = $couponClass->getCheckAvailableCoupon($availableCouponParam, $isUseForUpdate);
 			if ($isAvailableCoupon === false) {
 				throw new RollbackException('쿠폰 사용 내역을 조회하는 중에 오류가 발생했습니다.');
 			}
@@ -127,7 +126,7 @@
 				throw new RollbackException('해당 쿠폰은 이미 사용했습니다.');
 			}
 
-			$couponDiscountData = $couponClass->getCouponDiscountData($couponIdx);
+			$couponDiscountData = $couponClass->getCouponDiscountData($couponIdx, $isUseForUpdate);
 			if ($couponDiscountData === false) {
 				throw rollbackException('쿠폰 할인 정보 가져오면서 오류가 발생했습니다.');
 			}
@@ -141,7 +140,7 @@
 		// 수수료 가져오기 
 		$itemIdx = $postData['item_no'];
 
-		$commission = $sellItemClass->getCheckSellItemValue($itemIdx);
+		$commission = $sellItemClass->getCheckSellItemValue($itemIdx, $isUseForUpdate);
 		if ($commission === false) {
 			throw new RollbackException('수수료 데이터를 가져 오지 못했습니다.');
 		} 
@@ -212,7 +211,7 @@
 
 			$couponStatusName = '사용완료';
 
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 			if ($couponStatusCode === false) {
 				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 			}

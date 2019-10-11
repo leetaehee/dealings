@@ -40,7 +40,7 @@
 
 		$db->startTrans();
 
-		$chargeData = $mileageClass->getChargeInsertData($chargeIdx);
+		$chargeData = $mileageClass->getChargeInsertData($chargeIdx, $isUseForUpdate);
 		if ($chargeData === false) {
 			throw new RollbackException('충전정보를 가져오는 중에 오류가 발생했습니다.');
 		}

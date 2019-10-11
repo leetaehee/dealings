@@ -1,13 +1,17 @@
 <?php
 	/**
-	 * @file AdminClass.php
-	 * @brief 관리자 클래스, 관리자에 대한 기능 서술
-	 * @author 이태희
+	 * 관리자 기능
 	 */
 	Class AdminClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
 
+		/**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -15,21 +19,26 @@
 			}
 			return true;
 		}
-		
+
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-		
+
 		/**
-		 * @brief: 유효성 검증(회원가입)
-		 * @param: 폼 데이터
-		 * @return: true/false, error-message 배열
-		 */
+		* 관리자 회원가입 시 유효성 검증
+		*
+		* @param array $postata 회원가입 데이터
+		*
+		* @return array
+		*/
 		public function checkAdminFormValidate($postData)
 		{
 			$repEmail = "/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i";
@@ -81,13 +90,16 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
-        
-        /**
-		 * @brief: 회원 가입/수정 시 중복체크 (FOR UPDATE)
-		 * @param: id, email, phone 을 담는 array
-		 * @return: int 
+
+		/**
+		 * 회원 가입 시 중복체크 
+		 *
+		 * @param array $id, $email, $phone
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
 		 */
-        public function getAccountOverlapCount($accountData)
+        public function getAccountOverlapCount($accountData, $isUseForUpdate = false)
         { 
             $search = '';
             if (isset($accountData['id'])) {
@@ -96,8 +108,13 @@
             
             $query = "SELECT COUNT(`id`)  cnt 
                       FROM `imi_admin`
-                      WHERE `phone` = ? OR `email` = ? {$search} FOR UPDATE";
-            $result = $this->db->execute($query,$accountData);
+                      WHERE `phone` = ? OR `email` = ? {$search}";
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+            $result = $this->db->execute($query, $accountData);
             
 			if ($result === false) {
 				return false;
@@ -105,74 +122,25 @@
 			
 			return $result->fields['cnt'];
         }
-		
-		/**
-		 * @brief: 회원 가입 시 중복 체크(아이디)
-		 * @param: id, db객체
-		 * @return: true/false
-		 */
-		public function getIdOverlapCount($id)
-		{
-			$query = "SELECT count(id) cnt FROM `imi_admin` WHERE `id` = ?";
-			$result = $this->db->execute($query,$id);
-
-			if ($result == false) {
-				return false;
-			}
-			
-			return $result->fields['cnt'];
-		}
 
 		/**
-		 * @brief: 회원 가입 시 중복 체크(휴대폰)
-		 * @param: phone, db객체
-		 * @return: true/false
-		 */
-		public function getPhoneOverlapCount($phone)
-		{	
-			$phone = removeHyphen($phone);
-
-			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `phone` = ?";
-			$result = $this->db->execute($query, setEncrypt($phone));
-
-			if ($result == false) {
-				return false;
-			}
-			return $result->fields['cnt'];
-		}
-		
-		/**
-		 * @brief: 회원 가입 시 중복 체크(이메일)
-		 * @param: email, db객체
-		 * @return: true/false
-		 */
-		public function getEmailOverlapCount($email)
-		{	
-			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `email` = ?";
-			$result = $this->db->execute($query, setEncrypt($email));
-
-			if ($result == false) {
-				return false;
-			}
-			return $result->fields['cnt'];
-		}
-
-		/**
-		 * @brief: 회원 가입 저장
-		 * @param: form 데이터
-		 * @return: true/false
+		 * 관리자 정보 추가 
+		 *
+		 * @param array $postData 회원가입 데이터
+		 *
+		 * @return int/bool
 		 */
 		public function insertMember($postData)
 		{
-			//코드값 참조: grade_code = 3 (신규 가입시 부여되는 가장 낮은 레벨)
-			$bindValue = [$postData['id'],
-						  password_hash($postData['password'], PASSWORD_DEFAULT),
-						  setEncrypt($postData['email']),
-						  setEncrypt($postData['name']),
-						  setEncrypt($postData['phone']),
-						  $postData['sex'],
-						  setEncrypt($postData['birth'])
-						];
+			$bindValue = [
+				$postData['id'],
+				password_hash($postData['password'], PASSWORD_DEFAULT),
+				setEncrypt($postData['email']),
+				setEncrypt($postData['name']),
+				setEncrypt($postData['phone']),
+				$postData['sex'],
+				setEncrypt($postData['birth'])
+			];
 
 			$query = "INSERT INTO `imi_admin` SET
 						`id` = ?,
@@ -194,12 +162,14 @@
 
 			return $inserId;
 		}
-		
+
 		/**
-		 * @brief: 관리자 수정
-		 * @param: form 데이터
-		 * @return: int 
-		 */
+		 * 관리자 정보 수정 
+		 *
+		 * @param array $postData 관리자 정보 데이터
+		 *
+		 * @return int/bool
+		 */ 
 		public function updateAdmin($postData)
 		{
 			$param = [
@@ -233,13 +203,21 @@
 		}
 
 		/**
-		 * @brief: 가입승인메일 날짜 체크
-		 * @param:  회원 고유 키
-		 * @return: true/false
+		 * 회원가입 메일 승인을 했는지 체크 
+		 *
+		 * @param  int $idx  회원가입 고유 키
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
 		 */
-		public function getJoinApprovalMailDate($idx)
+		public function getJoinApprovalMailDate($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `join_approval_date` FROM `imi_admin` WHERE `idx` = ? FOR UPDATE';
+			$query = 'SELECT `join_approval_date` FROM `imi_admin` WHERE `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
 			$result = $this->db->execute($query, $idx);
 
 			if ($result === false) {
@@ -249,14 +227,17 @@
 		}
 
 		/**
-		 * @brief: 가입승인메일 오늘날짜로 변경
-		 * @param:  회원 고유 키 
-		 * @return: true/false
+		 * 회원가입 메일 인증 완료 처리 
+		 *
+		 * @param int $idx 회원 가입 시 고유 키
+		 *
+		 * @return int/bool
 		 */
 		public function updateJoinApprovalMailDate($idx)
 		{
-			$query = 'UPDATE `imi_admin` SET `join_approval_date` = CURDATE() WHERE `idx` = ?'; 
-			$result = $this->db->execute($query,$idx);
+			$query = 'UPDATE `imi_admin` SET `join_approval_date` = CURDATE() WHERE `idx` = ?';
+
+			$result = $this->db->execute($query, $idx);
 			$affected_row = $this->db->affected_rows();
 
 			if ($affected_row < 1) {
@@ -265,13 +246,16 @@
 
 			return $affected_row;
 		}
-        
+
 		/**
-		 * @brief: 관리자 개인정보 가져오기
-		 * @param:  회원 고유 키
-		 * @return: array
+		 * 관리자 정보 출력
+		 *
+		 * @param int $idx 관리자 고유 키
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
 		 */
-        public function getAdminData($idx)
+        public function getAdminData($idx, $isUseForUpdate = false)
 		{
             $param = ['M',$idx];
             $query = 'SELECT `idx`,
@@ -287,6 +271,11 @@
 							 `is_superadmin`
                       FROM `imi_admin` 
                       WHERE `idx` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
             $result = $this->db->execute($query, $param);
             
 			if ($result === false) {
@@ -294,11 +283,13 @@
 			}
 			return $result;
         }
-        
+
 		/**
-		 * @brief: 관리자 탈퇴 처리 (update)
-		 * @param:  관리자 고유 키
-		 * @return: boolean
+		 * 관리자 탈퇴 
+		 *
+		 * @param int $idx 관리자 고유 키 
+		 *
+		 * @return int/booelan
 		 */
 		public function deleteAdmin($idx)
         {

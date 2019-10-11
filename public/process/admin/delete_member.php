@@ -51,7 +51,7 @@
 
 		$db->startTrans();
 
-		$checkLoginData = $loginClass->checkPasswordByAdmin($param);
+		$checkLoginData = $loginClass->checkPasswordByAdmin($param, $isUseForUpdate);
 	
 		if ($checkLoginData === false) {
 			throw new RollbackException('패스워드를 가져오다가 오류가 발생하였습니다.');

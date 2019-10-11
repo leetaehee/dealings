@@ -65,7 +65,7 @@
 		$alertMessage = $e->getMessage();
 
 		$db->failTrans();
-		$db->completeTrans()
+		$db->completeTrans();
 	} catch (Exception $e) {
 		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();	

@@ -1,13 +1,17 @@
 <?php
 	/**
-	 * @file CouponClass.php
-	 * @brief 쿠폰 클래스, 쿠폰에 대한 기능 서술
-	 * @author 이태희
+	 * 쿠폰 클래스
 	 */
 	Class CouponClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
 
+		/**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,8 +21,11 @@
 		}
 		
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
@@ -26,9 +33,11 @@
 		}
 
 		/**
-		 * @brief: 유효성 검증(상품권 등록)
-		 * @param: 폼 데이터
-		 * @return: true/false, error-message 배열
+		 * 쿠폰 발행 시 유효성 검증
+		 *
+		 * @param array $postData 쿠폰 입력 폼 데이터
+		 *
+		 * @return array
 		 */
 		public function checkCouponFormValidate($postData)
 		{
@@ -60,9 +69,11 @@
 		}
 
 		/**
-		 * @brief: 상품권 관련 값 체크 
-		 * @param: 폼 데이터
-		 * @return: true/false, error-message 배열
+		 * 상품권 값에 대해서 유효성 체크
+		 *
+		 * @param array $param 상품권 데이터
+		 *
+		 * @return array
 		 */
 		public function checkVoucherValidate($param)
 		{
@@ -87,9 +98,11 @@
 		}
 
 		/**
-		 * @brief: 쿠폰 생성
-		 * @param: 폼에서 넘긴 쿠폰발행타입, 쿠폰제목, 금액을 담은  array
-		 * @return: int
+		 * 쿠폰 타입 발행
+		 *
+		 * @param array $param  쿠폰 타입 생성하기 위한 데이터
+		 *
+		 * @return int/bool
 		 */
 		public function insertCupon($param)
 		{
@@ -114,35 +127,15 @@
 		}
 
 		/**
-		 * @brief: 이용 가능한 쿠폰 조회
-		 * @param: 거래되는 제품, 타입(구매/판매)을 담은 array
-		 * @return: array
+		 * 이용 가능한 쿠폰 조회 (해피머니 상품권은 해피머니쿠폰만 조회되어야 함)
+		 *
+		 * @param array  쿠폰 조회에 필요한 데이터 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
 		 */
-		public function getAvailableCouponData($param)
+		public function getAvailableCouponData($param, $isUseForUpdate = false)
 		{
-			// 잘못된 쿼리이므로 아래 쿼리로 대체함.
-			/*
-			$query  = 'SELECT `icm`.`idx`,
-							  `icm`.`subject`,
-							  `icm`.`item_money`,
-							  `icm`.`discount_rate`
-					   FROM `imi_coupon_member` `icm` 
-					   WHERE `icm`.`sell_item_idx` IN (?,5)  
-					   AND `icm`.`issue_type` = ?
-					   AND `icm`.`item_money` IN (?,0)
-                       AND `icm`.`is_coupon_del` = ?
-					   AND `icm`.`is_del` = ?
-                       AND `icm`.`member_idx` = ?
-					   AND NOT EXISTS (
-						SELECT `coupon_idx`
-						FROM `imi_coupon_useage` `icu`
-						WHERE `icm`.`coupon_idx` = `icu`.`coupon_idx`
-                        AND `icu`.`member_idx` = ?
-						AND `icu`.`is_refund` = ?
-						AND `icu`.`coupon_use_end_date` IS NOT NULL
-					)';
-			*/
-
 			$query = 'SELECT `icm`.`idx`,
 							 `icm`.`subject`,
 							 `icm`.`item_money`,
@@ -156,6 +149,10 @@
                        AND `icm`.`member_idx` = ?
 					   AND `icm`.`coupon_status` = ?';
 
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
 			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
@@ -166,54 +163,24 @@
 		}
 
 		/**
-		 * @brief: 이용 가능한 모든 쿠폰 조회 (사용안함)
-		 * @param: 거래되는 제품, 타입(구매/판매)을 담은 array
-		 * @return: array
+		 * 쿠폰 타입,키 삭제여부 검증
+		 *
+		 * @param array $param 쿠폰 타입과 키, 삭제여부 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/booelan
 		 */
-		public function getAvailableAllCouponData($param)
-		{
-			// 판매등록 메뉴 사용 해야 하며
-			// 해당 쿼리는 모든 쿠폰을 조회하기 때문에 process에서 사용자가 선택한 쿠폰과 상품권 맞는지 체크해야함
-			$query  = 'SELECT `icm`.`idx`,
-							  `icm`.`subject`,
-							  `icm`.`item_money`,
-							  `icm`.`discount_rate`
-					   FROM `imi_coupon_member` `icm` 
-					   WHERE `icm`.`issue_type` = ?
-                       AND `icm`.`is_coupon_del` = ?
-					   AND `icm`.`is_del` = ?
-                       AND `icm`.`member_idx` = ?
-					   AND NOT EXISTS (
-						SELECT `coupon_idx`
-						FROM `imi_coupon_useage` `icu`
-						WHERE `icm`.`coupon_idx` = `icu`.`coupon_idx`
-                        AND `icu`.`member_idx` = ?
-						AND `icu`.`is_refund` = ?
-						AND `icu`.`coupon_use_start_date` IS NOT NULL
-					)';
-            
-			$result = $this->db->execute($query, $param);
-            
-			if ($result === false) {
-				return false;
-			}
-
-			return $result;
-		}
-		
-		/**
-		 * @brief: 쿠폰의 키 값이 실제로 사용가능한지 확인 
-		 * @param: 쿠폰 키 값, 타입(구매/판매)을 담은 array
-		 * @return: array
-		 */
-		public function getCheckValidCoupon($param)
+		public function getCheckValidCoupon($param, $isUseForUpdate = false)
 		{	
 			$query = 'SELECT `idx`
 					  FROM `imi_coupon`
 					  WHERE `issue_type` = ?
 					  AND `idx` = ?
-					  AND `is_del` = ?
-					  FOR UPDATE';
+					  AND `is_del` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -224,11 +191,14 @@
 		}
 
 		/**
-		 * @brief: 해당 쿠폰을 사용 했는지 체크 
-		 * @param: 쿠폰의 키 값 
-		 * @return: int 
+		 * 쿠폰을 사용했는지 체크
+		 *
+		 * @param array $param 쿠폰 사용유무를 체크하기 위한 정보 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 * 
+		 * @return int/bool
 		 */
-		public function getCheckAvailableCoupon($param)
+		public function getCheckAvailableCoupon($param, $isUseForUpdate = false)
 		{
 			$query  = 'SELECT `icu`.`member_idx`
 					   FROM `imi_coupon` `ic`
@@ -238,8 +208,11 @@
 					   AND `ic`.`is_del` = ?
 					   AND `icu`.`member_idx` = ?
 					   AND `icu`.`is_refund` = ?
-					   AND `icu`.`coupon_use_end_date` is not null
-					   FOR UPDATE';
+					   AND `icu`.`coupon_use_end_date` is not null';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -250,17 +223,24 @@
 		}
 
 		/**
-		 * @brief: 쿠폰 키 값을 받아서 쿠폰 정보를 받아오기 
-		 * @param: 쿠폰 키 값 
-		 * @return: array 
+		 * 쿠폰 정보 출력 (PROCESS)
+		 *
+		 * @param int $couponIdx 쿠폰 키 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
 		 */
-		public function getCouponDiscountData($couponIdx)
+		public function getCouponDiscountData($couponIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `discount_mileage`,
-							 `discount_rate`
+							 `discount_rate`,
+							 `item_money`
 					  FROM `imi_coupon` 
-					  WHERE `idx` = ? 
-					  FOR UPDATE';
+					  WHERE `idx` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $couponIdx);
 			if ($result === false) {
@@ -271,26 +251,11 @@
 		}
 
 		/**
-		 * @brief: 쿠폰 가격 가져오기
-		 * @param: 쿠폰의 키 값 
-		 * @return: int 
-		 */
-		public function getItemMoney($couponIdx)
-		{
-			$query = 'SELECT `item_money` FROM `imi_coupon` WHERE `idx` = ? FOR UPDATE';
-
-			$result = $this->db->execute($query, $couponIdx);
-			if ($result === false) {
-				return false;
-			}
-
-			return $result->fields['item_money'];
-		}
-
-		/**
-		 * @brief: 쿠폰 사용 내역 추가
-		 * @param: 쿠폰 사용 내역 시 필요한 항목을 array로 받음
-		 * @return: int 
+		 * 쿠폰 사용내역 추가
+		 *
+		 * @param array $param 쿠폰 사용내역에 필요한 정보
+		 *
+		 * @return int/bool
 		 */
 		public function insertCouponUseage($param)
 		{
@@ -304,7 +269,7 @@
 						`coupon_use_start_date` = CURDATE(),
 						`coupon_member_idx` = ?';
 			
-			$result = $this->db->execute($query,$param);
+			$result = $this->db->execute($query, $param);
 			$inserId = $this->db->insert_id();
 
 			if ($inserId < 1) {
@@ -314,11 +279,14 @@
 		}
 
 		/**
-		 * @brief: 쿠폰 사용 정보 출력 
-		 * @param: 회원PK, 발행타입, 거래PK을 array로 받음
-		 * @return: int 
+		 * 쿠폰 사용 정보 출력
+		 *
+		 * @param array $param  쿠폰 사용 내역 조회에 필요한 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
 		 */
-		public function getUseCouponData($param)
+		public function getUseCouponData($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`subject`,
 							 `ic`.`discount_rate`,
@@ -334,8 +302,11 @@
 					  WHERE `icu`.`dealings_idx` = ?
 					  AND `icu`.`member_idx` = ?
 					  AND `icu`.`issue_type` = ?
-					  AND `icu`.`is_refund` = ?
-					  FOR UPDATE';
+					  AND `icu`.`is_refund` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 
@@ -347,9 +318,11 @@
 		}
 
 		/**
-		 * @brief: 쿠폰 취소(환불) 시  취소(환불)정보 수정
-		 * @param: 쿠폰 키값과 완료일자, 환불일자을 담은 배열 
-		 * @return: int 
+		 * 쿠폰 취소 처리
+		 *
+		 * @param array $param 쿠폰 취소시 필요한 정보
+		 *
+		 * @return int/array
 		 */
 		public function updateCouponStatus($param)
 		{
@@ -369,11 +342,13 @@
 		}
 
 		/**
-		 * @brief: 사용자 쿠폰 사용 내역 조회 기능 
-		 * @param: none
-		 * @return: array 
+		 * 쿠폰 전체 사용내역 리스트
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
 		 */
-		public function getCouponUseList()
+		public function getCouponUseList($isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`subject`,
 							 `ic`.`item_money`,
@@ -395,6 +370,10 @@
 							ON `icu`.`member_idx` = `im`.`idx`
 					  ORDER BY `ic`.`subject` ASC, `ic`.`idx` DESC, `icu`.`coupon_use_end_date` DESC';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query);
 			if ($result === false) {
 				return false;
@@ -404,11 +383,13 @@
 		}
 
 		/**
-		 * @brief: 사용자 쿠폰 발행 내역 조회 기능 
-		 * @param: none
-		 * @return: array 
+		 * 쿠폰 발행내역 리스트
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array 
 		 */
-		public function getCouponIssueList()
+		public function getCouponIssueList($isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`subject`,
 							 `ic`.`item_money`,
@@ -424,6 +405,10 @@
 						INNER JOIN `imi_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 					  ORDER BY `ic`.`issue_date` DESC, `ic`.`subject` ASC';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query);
 			if ($result === false) {
@@ -434,18 +419,23 @@
 		}
 
 		/**
-		 * @brief: 유효기간이 지난 데이터가 얼마나 있는지 카운트(크론탭 사용)
-		 * @param: 삭제여부, 유효기간을 담은 array 
-		 * @return: int 
+		 * 유효기간 지난 데이터가 얼마나 있는지 카운트
+		 *
+		 * @param array 쿠폰 종료일과 삭제여부 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
 		 */
-		public function getCheckCouponValidDateCount($param)
+		public function getCheckCouponValidDateCount($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) `cnt` 
 					  FROM `imi_coupon` 
 					  WHERE `expiration_date` < ?  
-					  AND `is_del` <> ? 
-					  FOR UPDATE
-					';
+					  AND `is_del` <> ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 
@@ -457,11 +447,14 @@
 		}
 
 		/**
-		 * @brief: 사용자에게 지급된 쿠폰 중 유효기간이 지났으면서, 사용하지 않은 쿠폰에 대해 삭제처리 (크론탭 사용)
-		 * @param: 삭제여부, 유효기간을 담은 array 
-		 * @return: int 
+		 * 유효기간이 지나서 삭제 해야할 쿠폰 리스트 (crontab)
+		 *
+		 * @param array 쿠폰삭제일과 삭제여부 정보 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
 		 */
-		public function getCheckCouponValidDateList($param)
+		public function getCheckCouponValidDateList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`idx`
 					  FROM `imi_coupon` `ic`
@@ -469,8 +462,11 @@
 							ON `ic`.`idx` = `icm`.`coupon_idx`
 					  WHERE `ic`.`expiration_date` < ?  
 					  AND `ic`.`is_del` = ?
-					  AND `icm`.`idx` IS NOT NULL
-					  FOR UPDATE';
+					  AND `icm`.`idx` IS NOT NULL';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 
@@ -480,11 +476,13 @@
 
 			return $result;
 		}
-
+		
 		/**
-		 * @brief: 쿠폰이 종료된 경우 삭제 처리 (크론탭 사용)
-		 * @param: 오늘날짜
-		 * @return: int 
+		 * 쿠폰 삭제처리
+		 * 
+		 * @param array $param 쿠폰 삭제일과 종료일자 (crontab)
+		 *
+		 * @return int/bool
 		 */
 		public function updateCouponDelete($param){
 			$query = 'UPDATE `imi_coupon` SET 
@@ -503,9 +501,11 @@
 		}
 
 		/**
-		 * @brief: 고객에게 지급된 쿠폰 중 유효기간이 지나고, 사용내역이 없는 건 삭제 (크론탭 사용)
-		 * @param: 쿠폰의 삭제여부와 쿠폰 키 값을 담은 array
-		 * @return: int 
+		 * 유효기간이 지나서 삭제된 쿠폰은 지급된 리스트에서도 삭제 한다 (crontab)
+		 *
+		 * @param array @param 쿠폰 삭제여부와 키 정보
+		 *
+		 * @return int/bool
 		 */
 		public function updateCouponMemberDelete($param)
 		{
@@ -530,13 +530,20 @@
 		}
 
 		/**
-		 * @brief: 사용자가 선택한 쿠폰이 실제로 있는 쿠폰인지 확인
-		 * @param: 상품권 번호와 가격을 담은 array 
-		 * @return: int 
+		 * 금액과 상품권 종류를 받아서 쿠폰이 유효한지 체크
+		 *
+		 * @param array $param  쿠폰의 가격과 종류 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/false
 		 */
-		public function getCheckUserCouponMatch($param)
+		public function getCheckUserCouponMatch($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` FROM `imi_coupon` WHERE `item_money` = ? AND `sell_item_idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -545,13 +552,16 @@
 
 			return $result->fields['idx'];
 		}
-
+		
 		/**
-		 * @brief: 회원에 발행 가능한 쿠폰 리스트 보여주기 
-		 * @param: 회원 키
-		 * @return: int 
+		 * 회원에게 지급가능한 쿠폰 리스트를 보여준다.
+		 *
+		 * @param array $param 회원키와 삭제여부 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
 		 */
-		public function getMemberAvailableCouponList($param)
+		public function getMemberAvailableCouponList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`idx`,
 							 `ic`.`issue_type`,
@@ -571,6 +581,10 @@
 				      WHERE `icm`.`idx` IS NULL
 					  AND `ic`.`is_del` = ?';
 
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
 			$result = $this->db->execute($query, $param);
 
 			if ($result === false) {
@@ -579,8 +593,17 @@
 
 			return $result;
 		}
+        
+        /**
+         * 쿠폰 상세내여을 보여준다. (사용자 화면에서 사용되는 쿼리)
+         *
+         * @param int $couponIdx  쿠포의 키 값
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
 
-		public function getMemberCouponData($memberIdx)
+		public function getMemberCouponData($couponIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`idx`,
 							 `ic`.`issue_type`,
@@ -595,57 +618,71 @@
 						LEFT JOIN `imi_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 				      WHERE `ic`.`idx`= ?';
-
-			$result = $this->db->execute($query, $memberIdx);
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
+			$result = $this->db->execute($query, $couponIdx);
 			if ($result === false) {
 				return false;
 			}
-
 			return $result;
 		}
-
-		/**
-		 * @brief: 쿠폰의 키가 유효한지 확인 
-		 * @param: 쿠폰 키
-		 * @return: int 
-		 */
-		public function getValidCouponIdx($couponIdx)
+        
+        /** 
+         * 쿠폰의 키가 유효한지 확인
+         *
+         * @param int $couponIdx 쿠폰의 키 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getValidCouponIdx($couponIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` FROM `imi_coupon` WHERE `idx` = ?';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $couponIdx);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['idx'];
 		}
-
-		/**
-		 * @brief: 쿠폰의 상태코드 가져오기 
-		 * @param: 쿠폰 상태
-		 * @return: int 
-		 */
-		public function getCouponStatusCode($couponStatusName)
+        
+        /** 
+         * 쿠폰의 상태 코드 가져오기
+         *
+         * @param 쿠폰 상태 코드명
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCouponStatusCode($couponStatusName, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` FROM `imi_coupon_status_code` WHERE `coupon_status_name` = ?';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $couponStatusName);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['idx'];
 		}
-
-		/**
-		 * @brief: 쿠폰 유저 테이블에 삽입하기 
-		 * @param: 쿠폰 유저 데이터
-		 * @return: int 
-		 */
+        
+        /** 
+         * 쿠폰 유저 테이블에 삽입 
+         *
+         * @param  array $param 쿠폰 지급 테이블에 삽입할 폼 데이터
+         *
+         * @return int/bool
+         */
 		public function insertCouponMember($param)
 		{
 			$query = 'INSERT INTO `imi_coupon_member` SET 
@@ -660,41 +697,47 @@
 			
 			$result = $this->db->execute($query,$param);
 			$inserId = $this->db->insert_id();
-
 			if ($inserId < 1) {
 				return false;
 			}
 			return $inserId;
 		}
-
-		/**
-		 * @brief: 쿠폰 키 값 가져오기 (유효성 검증)
-		 * @param: 쿠폰 유저 데이터
-		 * @return: int 
-		 */
-		public function getCheckCouponMemberIdx($param)
+        
+        /**
+         * 쿠폰 지급 테이블에서 쿠폰 키 가져오기  (유효성 검증)
+         *
+         * @param array $param  쿠폰 지급테이블을 검색하기 위한 데이터 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCheckCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `coupon_idx` 
 					  FROM `imi_coupon_member` 
-					  WHERE `idx` = ? 
-					  AND is_del = ?
-					  FOR UPDATE';
-
+					  WHERE `idx` = ?
+					  AND `is_del` = ?';
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['coupon_idx'];
 		}
-
-		/**
-		 * @brief: 사용자에게 지급된 쿠폰 조회 
-		 * @param: 사용자 키 값
-		 * @return: array 
-		 */
-		public function getCouponProvierStatus($param)
+        
+        /**
+         * 사용자에게 지급된 쿠폰과 사용내역을 함께 조회
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getCouponProvierStatus($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `icm`.`issue_type`,
 							 `ic`.`subject`,
@@ -719,87 +762,100 @@
 					  AND `icm`.`is_del` = ?
 					  AND `icm`.`is_coupon_del` = ?
 					  ORDER BY `ic`.`start_date` DESC, `icm`.`idx` ASC';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result;
 		}
-
-		/**
-		 * @brief: `imi_coupon_member`고유 키 값 가져와서 검증 
-		 * @param:  회원키와 삭제여부를 담은 array
-		 * @return: int 
-		 */
-		public function getCouponMemberIdx($param)
+        
+        /**
+         * 쿠폰 지급 테이블의 고유 키 값 가져오기
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/booelan
+         */
+		public function getCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`
 					  FROM `imi_coupon_member` 
 					  WHERE `idx` = ? 
-					  AND is_del = ? 
-					  FOR UPDATE';
-
+					  AND is_del = ?';
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['idx'];
 		}
-
-		/**
-		 * @brief: 지급된 쿠폰을 삭제
-		 * @param: 지급된 쿠폰의 고유키와  삭제여부를 담은 array
-		 * @return: int 
-		 */
+        
+        /**
+         * 지급된 쿠폰을 삭제 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function deleteCouponMember($param)
 		{
 			$query = 'UPDATE `imi_coupon_member` SET 
 						`is_del` = ?
 					   WHERE `idx` = ?';
-
 			$result = $this->db->execute($query, $param);
-
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
 				return false;
 			}
-
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 지급된 쿠폰이미 사용 중인지 체크
-		 * @param: 지급된 쿠폰의 고유 키
-		 * @return: int 
-		 */
-		public function getCheckIsUseCouponByMember($param)
+        
+        /** 
+         * 지급된 쿠폰이 사용중인지 체크 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCheckIsUseCouponByMember($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` 
 					  FROM `imi_coupon_useage`
 					  WHERE `coupon_member_idx` = ?
 					  AND `coupon_idx` = ?
 					  AND `is_refund` = ?';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['idx'];
 		}
-
-		/**
-		 * @brief: 사용 가능한 쿠폰 리스트 (기간 지날 경우 삭제 되어 보이지 않음)
-		 * @param: 회원 키, 쿠폰 삭제 을 담은 배열 
-		 * @return: array
-		 */
-		public function getMemberUseAvailableCouponList($param)
+        
+        /**
+         * 사용가능한 쿠폰 리스트 (기간이 지날 경우 보지이지 않아야 함)
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getMemberUseAvailableCouponList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `icm`.`issue_type`,
 							 `ic`.`subject`,
@@ -819,22 +875,27 @@
 					  WHERE `icm`.`is_coupon_del` = ?
 					  AND `icm`.`is_del` = ?
 					  AND `icm`.`member_idx` = ?';
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result;
 		}
-
-		/**
-		 * @brief: 쿠폰 발행 시 이중등록 방지
-		 * @param: 회원 키, 쿠폰 키, 쿠폰삭제여부  
-		 * @return: int 
-		 */
-		public function getCheckCouponOverlapData($param)
+        
+        /**
+         * 쿠폰 발행 시 이중등록 방지
+         *
+         * @param array $param 
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCheckCouponOverlapData($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) `count`
 					  FROM `imi_coupon_member`
@@ -842,64 +903,76 @@
 					  AND `member_idx` = ?
 					  AND `issue_type` = ?
 					  AND `is_coupon_del` = ?
-					  AND `is_del` = ?
-					  FOR UPDATE
-					';
+					  AND `is_del` = ?';
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['count'];
 		}
-
-		/**
-		 * @brief: 지급된 쿠폰의 삭제여부 가져오기
-		 * @param: 지급된 쿠폰의 고유키  
-		 * @return: string
-		 */
-		public function getCheckCouponMemeberDelete($idx)
+        
+        /**
+         * 지급된 쿠폰의 삭제 여부 가져오기
+         *
+         * @param int $idx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @rturn string/bool
+         */
+		public function getCheckCouponMemeberDelete($idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `is_del` FROM `imi_coupon_member` WHERE `idx` = ?';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $idx);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['is_del'];
 		}
-
-		/**
-		 * @brief: 쿠폰을 변경하기전에, 다른사람에 의해 등록되어있는지 확인합니다.
-		 * @param: 지급된 쿠폰 키, 쿠폰 키, 쿠폰 삭제 유무   
-		 * @return: int
-		 */
-		public function getExistCouponMemberIdx($param)
+        
+        /**
+         * 지급된 쿠폰을 변경하기전에 다른 유저에 의해 등록됬는지 확인 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getExistCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `coupon_idx`
 					  FROM `imi_coupon_member`
 					  WHERE `coupon_idx` = ?
 					  AND `member_idx` = ?
 					  AND `is_del` = ? ';
-
+            
+            if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+            
 			$result = $this->db->execute($query, $param);
-
 			if ($result === false) {
 				return false;
 			}
-
 			return $result->fields['coupon_idx'];
 		}
-
-		/**
-		 * @brief: 쿠폰 지급 정보를 수정
-		 * @param: 쿠폰 지급 수정 정보
-		 * @return: int
-		 */
+        
+        /**
+         * 쿠폰 지급 정보를 수정 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateCouponMember($param)
 		{
 			$query = 'UPDATE `imi_coupon_member` SET 
@@ -913,20 +986,20 @@
 					  WHERE `idx` = ?';
 			
 			$result = $this->db->execute($query, $param);
-
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
 				return false;
 			}
-
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 쿠폰 지급 정보에 상태를 수정
-		 * @param: 쿠폰 지급정보 키, 상태정보를 담은 array
-		 * @return: int
-		 */
+        
+        /**
+         * 쿠폰 지급 정보에 상태를 수정
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateCouponMemberStatus($param)
 		{
 			$query = 'UPDATE `imi_coupon_member` SET 
@@ -934,12 +1007,10 @@
 						WHERE `idx` = ?';
 			
 			$result = $this->db->execute($query, $param);
-
 			$affected_row = $this->db->affected_rows();
 			if ($affected_row < 1) {
 				return false;
 			}
-
 			return $affected_row;
 		}
 	}

@@ -84,7 +84,7 @@
 		}
 
 		$couponParam = [
-			'member_idx'=> $_SESSION['idx'],
+			'member_idx'=> $_SESSION['mIdx'],
 			'is_del'=> 'N',
 			'is_coupon_del'=> 'N'
 		];

@@ -65,7 +65,7 @@
 					throw new RollbackException('거래 데이터 상태 변경 중에 오류가 발생했습니다. |');
 				}
 
-				$dealingsExistCount = $dealingsClass->isExistDealingsIdx($dealingsIdx);
+				$dealingsExistCount = $dealingsClass->isExistDealingsIdx($dealingsIdx, $isUseForUpdate);
 				if ($dealingsExistCount === false) {
 					throw new RollbackException('거래 유저를 조회하면서 오류가 발생했습니다. |');
 				}

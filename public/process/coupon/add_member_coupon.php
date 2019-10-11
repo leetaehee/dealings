@@ -44,12 +44,12 @@
 
 		$couponIdx = $getData['coupon_idx'];
 
-		$isCouponValid = $couponClass->getValidCouponIdx($couponIdx);
+		$isCouponValid = $couponClass->getValidCouponIdx($couponIdx, $isUseForUpdate);
 		if ($isCouponValid === false) {
 			throw new RollbackException('쿠폰 키 값을 검사하는 중에 오류가 발생했습니다.');
 		}
 
-		$couponData = $couponClass->getMemberCouponData($couponIdx);
+		$couponData = $couponClass->getMemberCouponData($couponIdx, $isUseForUpdate);
 		if ($couponData === false) {
 			throw new Exception('쿠폰 정보를 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -62,7 +62,7 @@
 			'is_del'=> 'N'
 		];
 
-		$overlapCount = $couponClass->getCheckCouponOverlapData($couponOverlapParam);
+		$overlapCount = $couponClass->getCheckCouponOverlapData($couponOverlapParam, $isUseForUpdate);
 		if ($overlapCount === false) {
 			throw new RollbackException('쿠폰 발행 중복검사 중에 오류가 발생했습니다.');
 		}
@@ -73,7 +73,7 @@
 		
 		$couponStatusName = '사용대기';
 
-		$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+		$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 		if ($couponStatusCode === false) {
 			throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 		}

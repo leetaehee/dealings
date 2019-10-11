@@ -104,6 +104,15 @@
 		</p>
 	<?php endif ?>
 
+	<?php if($dealingsData->fields['dealings_status'] == 3): ?>
+		<span>
+			<a href="<?=$dealingsApproval?>">[거래승인]</a>
+		</span>
+		<span class="pl">
+			<a href="<?=$dealingsCancel?>">[거래취소]</a>
+		</span>
+	<?php endif; ?>
+
 	<?php if($dealingsData->fields['dealings_status'] < 2): ?>
 		<span>
 			<a href="<?=$dealingsModifyUrl?>">[수정]</a>

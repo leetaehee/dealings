@@ -49,7 +49,7 @@
 		// 트랜잭션 시작
 		$db->startTrans();
 
-		$checkLoginData = $loginClass->checkPasswordByUser($param);
+		$checkLoginData = $loginClass->checkPasswordByUser($param, $isUseForUpdate);
         if ($checkLoginData === false) {
             throw new RollbackException('패스워드 체크 오류! 관리자에게 문의하세요.');
         }

@@ -62,7 +62,7 @@
 		$db->startTrans();
 
 		// 환불 및 완료 시 필요한 데이터 추출 
-		$chargeData = $dealingsClass->getMileageChargeDataByDealings($dealingsIdx);
+		$chargeData = $dealingsClass->getMileageChargeDataByDealings($dealingsIdx, $isUseForUpdate);
 		if ($chargeData === false) {
 			throw new RollbackException('마일리지 충전에 필요한 데이터를 가져올 수 없습니다');
 		}
@@ -97,7 +97,7 @@
 			$buyerMemberIdx = $dealingsMemberIdx;
 		}
 
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam);
+		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
 		if ($useCouponData === false) {
 			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
 		}
@@ -132,7 +132,7 @@
 			}
 
 			// 수수료 할인금액 가져오기
-			$commissionData = $couponClass->getUseCouponData($commissionInfoParam);
+			$commissionData = $couponClass->getUseCouponData($commissionInfoParam, $isUseForUpdate);
 			if ($commissionData === false) {
 				throw new RollbackException("수수료 할인금액을 가져오면서 오류가 발생했습니다.");
 			}
@@ -181,7 +181,7 @@
 				// 거래 취소시 구매자 쿠폰 복구
 				$couponStatusName = '사용대기';
 
-				$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+				$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 				if ($couponStatusCode === false) {
 					throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 				}
@@ -209,7 +209,7 @@
 			];
 
 
-			$useSellCouponData = $couponClass->getUseCouponData($couponSellUseParam);
+			$useSellCouponData = $couponClass->getUseCouponData($couponSellUseParam, $isUseForUpdate);
 			if ($useSellCouponData === false) {
 				throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
 			}
@@ -233,7 +233,7 @@
 				// 거래 취소시 판매자 쿠폰 복구
 				$couponStatusName = '사용대기';
 
-				$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+				$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 				if ($couponStatusCode === false) {
 					throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 				}
@@ -256,7 +256,7 @@
 			$statusData = [
 				'dealings_status'=>$dealingsStatus
 			];
-			$nextStatus = $dealingsClass->getNextDealingsStatus($statusData);
+			$nextStatus = $dealingsClass->getNextDealingsStatus($statusData, $isUseForUpdate);
 			if ($nextStatus === false) {
 				throw new RollbackException('거래 상태를 가져오는 중에 오류가 발생했습니다.');
 			}
@@ -291,7 +291,7 @@
 				throw new RollbackException('회원 마일리지 정보 수정 실패하였습니다.');
 			}
 
-			$memberMileageType = $mileageClass->getMemberMileageTypeIdx($getData['member_idx']);
+			$memberMileageType = $mileageClass->getMemberMileageTypeIdx($getData['member_idx'], $isUseForUpdate);
 			if ($memberMileageType == false) {
 				$mileageTypeParam = [
 					$getData['member_idx'], 
@@ -317,7 +317,7 @@
 				'dealings_idx'=>$dealingsIdx
 			];
 
-			$mileagechangeIdx = $dealingsClass->getMileageChangeIdx($dealingsIdx);
+			$mileagechangeIdx = $dealingsClass->getMileageChangeIdx($dealingsIdx, $isUseForUpdate);
 			if ($mileagechangeIdx === false) {
 				throw new RollbackException("거래 마일리지 변동정보를 읽어오다가 오류가 발생했습니다.");
 			}
@@ -381,7 +381,7 @@
 
 			if (empty($couponIdx)){
 				// 구매 시, 페이백 하는 코드 (시작)
-				$myInfomation = $memberClass->getMyInfomation($buyerMemberIdx);
+				$myInfomation = $memberClass->getMyInfomation($buyerMemberIdx, $isUseForUpdate);
 				if ($myInfomation === false){
 					throw rollbackException('내 정보를 가져오다가 오류가 발생했습니다.');
 				}
@@ -400,7 +400,7 @@
 						'is_end'=> 'N'
 					];
 				
-					$eventData = $eventClass->getEventData($eventParam);
+					$eventData = $eventClass->getEventData($eventParam, $isUseForUpdate);
 					if ($eventData === false) {
 						throw new RollbackException('이벤트 타입을 조회할 수 없습니다.');
 					}
@@ -410,7 +410,7 @@
 						throw new RollbackException('이벤트 키 값을 찾을 수 없습니다.');
 					}
 
-					$itemData = $sellItemClass->getSellItemData($itemNo);
+					$itemData = $sellItemClass->getSellItemData($itemNo, $isUseForUpdate);
 					if ($itemData === false) {
 						throw new RollbackException('구매 물품정보를 가져오면서 오류가 발생했습니다.');
 					}
@@ -461,7 +461,7 @@
 							throw new RollbackException('회원 마일리지 정보 수정 실패하였습니다.');
 						}
 
-						$memberPaybackMileageType = $mileageClass->getMemberMileageTypeIdx($buyerMemberIdx);
+						$memberPaybackMileageType = $mileageClass->getMemberMileageTypeIdx($buyerMemberIdx, $isUseForUpdate);
 						if ($memberPaybackMileageType == false) {
 							$payMileageTypeParam = [
 								'buyerMemberIdx'=> $buyerMemberIdx, 
@@ -488,7 +488,7 @@
 							'event_type'=> '구매' 
 						];
 
-						$eventBuyerHistoryIdx = $eventClass->getIsExistEventHistoryIdx($eventBuyerHistoryParam);
+						$eventBuyerHistoryIdx = $eventClass->getIsExistEventHistoryIdx($eventBuyerHistoryParam, $isUseForUpdate);
 						if ($eventBuyerHistoryIdx === false) {
 							throw new RollbackException('구매 이벤트 히스토리 키를 가져오면서 오류가 발생했습니다.');
 						}
@@ -540,7 +540,7 @@
 
 			if(empty($commisionCouponIdx)){
 				// 판매 시, 환급률 누적 하는 코드 (시작)
-				$myInfomation = $memberClass->getMyInfomation($sellerMemberIdx);
+				$myInfomation = $memberClass->getMyInfomation($sellerMemberIdx, $isUseForUpdate);
 				if ($myInfomation === false){
 					throw rollbackException('내 정보를 가져오다가 오류가 발생했습니다.');
 				}
@@ -559,7 +559,7 @@
 						'is_end'=> 'N'
 					];
 				
-					$sellEventData = $eventClass->getEventData($eventParam);
+					$sellEventData = $eventClass->getEventData($eventParam, $isUseForUpdate);
 					if ($sellEventData === false) {
 						throw new RollbackException('이벤트 타입을 조회할 수 없습니다.');
 					}
@@ -578,7 +578,7 @@
 						'event_type'=> '판매' 
 					];
 
-					$eventHistoryIdx = $eventClass->getIsExistEventHistoryIdx($eventHistoryParam);
+					$eventHistoryIdx = $eventClass->getIsExistEventHistoryIdx($eventHistoryParam, $isUseForUpdate);
 					if ($eventHistoryIdx === false) {
 						throw new RollbackException('이벤트 히스토리 키를 가져오면서 오류가 발생했습니다.');
 					}
@@ -616,7 +616,7 @@
 			// 수수료가 있는 경우에만 실행 (쿠폰을 사용해서 내지 않는 경우는 실행안함)
 			if ($commission > 0) {
 				// 수수료도 넣기
-				$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx);
+				$dealingsIdxFromDB = $commissionClass->isExistDealingsNo($dealingsIdx, $isUseForUpdate);
 				if ($dealingsIdxFromDB === false){
 					throw new RollbackException('수수료 테이블에서 거래키정보를 가져올 수 없습니다.');
 				}

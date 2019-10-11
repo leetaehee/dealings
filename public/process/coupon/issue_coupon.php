@@ -68,7 +68,7 @@
 
 		$voucherName = $postData['voucher_name']; 
 
-		$itemIdx = $voucherClass->getVoucherItemIdx($voucherName);
+		$itemIdx = $voucherClass->getVoucherItemIdx($voucherName, $isUseForUpdate);
 		if ($itemIdx === false) {
 			throw new RollbackException("상품권 고유번호를 가져오면서 문제가 발생했습니다.");
 		}

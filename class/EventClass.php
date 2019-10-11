@@ -1,13 +1,17 @@
 <?php
-    /**
-	 * @file EventClass.php
-	 * @brief 이벤트 대한 클래스
-	 * @author 이태희
+	/**
+	 * 이벤트 클래스
 	 */
 	Class EventClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
 
+		/**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,8 +21,11 @@
 		}
 
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
@@ -26,11 +33,14 @@
 		}
 
 		/**
-         * @brief: 이벤트 정의항목 받아오기 
-         * @param: 이벤트타입, 날짜, 이벤트 종료여부를 담은 array
-		 * @return: array
-         */
-		public function getEventData($param)
+		 * 이벤트 정보 받아오기
+		 *
+		 * @param Array $param  이벤트 시작일, 종료일, 타입, 종료여부 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getEventData($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT *
 					  FROM `imi_event` 
@@ -39,6 +49,10 @@
 					  AND `event_type` = ?
 					  AND `is_end` = ?';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
@@ -48,13 +62,20 @@
 		}
 
 		/**
-         * @brief: 이벤트 전체 리스트 가져오기 
-         * @param: 사용여부
-		 * @return: array
-         */
-		public function getEventList($param)
+		 * 이벤트 리스트 출력
+		 *
+		 * @param array $param  이벤트 종료여부 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getEventList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT * FROM `imi_event` WHERE `is_end` = ? ORDER BY `idx` DESC, `name` ASC';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -65,13 +86,20 @@
 		}
 
 		/**
-         * @brief: 이벤트 idx 체크 
-         * @param: 이벤트 키 값
-		 * @return: array
-         */
-		public function getEventDataByIdx($param)
+		 * 이벤트 키 값 체크
+		 *
+		 * @param array 이벤트 키 값, 종료여부
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getEventDataByIdx($param, $isUseForUpdate = false)
 		{
-			$query = 'SELECT * FROM `imi_event` WHERE `idx` = ? AND `is_end` = ? FOR UPDATE';
+			$query = 'SELECT * FROM `imi_event` WHERE `idx` = ? AND `is_end` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -80,19 +108,26 @@
 			
 			return $result;
 		}
-
+		
 		/**
-         * @brief: 이벤트 히스토리가 존재하는지 체크 
-         * @param: 이벤트타입, 회원 키, 거래 키, 이벤트 타입 담은 array
-		 * @return: string
-         */
-		public function getIsExistEventHistoryIdx($param)
+		 * 이벤트 히스토리 중복 체크 
+		 *
+		 * @param array 이벤트 키, 회원 키, 이벤트 타입 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
+		 */
+		public function getIsExistEventHistoryIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`
 					  FROM `imi_event_history`
 					  WHERE `event_idx` = ?
 					  AND `member_idx` = ?
 					  AND `event_type` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -101,12 +136,14 @@
 			
 			return $result->fields['idx'];
 		}
-		
+
 		/**
-         * @brief: 이벤트 히스토리 삽입 
-         * @param: 이벤트타입, 회원 키, 거래 키, 이벤트 참여일자, 금액, 타입을 담은 array
-		 * @return: int
-         */
+		 * 이벤트 히스토리 추가
+		 *
+		 * @param array 이벤트 히스토리 입력 데이터
+		 *
+		 * @return int/bool
+		 */
 		public function insertEventHistory($param)
 		{
 			$query = 'INSERT INTO `imi_event_history` SET 
@@ -129,10 +166,12 @@
 		}
 
 		/**
-         * @brief: 이벤트 히스토리 수정 
-         * @param: 이벤트 히스토리 키, 금액 담은 array
-		 * @return: int
-         */
+		 * 이벤트 히스토리 수정 
+		 *
+		 * @param 이벤트 키, 이벤트 금액, 참여횟수 정보
+		 *
+		 * @return int/bool
+		 */
 		public function updateEventHistory($param)
 		{
 			$query = 'UPDATE `imi_event_history` SET 
@@ -151,10 +190,12 @@
 		}
 
 		/**
-         * @brief: 이벤트 종료 정보 수정  
-         * @param: 이벤트 키, 이벤트 종료엽여부를 담은 array
-		 * @return: int
-         */
+		 * 이벤트 종료 여부 수정 
+		 *
+		 * @param array 이벤트 키, 종료여부 정보 
+		 *
+		 * @return int/bool
+		 */
 		public function updateEventIsEnd($param)
 		{
 			$query = 'UPDATE `imi_event` SET 
@@ -171,11 +212,14 @@
 		}
 
 		/**
-         * @brief: 이벤트 히스토리 출력 
-         * @param: 이벤트 키 값
-		 * @return: array
-         */
-		public function getEventHistoryList($param)
+		 * 이벤트 히스토리 LIMIT를 통해  원하는 만큼 출력
+		 *
+		 * @param array 이벤트 키, 출력 수 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getEventHistoryList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `im`.`name`,
 							 `ieh`.`participate_count`,
@@ -187,8 +231,11 @@
 							ON `ieh`.`member_idx` = `im`.`idx`
 					  WHERE `ieh`.`event_idx` = ?
 					  ORDER BY `ieh`.`event_cost` DESC, `ieh`.`participate_count` DESC
-					  LIMIT ?
-                      FOR UPDATE ';
+					  LIMIT ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $param);
 
@@ -200,11 +247,14 @@
 		}
 
 		/**
-         * @brief: 이벤트 결과 출력 
-         * @param: 이벤트 키 값
-		 * @return: array
-         */
-		public function getEventResultList($eventIdx)
+		 * 이벤트 결과 출력 
+		 *
+		 * @param int $eventIdx  이벤트 키
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getEventResultList($eventIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `im`.`name`,
 							 `ier`.`event_cost`,
@@ -213,8 +263,11 @@
 						INNER JOIN `imi_members` `im`
 							ON `ier`.`member_idx` = `im`.`idx`
 					  WHERE `ier`.`event_idx` = ?
-					  ORDER BY `ier`.`grade` ASC
-                      FOR UPDATE ';
+					  ORDER BY `ier`.`grade` ASC';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $eventIdx);
 
@@ -224,15 +277,22 @@
 			
 			return $result;
 		}
-        
-        /**
-         * @brief: 이벤트 결과 테이블 입력 중복체크  
-         * @param: 이벤트 키 값
-		 * @return: int 
-         */
-        public function getCheckEventResultData($eventIdx)
+
+		/**
+		 * 이벤트 결과 삽입 시 중복체크 
+		 *
+		 * @param int $eventIdx 이벤트 키
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return int/bool
+		 */
+        public function getCheckEventResultData($eventIdx, $isUseForUpdate = false)
         {
-            $query = 'SELECT COUNT(`idx`) `result_count` FROM `imi_event_result` WHERE `event_idx` = ? FOR UPDATE';
+            $query = 'SELECT COUNT(`idx`) `result_count` FROM `imi_event_result` WHERE `event_idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
             
             $result = $this->db->execute($query, $eventIdx);
 
@@ -242,7 +302,14 @@
 			
 			return $result->fields['result_count'];            
         }
-        
+
+		/**
+		 * 이벤트 결과 추가 
+		 *
+		 * @param array $param  이벤트결과에 추가 할 입력 데이터 
+		 *
+		 * @return int/bool
+		 */
         public function insertEventResult($param)
         {
             $query = 'INSERT INTO `imi_event_result` SET 

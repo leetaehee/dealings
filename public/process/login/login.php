@@ -43,7 +43,7 @@
 		// 트랜잭션 시작
 		$db->startTrans();
 		
-		$loginData = $loginClass->getIsLogin($postData['id']);
+		$loginData = $loginClass->getIsLogin($postData['id'], $isUseForUpdate);
 		if ($loginData === false) {
 			throw new RollbackException('로그인 실패 했습니다.');
 		}

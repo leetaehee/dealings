@@ -19,6 +19,6 @@
 		if (!empty($alertMessage)) {
 			alertMsg(SITE_DOMAIN,1,$alertMessage);
 		}
-	} 
+	}
 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout.html.php'; // 전체 레이아웃

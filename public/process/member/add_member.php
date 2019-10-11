@@ -57,7 +57,7 @@
 			'id'=>$postData['id']
 		];
 		
-		$accountOverlapCount = $memberClass->getAccountOverlapCount($accountData);                
+		$accountOverlapCount = $memberClass->getAccountOverlapCount($accountData, $isUseForUpdate);                
 		if ($accountOverlapCount === false) {
 			throw new RollbackException('계정정보를 가져오지 못했습니다.');
 		}

@@ -8,9 +8,9 @@
 	<colgroup>
 		<col style="width: 6%;">
 		<col style="width: 10%;">
-		<col style="width: 33%;">
+		<col style="width: 30%;">
 		<col style="width: 14%;">
-		<col style="width: 10%;">
+		<col style="width: 13%;">
 		<col style="width: 11%;">
 		<col style="width: 8%;">
 		<col style="width: 8%;">
@@ -21,10 +21,10 @@
 			<th>분류</th>
 			<th>제목</th>
 			<th>작성자</th>
+			<th>거래자</th>
 			<th>거래일자</th>
 			<th>거래금액</th>
-			<th>거래완료</th>
-			<th>거래취소</th>
+			<th>거래상태</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -38,42 +38,10 @@
 						<?=setDecrypt($value['name'])?><br>
 						(<?=$value['id']?>)
 					</td>
+					<td></td>
 					<td><?=$value['dealings_date']?></td>
 					<td><?=number_format($value['dealings_mileage'])?></td>
-					<td>
-						<?php if($value['dealings_status']==3): ?>
-							<?php if($value['dealings_type']=='구매'): ?>
-								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=N&target=member_idx">
-									완료
-								</a>
-							<?php else: ?>
-								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=N&target=writer_idx">
-									완료
-								</a>
-							<?php endif; ?>
-						<?php else: ?>
-							<?php if($value['dealings_status']==4): ?>
-								<?=$value['dealings_status_name']?>
-							<?php endif;?>
-						<?php endif; ?>
-					</td>
-					<td>
-						<?php if($value['dealings_status']==3): ?>
-							<?php if($value['dealings_type']=='구매'): ?>
-								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_writer_idx']?>&is_cancel=Y&target=member_idx">
-									취소
-								</a>
-							<?php else: ?>
-								<a href="<?=$DealingsDetailViewHref;?>?idx=<?=$value['dealings_idx']?>&member_idx=<?=$value['dealings_member_idx']?>&is_cancel=Y&target=writer_idx">
-									취소
-								</a>
-							<?php endif; ?>
-						<?php else: ?>
-							<?php if($value['dealings_status']==5): ?>
-								<?=$value['dealings_status_name']?>
-							<?php endif;?>
-						<?php endif; ?>
-					</td>
+					<td><?=$value['dealings_status_name']?></td>
 				</tr>
 			<?php endforeach; ?>
 		<?php else: ?>

@@ -42,7 +42,7 @@
           'is_end'=> 'N'
         ];
 		
-		$eventData = $eventClass->getEventDataByIdx($eventIdxParam);
+		$eventData = $eventClass->getEventDataByIdx($eventIdxParam, $isUseForUpdate);
 		if ($eventData === false) {
 			throw new Exception('이벤트를 조회 하는 중에 오류가 발생했습니다.');
 		}
@@ -53,7 +53,7 @@
 			throw new Exception('이벤트를 조회할 수 없습니다.');
 		}
         
-        $resultCount = $eventClass->getCheckEventResultData($eventIdx);
+        $resultCount = $eventClass->getCheckEventResultData($eventIdx, $isUseForUpdate);
         if ($resultCount === false) {
             throw new RollbackException('이벤트 결과 테이블 중복검사하는 중에 오류가 발생했습니다.');
         }
@@ -67,7 +67,7 @@
 			'limit'=> 10,
 		];
         
-        $eventHistoryList = $eventClass->getEventHistoryList($historyParam);
+        $eventHistoryList = $eventClass->getEventHistoryList($historyParam, $isUseForUpdate);
 		if ($eventHistoryList === false) {
 			throw new Exception('이벤트 결과를 가져오면서 오류가 발생했습니다.');
 		}
@@ -107,7 +107,7 @@
                    throw new RollbackException('회원 마일리지 정보 수정 실패하였습니다.');
 				}
 
-				$memberPaybackMileageType = $mileageClass->getMemberMileageTypeIdx($memberIdx);
+				$memberPaybackMileageType = $mileageClass->getMemberMileageTypeIdx($memberIdx, $isUseForUpdate);
 				if ($memberPaybackMileageType == false) {
 					$chageMileageTypeParam = [
 						'memberIdx'=> $memberIdx, 
@@ -128,19 +128,21 @@
 						throw new RollbackException('마일리지 유형별 합계 정보 수정 실패 하였습니다.');
 					}
 				}
-               
-				$eventResultParam = [
-					'event_idx'=> $eventIdx,
-					'member_idx'=> $memberIdx,
-					'event_cost'=> $eventCost,
-					'event_rate'=> $CONFIG_EVENT_SELL_RETRUN_FEE[$key+1],
-					'grade'=>$key+1
-				];
-               
-				$insertEventResult = $eventClass->insertEventResult($eventResultParam);
-				if ($insertEventResult < 1) {
-					throw new RollbackException('이벤트 결과에 입력 중에 오류가 발생했습니다.');
-				}
+				
+				/*
+					$eventResultParam = [
+						'event_idx'=> $eventIdx,
+						'member_idx'=> $memberIdx,
+						'event_cost'=> $eventCost,
+						'event_rate'=> $CONFIG_EVENT_SELL_RETRUN_FEE[$key+1],
+						'grade'=>$key+1
+					];
+				   
+					$insertEventResult = $eventClass->insertEventResult($eventResultParam);
+					if ($insertEventResult < 1) {
+						throw new RollbackException('이벤트 결과에 입력 중에 오류가 발생했습니다.');
+					}
+				*/
 			}
         }
 

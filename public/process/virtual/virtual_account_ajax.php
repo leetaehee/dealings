@@ -53,7 +53,7 @@
 			'accountBank'=>$postData['accountBank']
 		];
 
-		$virtualAccount = $virtualAccountClass->getVirtualAccount($param); // 가상계좌 구하기
+		$virtualAccount = $virtualAccountClass->getVirtualAccount($param, $isUseForUpdate); // 가상계좌 구하기
 		if ($virtualAccount === false) {
 			throw new RollbackException('가상계좌 조회 오류입니다. 관리자에게 문의하세요.');
 		} else {

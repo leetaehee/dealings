@@ -43,7 +43,7 @@
 
 		$db->startTrans();
 
-		$isDelete = $couponClass->getCheckCouponMemeberDelete($getData['idx']);
+		$isDelete = $couponClass->getCheckCouponMemeberDelete($getData['idx'], $isUseForUpdate);
 		if ($isDelete === false) {
 			throw new RollbackException('지급 된 쿠폰의 삭제 여부를 가져오다가 오류가 발생했습니다.');
 		}
@@ -53,7 +53,7 @@
 			'is_del'=> 'N'
 		];
 
-		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam);
+		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam, $isUseForUpdate);
 		if ($couponMemberIdx === false) {
 			throw new RollbackException('지급된 쿠폰의 고유키를 가져오면서 오류가 발생했습니다.'); 
 		}
@@ -72,7 +72,7 @@
 			'is_refund'=> 'N'
 		];
 
-		$memberCouponIdx = $couponClass->getCheckIsUseCouponByMember($couponUseParam);
+		$memberCouponIdx = $couponClass->getCheckIsUseCouponByMember($couponUseParam, $isUseForUpdate);
 		if ($memberCouponIdx === false) {
 			throw new RollbackException('지급된 쿠폰의 사용내역을 가져오면서 오류가 발생했습니다.');
 		}

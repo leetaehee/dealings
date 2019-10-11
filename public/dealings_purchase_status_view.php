@@ -88,6 +88,11 @@
 		// 거래상태 변경
 		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];
 
+		$dealingsCompleteParam = '?idx=' . $getData['idx'] . '&target=member_idx'; // 파라미터
+
+		$dealingsApproval = DEALINGS_PROCESS_ACCTION . '/seller_dealings_approval.php' . $dealingsCompleteParam; // 거래승인
+		$dealingsCancel = DEALINGS_PROCESS_ACCTION . '/seller_dealings_cancel.php' . $dealingsCompleteParam; // 거래취소
+
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/dealings_purchase_status_view.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

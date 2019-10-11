@@ -48,7 +48,7 @@
 		$db->startTrans();
 
 		// 거래타입 가져오기
-		$dealingsType = $dealingsClass->getDealingsType($dealingsIdx);
+		$dealingsType = $dealingsClass->getDealingsType($dealingsIdx, $isUseForUpdate);
 		if ($dealingsType === false) {
 			throw new RollbackException('거래타입을 가져오는 중에 오류가 발생했습니다.');
 		}
@@ -60,7 +60,7 @@
 			'is_refund'=>'N'
 		];
 
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam);
+		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
 		if ($useCouponData === false) {
 			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
 		}
@@ -85,7 +85,7 @@
 			// 판매삭제 시 쿠폰 복구
 			$couponStatusName = '사용대기';
 
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName);
+			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
 			if ($couponStatusCode === false) {
 				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
 			}

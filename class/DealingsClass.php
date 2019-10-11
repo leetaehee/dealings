@@ -1,13 +1,17 @@
 <?php
 	/**
-	 * @file DealingsClass.php
-	 * @brief 거래 클래스, 거래와 관련된 기능 서술
-	 * @author 이태희
-	 */
+     * 거래 클래스 
+     */ 
 	Class DealingsClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,19 +21,24 @@
 		}
 		
 		/**
-		 * @brief: 데이터베이스 커넥션 생성
-		 * @param: 커넥션 파라미터
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
 		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-
-		/**
-		 * @brief: 유효성 검증(거래폼)
-		 * @param: 폼 데이터
-		 * @return: true/false, error-message 배열
-		 */
+        
+        /**
+         * 거래 글  폼 데이터 유효성 검증
+         *
+         * @param array $postData
+         *
+         * @return array
+         */
 		public function checkDealingFormValidate($postData)
 		{
 			if (isset($postData['vourcher_state']) && empty($postData['vourcher_state'])) {
@@ -66,20 +75,27 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
-
-		/**
-		 * @brief: 거래 가능한 상품권 리스트 가져오기
-		 * @param: none
-		 * @return: array 
-		 */
-		public function getVoucherList()
+        
+        /**
+         * 거래 가능한 상품권 리스트 출력
+         *
+         * @param string $is_sell
+         * @param $isUsseForUpdate 트랜잭션 사용 시 SELECT문에 FOR UPDATE 설정여부
+         *
+         * @return array/bool
+         */
+		public function getVoucherList($isUseForUpdate = false)
 		{
 			$param = ['Y'];
 
 			$query = 'SELECT `idx`, `item_name`, `commission` 
 					  FROM `imi_sell_item` 
 					  WHERE `is_sell` = ?';
-
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
@@ -87,15 +103,22 @@
 
 			return $result;
 		}
-		
-		/**
-		 * @brief: 거래상태 코드 가져오기(transaction)
-		 * @param: 거래상태코드
-		 * @return: int 
-		 */
-		public function getDealingsStatus($param)
+        
+        /**
+         * 거래상태 코드 가져오기 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getDealingsStatus($param, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_dealings_status_code` WHERE `dealings_status_name` = ? FOR UPDATE';
+			$query = 'SELECT `idx` FROM `imi_dealings_status_code` WHERE `dealings_status_name` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -105,11 +128,13 @@
 			return $result->fields['idx'];
 		}
 		
-		/**
-		 * @brief: 거래데이터 생성 
-		 * @param: 폼 데이터
-		 * @return: int 
-		 */
+        /**
+         * 거래 글 생성 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function insertDealings($param)
 		{
 			$query = 'INSERT INTO `imi_dealings` SET
@@ -136,12 +161,14 @@
 
 			return $inserId;
 		}
-
-		/**
-		 * @brief: 거래데이터 수정 
-		 * @param: 폼 데이터
-		 * @return: int 
-		 */
+        
+        /**
+         * 거래 글 수정 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateDealings($param)
 		{
 			$query = 'UPDATE `imi_dealings` SET
@@ -164,11 +191,13 @@
 			return $affected_row;
 		}
 		
-		/**
-		 * @brief: 거래 처리과정 데이터 생성  
-		 * @param: 폼 데이터
-		 * @return: int 
-		 */
+        /**
+         * 거래 처리과정 생성
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function insertDealingsProcess($param)
 		{
 			$query = 'INSERT INTO `imi_dealings_process` SET
@@ -186,12 +215,15 @@
 			return $inserId;
 		}
 		
-		/**
-		 * @brief: 거래 가능 리스트 가져오기
-		 * @param: 조회 구분 
-		 * @return: array 
-		 */
-		public function getDealingsList($param)
+        /**
+         * 거래가능한 리스트 가져오기
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getDealingsList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `id`.`idx`,
 							 `id`.`register_date`,
@@ -207,6 +239,10 @@
 					  AND `id`.`dealings_status` = ?
 					  AND `id`.`is_del` = ?';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
@@ -214,13 +250,16 @@
 
 			return $result;
 		}
-		
-		/**
-		 * @brief: 거래 상세 데이터 가져오기
-		 * @param: 거래 테이블 키 값
-		 * @return: array 
-		 */
-		public function getDealingsData($idx)
+        
+        /**
+         * 거래 상세 데이터 가져오기 
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getDealingsData($idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `id`.`idx`,
 							 `id`.`dealings_type`,
@@ -253,6 +292,10 @@
 					  WHERE `id`.`idx` = ?
 					  ORDER BY `register_Date` DESC';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $idx);
 			if ($result === false) {
 				return false;
@@ -260,13 +303,16 @@
 
 			return $result;
 		}
-
-		/**
-		 * @brief: 거래 데이터 유효성 검증 데이터 
-		 * @param: 거래 테이블 키 값
-		 * @return: array 
-		 */
-		public function getValidDealingsData($idx)
+        
+        /**
+         * 거래 데이터 유효성 검증 데이터 
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getValidDealingsData($idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `id`.`idx`,
 							 `id`.`dealings_type`,
@@ -289,6 +335,10 @@
 						LEFT JOIN `imi_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
 					  WHERE `id`.`idx` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $idx);
 			if ($result === false) {
@@ -297,20 +347,26 @@
 
 			return $result;
 		}
-
-		/**
-		 * @brief: 거래 데이터를 구매하기 전에 등록이 됬는지 확인
-		 * @param: 거래데이터 키 값
-		 * @return: boolean
-		 */
-		public function isDealingsDataExist($param)
+        
+        /**
+         * 거래데이터가 이미 처리가 되었는지 확인 (이중등록 방지)
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function isDealingsDataExist($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) cnt 
 					  FROM `imi_dealings`
 					  WHERE `idx` = ? 
 					  AND `is_del` = ?
-					  AND `dealings_status` = ?
-					  FOR UPDATE';
+					  AND `dealings_status` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -319,18 +375,24 @@
 
 			return $result->fields['cnt'];
 		}
-
-		/**
-		 * @brief: 다음 거래 상태 가져오기
-		 * @param: 거래상태코드 키, 현재 구분값을 담은 array
-		 * @return: int
-		 */
-		public function getNextDealingsStatus($param)
+        
+        /**
+         * 다음 거래 상태 가져오기 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getNextDealingsStatus($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT MIN(idx) next_idx
 					  FROM `imi_dealings_status_code`
-					  WHERE `idx` > ?
-					  FOR UPDATE';
+					  WHERE `idx` > ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
@@ -340,11 +402,13 @@
 			return $result->fields['next_idx'];
 		}
 		
-		/**
-		 * @brief: 거래 유저 삽입
-		 * @param: 폼 데이터 (거래대상자) array
-		 * @return: int
-		 */
+        /**
+         * 거래 유저 삽입
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function insertDealingsUser($param)
 		{
 			$query = 'INSERT INTO `imi_dealings_user` SET
@@ -363,12 +427,14 @@
 			}
 			return $inserId;
 		}
-
-		/**
-		 * @brief: 거래 유저 수정
-		 * @param: 폼 데이터 (거래대상자) array
-		 * @return: int
-		 */
+        
+        /**
+         * 거래 유저 상태 수정 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateDealingsUser($param)
 		{
 			$query = 'UPDATE `imi_dealings_user` SET 
@@ -387,10 +453,12 @@
 		}
 
 		/**
-		 * @brief: 거래 상태정보 수정
-		 * @param: 폼 데이터 (거래대상자) array
-		 * @return: int
-		 */
+         * 거래 상태 수정 
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateDealingsStatus($param)
 		{
 			$query = 'UPDATE `imi_dealings` SET 
@@ -405,12 +473,14 @@
 
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 일정 기간동안 거래가 이루어지지 않을 경우 삭제처리 (삭제를 해제도 가능) 
-		 * @param: 폼 데이터 (거래대상자) array
-		 * @return: int
-		 */
+        
+        /**
+         * 일정기간동안 거래가 이루어지지 않을 경우 삭제/ 거래 삭제   (삭제를 다시 복구도 가능)
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateDealingsDeleteStatus($param)
 		{
 			$query = 'UPDATE `imi_dealings` SET 
@@ -426,12 +496,14 @@
 
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 거래 마일리지 변동 테이블의 거래상태 변경 
-		 * @param: 거래키와 상태 변경정보를 담은 array
-		 * @return: int
-		 */
+        
+        /**
+         * 거래 마일리지 변동내역에 상태도 변경
+         *
+         * @param array $param
+         *
+         * @return int/bool
+         */
 		public function updateDealingsChange($param)
 		{
 			$query = 'UPDATE `imi_dealings_mileage_change` SET
@@ -447,13 +519,16 @@
 
 			return $affected_row;
 		}
-
-		/**
-		 * @brief: 사용자가 구매한 리스트 가져오기
-		 * @param: 거래 키 값, 사용자 키 값, 상태코드를 담은 array
-		 * @return: array
-		 */
-		public function getDealingIngList($param)
+        
+        /**
+         * 사용자가 거래한 항목 가져오기 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getDealingIngList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idu`.`dealings_idx`,
 							 `idu`.`dealings_status`,
@@ -476,6 +551,10 @@
 					  AND `id`.`is_del` = ?
 					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
@@ -483,13 +562,15 @@
 
 			return $result;
 		}
-
-		/**
-		 * @brief: [관리자] 사용자에 의해 결제가 되거나 결제 취소 된 데이터 가져오기
-		 * @param: 거래 키 값, 사용자 키 값, 상태코드를 담은 array
-		 * @return: array
-		 */
-		public function getPayCompletedDealingIngList()
+        
+        /**
+         * 사용자에 의해 결제가 되거나 결제취소 된 내용 가져오기 
+		 *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getPayCompletedDealingIngList($isUseForUpdate = false)
 		{
 			$query = 'SELECT `idu`.`dealings_idx`,
 							 `idu`.`dealings_status`,
@@ -516,6 +597,10 @@
 					  WHERE `idu`.`dealings_status` IN (3,4,5)
 					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query);
 
 			if ($result === false) {
@@ -524,13 +609,16 @@
 
 			return $result;
 		}
-
-		/**
-		 * @brief: 나의 구매등록현황 모두 가져오기
-		 * @param: 삭제 여부, 거래타입, 아이디을 담는 array
-		 * @return: array
-		 */
-		public function getMyDealingList($param)
+        
+        /**
+         * 나의 구매등록현황 가져오기 
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getMyDealingList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `id`.`idx`,
 							 `id`.`dealings_status`,
@@ -554,6 +642,10 @@
 					  AND `id`.`writer_idx` = ?
 					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
@@ -561,18 +653,24 @@
 
 			return $result;
 		}
-		
-		/**
-		 * @brief: 거래 유저 테이블에 값이 있는지 체크 
-		 * @param: 거래테이블 키
-		 * @return: int
+        
+        /**
+         * 거래 유저 테이블에 값이 있는 지 체크 (이중등록방지)
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
 		 */
-		public function isExistDealingsIdx($dealings_idx)
+		public function isExistDealingsIdx($dealings_idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT COUNT(`idx`) cnt 
 					  FROM `imi_dealings_user` 
-					  WHERE `dealings_idx` = ?
-					  FOR UPDATE';
+					  WHERE `dealings_idx` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $dealings_idx);
 			if ($result === false) {
@@ -581,13 +679,16 @@
 
 			return $result->fields['cnt'];
 		}
-
-		/**
-		 * @brief: 거래 환불/완료시 imi_mileage_charge 테이블에 필요한 데이터 추출
-		 * @param: 거래테이블 키 
-		 * @return: array
-		 */
-		public function getMileageChargeDataByDealings($dealingsIdx)
+        
+        /**
+         * 거래 환불/완료 시에 필요한 데이터 추출 
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getMileageChargeDataByDealings($dealingsIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idu`.`dealings_date`,
 							 `id`.`dealings_mileage`,
@@ -604,8 +705,11 @@
 							ON `id`.`idx` = `idu`.`dealings_idx`
 						INNER JOIN `imi_dealings_status_code` `ids`
 							ON `id`.`dealings_status` = `ids`.`idx`
-					  WHERE `id`.`idx` = ?
-					  FOR UPDATE';
+					  WHERE `id`.`idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 			
 			$result = $this->db->execute($query, $dealingsIdx);
 			if ($result === false) {
@@ -614,13 +718,15 @@
 
 			return $result;
 		}
-			
-		/**
-		 * @brief: 거래(판매/구매)글의 등록시점이 5일이 지난 데이터 가져오기
-		 * @param: none 
-		 * @return: array
-		 */
-		public function getDealingsDeleteList()
+        
+        /**
+         * 거래가 등록 시점으로부터 5일 지난 데이터 가져오기 (거래대기/결제대기 인 것만)
+         *
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+         * @return array/bool
+         */
+		public function getDealingsDeleteList($isUseForUpdate = false)
 		{
 			$param = [
 				'is_del'=>'N',
@@ -634,6 +740,10 @@
 					  AND `expiration_date` < ?
 					  AND `dealings_status` IN (1,2)';
 			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
 			$result = $this->db->execute($query,$param);
 			if ($result === false) {
 				return false;
@@ -641,12 +751,14 @@
 			
 			return $result;
 		}
-
-		/**
-		 * @brief: 거래(판매/구매)글 중 삭제되는 데이터를 배열로 받기
-		 * @param: 거래 키값과 상태정보를 담은 array
-		 * @return: array
-		 */
+        
+        /**
+         * 거래 중 삭제가 되는 데이터를 배열로 받기 
+         *
+         * @param array $list
+         *
+         * @return array/bool
+         */
 		public function getDealingsDeleteData($list)
 		{
 			$count = $list->recordCount();
@@ -663,32 +775,48 @@
 			}
 			return $delData;
 		}
-
-		/**
-		 * @brief: 거래 변동정보에 결제정보가 있는지 확인(할인쿠폰으로 결제가 없는경우도 있을 수 있음)
-		 * @param: 거래 키값과 상태정보를 담은 array
-		 * @return: array
-		 */
-		public function getMileageChangeIdx($dealingsIdx)
+        
+        /**
+         * 거래 마일리지 변동정보에 결제 정보가 있는지 확인 (할인 쿠폰 적용시 없음)
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
+         */
+		public function getMileageChangeIdx($dealingsIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` 
 					  FROM `imi_dealings_mileage_change` 
 					  WHERE `dealings_idx` = ?';
+			
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $dealingsIdx);
 			if ($result === false) {
 				return false;
 			}
-
+            
+            return $result;
 		}
-
-		/* @brief: 거래 수수료 가져오기
-		 * @param: 거래 키 값
-		 * @return: int
-		 */
-		public function getCommission($dealingsIdx)
+        
+        /**
+         * 거래 수수료 가져오기
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return int/bool
+         */
+		public function getCommission($dealingsIdx, $isUseForUpdate = false)
 		{	
 			$query = 'SELECT `dealings_commission` FROM `imi_dealings` WHERE `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $dealingsIdx);
 			if ($result === false) {
@@ -697,14 +825,22 @@
 
 			return $result->fields['dealings_commission'];
 		}
-
-		/* @brief: 거래 타입 가져오기
-		 * @param: 거래 키 값
-		 * @return: int
-		 */
-		public function getDealingsType($dealingsIdx)
+        
+        /**
+         * 거래 타입 가져오기 
+         *
+         * @param int $dealingsIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부ㄴ
+         *
+         * @return string/bool
+         */
+		public function getDealingsType($dealingsIdx, $isUseForUpdate = false)
 		{	
 			$query = 'SELECT `dealings_type` FROM `imi_dealings` WHERE `idx` = ?';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
 
 			$result = $this->db->execute($query, $dealingsIdx);
 			if ($result === false) {

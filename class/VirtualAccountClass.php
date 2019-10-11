@@ -1,13 +1,17 @@
 <?php
-    /**
-	 * @file VirtualAccountClass.php
-	 * @brief 가상계좌에 대한 클래스
-	 * @author 이태희
-	 */
+    /** 
+	 * 가상 계좌 클래스 
+     */
 	Class VirtualAccountClass 
 	{
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/s
 		private $db = null;
-
+        
+        /**
+		 * 객체 체크 
+		 *
+		 * @return bool
+		 */
 		private function checkConnection()
 		{
 			if(!is_object($this->db)) {
@@ -17,19 +21,23 @@
 		}
 		
         /**
-         * @brief: 데이터베이스 커넥션 생성
-         * @author: LeeTaeHee
-         * @param: 커넥션 파라미터
-         */
+		 * 데이터베이스 커넥션을 생성하는 함수 
+		 *
+		 * @param object $db 데이터베이스 커넥션 
+		 * 
+		 * @return void
+		 */
 		public function __construct($db) 
 		{
 			$this->db = $db;
 		}
-
+        
         /**
-         * @brief: 유효성 검증(마일리지)
-         * @param: 폼 데이터
-         * @return: array
+         * 가상계좌 생성 시 유효성 검증
+         *
+         * @param array $postData
+         *
+         * @return array
          */
 		public function checkFormValidate($postData)
 		{
@@ -39,22 +47,27 @@
 
 			return ['isValid'=>true, 'errorMessage'=>''];
 		}
-
+        
         /**
-         * @brief: 가상계좌번호 조회 
-         * @param: 은행명, 회원 PK을 가지는 array
-         * @return: string
+         * 가상 계좌 조회
+         *
+         * @param array $param
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return stirng/bool
          */
-		public function getVirtualAccount($param)
+		public function getVirtualAccount($param, $isUseForUpdate = false)
 		{			
 			$query = 'SELECT `virtual_account_no`
 					  FROM `imi_member_virtual_account`
 					  WHERE `member_idx` = ?
-					  AND `bank_name` = ?
-					  FOR UPDATE
-					';
+					  AND `bank_name` = ?';
 			
-			$result = $this->db->execute($query,$param);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
 			if ($result === false) {
 				return false;
 			}
@@ -63,9 +76,11 @@
 		}
         
         /**
-         * @brief: 가상계좌번호 추가
-         * @param: 은행명, 회원 PK을 가지는 array 
-         * @return: int
+         * 가상 계좌번호 추가
+         * 
+         * @param array $param
+         *
+         * @return array/bool
          */
 		public function insertVirtualAccount($param)
 		{
@@ -87,22 +102,27 @@
 
 			return ['insert_id'=>$inserId, 'account_no'=>$param['account_no']];
 		}
-
-		/**
-         * @brief: 가상계좌 데이터 가져오기;
-         * @param: 은행명, 회원 PK을 가지는 array
-         * @return: string
+        
+        /** 
+         * 가상 계좌, 은행 가져오기
+         * 
+         * @param int $memberIdx
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+         *
+         * @return array/bool
          */
-		public function getVirtualAccountData($memberIdx)
+		public function getVirtualAccountData($memberIdx, $isUseForUpdate = false)
 		{			
 			$query = 'SELECT `virtual_account_no`,
 							 `bank_name`
 					  FROM `imi_member_virtual_account`
-					  WHERE `member_idx` = ?
-					  FOR UPDATE
-					';
+					  WHERE `member_idx` = ?';
 			
-			$result = $this->db->execute($query,$memberIdx);
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+			
+			$result = $this->db->execute($query, $memberIdx);
 			if ($result === false) {
 				return false;
 			}

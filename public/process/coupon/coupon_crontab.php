@@ -35,7 +35,7 @@
 			'is_del'=>'Y'
 		];
 
-		$couponValidCount = $couponClass->getCheckCouponValidDateCount($param);
+		$couponValidCount = $couponClass->getCheckCouponValidDateCount($param, $isUseForUpdate);
 		if($couponValidCount === false){
 			throw new RollbackException('유효 데이터를 체크하는 중에 오류가 발생하였습니다.');
 		}
@@ -57,7 +57,7 @@
 		}
 
 		// 고객에 지급된 쿠폰 중에 사용내역이 없는 것만 삭제 
-		$couponValidList = $couponClass->getCheckCouponValidDateList($param);
+		$couponValidList = $couponClass->getCheckCouponValidDateList($param, $isUseForUpdate);
 		if ($couponValidList === false) {
 			throw new RollbackException('유효기간 지난 데이터를 찾으면서 오류가 발생했습니다.');
 		}
