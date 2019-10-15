@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 나의 구매 등록현황 상세 화면 
+	/**
+	 * 나의 구매 등록현황 상세 화면 
 	 */
 	
 	// 공통
@@ -100,6 +99,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

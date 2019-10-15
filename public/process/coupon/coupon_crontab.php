@@ -1,16 +1,15 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 
-	 *	1. 쿠폰 유효기간이 지날 경우 삭제
-	 *	2. `imi_coupon`에 expiration_date가 현재 날짜보다 작으면 `is_del` 을 'Y'(삭제)변경한다.
+	 * 1. 쿠폰 유효기간이 지날 경우 삭제
+	 * 2. `imi_coupon`에 expiration_date가 현재 날짜보다 작으면 `is_del` 을 'Y'(삭제)변경한다.
 	 */
 
 	$topDir = __DIR__.'/../../..';
-
-	include_once $topDir . '/configs/config.php'; // 환경설정
-	include_once $topDir . '/messages/message.php'; // 메세지
-	include_once $topDir . '/includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $topDir . '/configs/config.php'; 
+	include_once $topDir . '/messages/message.php'; 
+	include_once $topDir . '/includes/function.php';
 
 	// adodb
 	include_once $topDir . '/adodb/adodb.inc.php';
@@ -25,6 +24,7 @@
 	try {
 		$today = date('Y-m-d');
 		$alertMessage = '';
+		$isUseForUpdate = true; 
 
 		$db->startTrans();
 

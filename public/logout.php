@@ -1,13 +1,13 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 로그아웃 
+	/**
+	 * 로그아웃 
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공용함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php'; // 현재 세션체크
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; 
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
 
 	// 템플릿에서 <title>에 보여줄 메세지 설정
 	$title = TITLE_LOGOUT_MENU . ' | ' . TITLE_SITE_NAME;

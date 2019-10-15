@@ -17,6 +17,7 @@
 	</p><br>
 
 	<p>
+		<!--
 		<label for="">상품권:</label>
 		<?php if($vourcherListCount > 0):?>
 			<select id="itemNo" name="item_no">
@@ -30,9 +31,14 @@
 		<?php else: ?>
 			<p>관리자에게 문의하세요!</p>
 		<?php endif; ?>
+		-->
+		<label for="itemNo">상품권:</label>
+		<?=$dealingsData->fields['item_name']?>
+		<input type="hidden" id="itemNo" value="<?=$itemNo?>">
 	</p><br>
 
 	<p>
+		<!--
 		<label for="">상품권 가격:</label>
 		<?php if(count($CONFIG_MILEAGE_ARRAY) > 0):?>
 			<select id="itemMoney" name="item_money">
@@ -46,6 +52,10 @@
 		<?php else: ?>
 			<p>관리자에게 문의하세요!</p>
 		<?php endif; ?>
+		-->
+		<label for="itemMoney">상품권 가격:</label>
+		<?=number_format($dealingsData->fields['item_money'])?>원
+		<input type="hidden" id="itemMoney" value="<?=$itemMoney?>">
 	</p><br>
 
 	<p>

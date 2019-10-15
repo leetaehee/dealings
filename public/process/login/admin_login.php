@@ -1,11 +1,11 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 로그인 기능(일반회원)
+	 * 로그인 기능(일반회원)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -19,6 +19,7 @@
 
 	try {        
 		$alertMessage = ''; // 메세지
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');

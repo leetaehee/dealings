@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 회원이 사용 가능한 쿠폰 조회 기능
+	/**
+	 * 회원이 사용 가능한 쿠폰 조회 기능
 	 */
 	
 	// 공통
@@ -32,7 +31,7 @@
 
 		$myCouponParam = [
 			'is_coupon_del'=> 'N',
-			'is_del'=>'N',
+			'is_del'=> 'N',
 			'member_idx'=> $memberIdx
 		];
 
@@ -50,6 +49,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

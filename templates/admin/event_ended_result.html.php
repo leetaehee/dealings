@@ -27,8 +27,8 @@
 			</tr>
 		</thead>
 		<tbody>
-			<?php if($eventResultListCount > 0): ?>
-				<?php foreach($eventResultList as $key => $value): ?>
+			<?php if($eventHistoryListCount > 0): ?>
+				<?php foreach($eventHistoryList as $key => $value): ?>
 					<tr>
 						<td><?=$key+1?></td>
 						<td><?=setDecrypt($value['name'])?></td>

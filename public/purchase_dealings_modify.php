@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 수정화면
+	/**
+	 * 구매 거래 수정화면
 	 */
 	
 	// 공통
@@ -23,7 +22,7 @@
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_modify.php'; // form action url
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_modify.php';
 		$JsTemplateUrl = JS_URL . '/voucher_purchase_enroll.js';
 
 		$dealingsIdx = $_GET['idx'];
@@ -53,6 +52,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

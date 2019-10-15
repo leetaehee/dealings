@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 나의 구매글 등록 현황
+	/**
+	 * 나의 구매글 등록 현황
 	 */
 	
 	// 공통
@@ -31,9 +30,9 @@
 		$dealingsClass = new DealingsClass($db);
 		
 		$purchaseParam = [
-			'dealings_type'=>$dealingsType,
-			'is_del'=>'N',
-			'writer_idx'=>$_SESSION['idx']
+			'dealings_type'=> $dealingsType,
+			'is_del'=> 'N',
+			'writer_idx'=> $_SESSION['idx']
 		];
 
 		$myPurchaseList = $dealingsClass->getMyDealingList($purchaseParam);
@@ -50,6 +49,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

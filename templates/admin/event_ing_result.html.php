@@ -10,7 +10,7 @@
 			- 이벤트기간: <?=$eventStartDate?> ~ <?=$eventEndDate?>
 		</p>
 
-		<?php if($IsReturnFeeProvider == true && $eventIsEnd == 'N'): ?>
+		<?php if($isReturnFeeProvider == true && $eventIsEnd == 'N'): ?>
 			<input type="submit" id="btn-submit" value="일괄지급">
 		<?php endif;?>
 

@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 쿠폰수정
+	 * 지급 된 쿠폰수정
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -21,6 +21,7 @@
 	try {
 		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -87,7 +88,7 @@
 			'discount_rate'=> $couponData->fields['discount_rate'],
 			'item_money'=> $couponData->fields['item_money'],
 			'is_del'=> $couponData->fields['is_del'],
-			'coupon_member_idx'=>$idx
+			'coupon_member_idx'=> $idx
 		];
 
 		$updateCouponMemberResult = $couponClass->updateCouponMember($updateCouponMemberData);

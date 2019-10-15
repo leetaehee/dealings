@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 상품권 거래 취소 (판매/구매)
+	 * 상품권 거래 취소 (판매/구매)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -14,10 +14,6 @@
 
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -47,8 +43,8 @@
 
 		// 거래 데이터 상태 수정
 		$dealingsParam = [
-			'dealings_status'=>1,
-			'idx'=>$_SESSION['dealings_idx']
+			'dealings_status'=> 1,
+			'idx'=> $_SESSION['dealings_idx']
 		];
 
 		$updateDealingsStatusResult = $dealingsClass->updateDealingsStatus($dealingsParam);
@@ -69,8 +65,8 @@
 
 		// 처리절차 생성하기
 		$processData = [
-			'dealings_idx'=>$_SESSION['dealings_idx'],
-			'dealings_status_idx'=>1
+			'dealings_idx'=> $_SESSION['dealings_idx'],
+			'dealings_status_idx'=> 1
 		];
 
 		$insertProcessResult = $dealingsClass->insertDealingsProcess($processData);
@@ -79,10 +75,10 @@
 		}
 
 		$couponUseParam = [
-			'dealings_idx'=>$_SESSION['dealings_idx'],
-			'member_idx'=>$_SESSION['idx'],
-			'issue_type'=>'판매',
-			'is_refund'=>'N'
+			'dealings_idx'=> $_SESSION['dealings_idx'],
+			'member_idx'=> $_SESSION['idx'],
+			'issue_type'=> '판매',
+			'is_refund'=> 'N'
 		];
 
 		$returnUrl = SITE_DOMAIN.'/mypage.php';

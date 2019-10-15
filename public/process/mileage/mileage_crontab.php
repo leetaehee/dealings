@@ -1,17 +1,16 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 
-	 *	1. 마일리지 유효기간 지날 시 삭제 (imi_mileage_charge.is_expiration='Y')
+	 *  1. 마일리지 유효기간 지날 시 삭제 (imi_mileage_charge.is_expiration='Y')
 	 *  2. 크론탭에서만 실행 할것
 	 *	3. 추후 크론탭 아닌곳에서 실행 시 접근못하도록 수정 할 것
 	 */
 
 	$topDir = __DIR__.'/../../..';
 
-	include_once $topDir . '/configs/config.php'; // 환경설정
-	include_once $topDir . '/messages/message.php'; // 메세지
-	include_once $topDir . '/includes/function.php'; // 공통함수
+	// 공통
+	include_once $topDir . '/configs/config.php';
+	include_once $topDir . '/messages/message.php';
+	include_once $topDir . '/includes/function.php';
 	
 	// adodb
 	include_once $topDir . '/adodb/adodb.inc.php';
@@ -27,6 +26,7 @@
     try {
         $today = date('Y-m-d');
 		$message = '';
+		$isUseForUpdate = true;
 
         $db->startTrans(); // 트랜잭션시작
 

@@ -1,7 +1,6 @@
 <?php
 	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 판매 결제 상세 화면 
+	 * 판매 결제 상세 화면 
 	 */
 	
 	// 공통
@@ -67,18 +66,6 @@
 		}
 
 		// 이용가능한 쿠폰 가져오기
-		/*
-			$couponParam = [
-				'sell_item_idx'=> $itemNo,
-				'issue_type'=> '구매',
-				'item_money'=> $itemMoney,
-				'is_coupon_del'=> 'N',
-				'is_del'=> 'N',
-				'p_member_idx'=> $_SESSION['idx'],
-				'member_idx'=> $_SESSION['idx'],
-				'is_refund'=> 'N'
-			];
-		*/
 		$couponParam = [
 			'sell_item_idx'=> $itemNo,
 			'issue_type'=> '구매',
@@ -123,6 +110,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

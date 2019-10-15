@@ -602,7 +602,6 @@
          *
          * @return array/bool
          */
-
 		public function getMemberCouponData($couponIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`idx`,

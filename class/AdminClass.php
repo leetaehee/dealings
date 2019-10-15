@@ -124,6 +124,59 @@
         }
 
 		/**
+		 * 관리자 id 중복검사
+		 *
+		 * @param $id 아이디 
+		 *
+		 * @return int/bool
+		 */
+		public function getIdOverlapCount($id)
+		{
+			$query = "SELECT count(id) cnt FROM `imi_admin` WHERE `id` = ?";
+			$result = $this->db->execute($query,$id);
+			if ($result == false) {
+				return false;
+			}
+			
+			return $result->fields['cnt'];
+		}
+		
+		/**
+		 * 관리자 핸드폰 중복검사 
+		 *
+		 * @param string $phone
+		 *
+		 * @return int/bool
+		 */
+		public function getPhoneOverlapCount($phone)
+		{	
+			$phone = removeHyphen($phone);
+			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `phone` = ?";
+			$result = $this->db->execute($query, setEncrypt($phone));
+			if ($result == false) {
+				return false;
+			}
+			return $result->fields['cnt'];
+		}
+
+		/**
+		 * 관리자 이메일 중복검사
+		 *
+		 * @param string $email
+		 *
+		 * @return int/bool
+		 */
+		public function getEmailOverlapCount($email)
+		{	
+			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `email` = ?";
+			$result = $this->db->execute($query, setEncrypt($email));
+			if ($result == false) {
+				return false;
+			}
+			return $result->fields['cnt'];
+		}
+
+		/**
 		 * 관리자 정보 추가 
 		 *
 		 * @param array $postData 회원가입 데이터

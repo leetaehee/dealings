@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 등록화면
+	/**
+	 * 구매 거래 등록화면
 	 */
 	
 	// 공통
@@ -45,6 +44,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

@@ -1,11 +1,11 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 사이트 메인화면으로서 로그인 여부에 따라 화면을 다르게 보여준다.
+	 * 사이트 메인화면으로서 로그인 여부에 따라 화면을 다르게 보여준다.
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정

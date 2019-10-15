@@ -1,14 +1,14 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: ajax 통신 
+	 * ajax 통신(가상계좌 조회 및 발급)
 	 */
 
 	header("Content-Type: application/json"); 
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -21,14 +21,11 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
+		$isUseForUpdate = true;
+
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
-
-		/**
-		 * @author: LeeTaeHee
-		 * @brief: 가상계좌번호 발급
-		 */
 
 		// xss, inject 방지코드
 		$_POST['accountBank'] = htmlspecialchars($_POST['accountBank']);

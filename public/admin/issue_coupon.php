@@ -1,17 +1,13 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 쿠폰 발행하기
+	/**
+	 * 쿠폰 발행하기
 	 */
 	
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; //메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php'; // 세션체크
-	
-	// adodb
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
 
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
@@ -25,10 +21,6 @@
 		$btnName = '발행하기';
 
 		$alertMessage = '';
-
-		if ($connection === false) {
-            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
-        }
 
 		$voucherCount = count($CONFIG_COUPON_VOUCHER_ARRAY);
 		$voucherMoneyCount = count($CONFIG_VOUCHER_MONEY_ARRAY);

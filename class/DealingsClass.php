@@ -174,8 +174,6 @@
 			$query = 'UPDATE `imi_dealings` SET
 					   `dealings_subject` = ?,
 					   `dealings_content` = ?,
-					   `item_no` = ?,
-					   `item_money` = ?,
 					   `dealings_mileage` = ?,
 					   `memo` = ?,
 					   `item_object_no` = ?
@@ -799,7 +797,7 @@
 				return false;
 			}
             
-            return $result;
+            return $result->fields['idx'];
 		}
         
         /**

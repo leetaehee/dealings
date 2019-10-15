@@ -1,12 +1,12 @@
 <?php
 	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 회원가입 메일 승인 화면 
+	 * 회원가입 메일 승인 화면 
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -23,6 +23,7 @@
 		$title = TITLE_JOIN_APPROVAL . ' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
 		$returnUrl = SITE_DOMAIN;
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -39,17 +40,20 @@
 			$db->startTrans();
 
 			$memberClass = new MemberClass($db);
+
 			$join_approval_date = $memberClass->getJoinApprovalMailDate($idx, $isUseForUpdate);
 			if ($join_approval_date !== null) {
 				throw new RollbackException('이미 가입승인 메일을 통해 승인 하였습니다!');
-			}else{	
-				$updateApprovalResult = $memberClass->updateJoinApprovalMailDate($idx);
-				if ($updateApprovalResult < 1) {
-					throw new RollbackException('가입 승인 수정 중에 오류가 발생했습니다.');
-				}
-				$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
-				$db->completeTrans();
+			}	
+			
+			$updateApprovalResult = $memberClass->updateJoinApprovalMailDate($idx);
+			if ($updateApprovalResult < 1) {
+				throw new RollbackException('가입 승인 수정 중에 오류가 발생했습니다.');
 			}
+			
+			$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
+			
+			$db->completeTrans();
 		} else {
 			throw new Exception('잘못된 접근입니다!');
 		}

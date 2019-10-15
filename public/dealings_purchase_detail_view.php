@@ -1,7 +1,6 @@
 <?php
 	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 상세 화면 
+	 * 구매 거래 상세 화면 
 	 */
 	
 	// 공통
@@ -57,18 +56,6 @@
 		$_SESSION['dealings_mileage'] = $dealingsMileage;
 
 		// 이용가능한 쿠폰 가져오기
-		/*
-			$couponParam = [
-				'sell_item_idx'=> $itemNo,
-				'issue_type'=> '판매',
-				'item_money'=> $itemMoney,
-				'is_coupon_del'=> 'N',
-				'is_del'=> 'N',
-				'p_member_idx'=> $_SESSION['idx'],
-				'member_idx'=> $_SESSION['idx'],
-				'is_refund'=> 'N'
-			];
-		*/
 		$couponParam = [
 			'sell_item_idx'=> $itemNo ?? '',
 			'issue_type'=> '판매',
@@ -94,6 +81,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

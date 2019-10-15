@@ -1,22 +1,20 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 마이페이지
+	/**
+	 * 마이페이지
 	 */
 	
-	// 환경설정
+	// 공통
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
-	// 메세지
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
-	// 공통함수
-	 include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	// 현재 세션체크
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
-    
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php'; // adodb
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php'; // adodb
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php'; // Class 파일
+  
+	// adodb
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
+	
+	// Class 파일
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -29,9 +27,10 @@
         }
 		
 		$param = [
-				'idx'=>$_SESSION['idx'],
-				'today'=>date('Y-m-d')
-			];
+			'idx'=> $_SESSION['idx'],
+			'today'=> date('Y-m-d')
+		];
+
 		$loginClass = new LoginClass($db);
 
 		$loginAccessList = $loginClass->getLoginAccessList($param);

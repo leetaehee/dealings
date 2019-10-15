@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 상품권 거래 수정 (판매/구매)
+	 * 상품권 거래 수정 (판매/구매)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -14,10 +14,6 @@
 
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -35,8 +31,6 @@
 		// injection, xss 방지코드
 		$_POST['dealings_subject'] = htmlspecialchars($_POST['dealings_subject']);
 		$_POST['dealings_content'] = htmlspecialchars($_POST['dealings_content']);
-		$_POST['item_no'] = htmlspecialchars($_POST['item_no']);
-		$_POST['item_money'] = htmlspecialchars($_POST['item_money']);
 		$_POST['dealings_mileage'] = htmlspecialchars($_POST['dealings_mileage']);
 		$_POST['memo'] = htmlspecialchars($_POST['memo']);
 		$_POST['dealings_idx'] = htmlspecialchars($_POST['dealings_idx']);
@@ -62,14 +56,12 @@
 		$db->startTrans();
 
 		$updateData = [
-			'dealings_subject'=>$postData['dealings_subject'],
-			'dealings_content'=>$postData['dealings_content'],
-			'item_no'=>$postData['item_no'],
-			'item_money'=>$postData['item_money'],
-			'dealings_mileage'=>$postData['dealings_mileage'],
-			'memo'=>$postData['memo'],
-			'itemObjectNo'=>$itemObjectNo,
-			'dealins_idx'=>$postData['dealings_idx']
+			'dealings_subject'=> $postData['dealings_subject'],
+			'dealings_content'=> $postData['dealings_content'],
+			'dealings_mileage'=> $postData['dealings_mileage'],
+			'memo'=> $postData['memo'],
+			'itemObjectNo'=> $itemObjectNo,
+			'dealins_idx'=> $postData['dealings_idx']
 		];
 
 		$updateResult = $dealingsClass->updateDealings($updateData);

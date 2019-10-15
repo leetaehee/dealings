@@ -4,7 +4,7 @@
      */
 	Class VirtualAccountClass 
 	{
-		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/s
+		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
         
         /**

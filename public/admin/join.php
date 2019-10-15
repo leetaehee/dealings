@@ -1,7 +1,6 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 회원가입 화면 
+	 * 회원가입 화면 
 	 */
 	
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정

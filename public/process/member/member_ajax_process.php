@@ -1,14 +1,14 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: ajax 통신 
+	 * ajax 통신 (계정중복확인)
 	 */
 
 	header("Content-Type: application/json"); 
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -18,10 +18,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 
 	try {
-		/**
-		 * @author: LeeTaeHee
-		 * @brief: 회원 가입 시 중복 체크(아이디,이메일,핸드폰)
-		 */
 
 		$param = htmlspecialchars($_POST['val']);
 	

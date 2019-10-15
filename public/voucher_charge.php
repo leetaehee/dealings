@@ -1,13 +1,13 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 문화상품권 충전 등록화면
+	/**
+	 * 문화상품권 충전 등록화면
 	 */
 	
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php'; // 현재 세션체크
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -15,7 +15,7 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/vourcher_charge.php'; // form action url
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/vourcher_charge.php';
 		$JsTemplateUrl = JS_URL . '/voucher_charge.js'; 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/voucher_charge.html.php';
 	} catch (Exception $e) {

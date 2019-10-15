@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 상품권 거래 완료 (판매/구매)
+	 * 상품권 거래 완료 (판매자시점)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -28,6 +28,7 @@
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
 		$today = date('Y-m-d');
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -73,19 +74,19 @@
 
 		if ($getData['target'] == 'member_idx') {
 			$couponUseParam = [
-				'dealings_idx'=>$dealingsIdx,
-				'member_idx'=>$dealingsWriterIdx,
-				'issue_type'=>'구매',
-				'is_refund'=>'N'
+				'dealings_idx'=> $dealingsIdx,
+				'member_idx'=> $dealingsWriterIdx,
+				'issue_type'=> '구매',
+				'is_refund'=> 'N'
 			];
 			$sellerMemberIdx = $dealingsMemberIdx;
 			$buyerMemberIdx = $dealingsWriterIdx;
 		} else if ($getData['target'] == 'writer_idx') {
 			$couponUseParam = [
-				'dealings_idx'=>$dealingsIdx,
-				'member_idx'=>$dealingsMemberIdx,
-				'issue_type'=>'구매',
-				'is_refund'=>'N'
+				'dealings_idx'=> $dealingsIdx,
+				'member_idx'=> $dealingsMemberIdx,
+				'issue_type'=> '구매',
+				'is_refund'=> 'N'
 			];
 			$sellerMemberIdx = $dealingsWriterIdx;
 			$buyerMemberIdx = $dealingsMemberIdx;
@@ -301,7 +302,6 @@
 		}
 
 		$alertMessage = '정상적으로 거래가 취소되었습니다.';
-
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

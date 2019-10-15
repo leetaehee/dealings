@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 지급된 쿠폰을 수정할 수 있는 화면.
+	 * 지급된 쿠폰을 수정할 수 있는 화면.
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -80,7 +80,7 @@
 		}
 
 		if(!empty($memberCouponIdx)) {
-			throw new RollbackException('쿠폰 사용내역이 존재하여 삭제 할 수 없습니다.');
+			throw new RollbackException('쿠폰 사용내역이 존재하여 변경 할 수 없습니다.');
 		}
 
 		$couponParam = [

@@ -1,14 +1,14 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 진행중인 이벤트 결과
+	/**
+	 * 진행중인 이벤트 결과
 	 */
 	
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; //메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php'; // 세션체크
-	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
+
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
@@ -21,47 +21,36 @@
 		$title = TITLE_EVENT_ING_RESULT . ' | ' . TITLE_ADMIN_SITE_NAME;
 		$actionUrl = EVENT_PROCEE_ACTION . '/issue_event_result.php';
 		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_event.php'; // 리턴되는 화면 URL 초기화
+		
 		$alertMessage = '';
 		
-		$IsReturnFeeProvider = false;
+		$isReturnFeeProvider = false;
 
-		if ($connection === false) {
-            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
-        }
+		$eventClass = new EventClass($db);
 
 		// injection 방지
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
+		$_GET['event_type'] = htmlspecialchars($_GET['event_type']);
 		$getData = $_GET;
 
-		$eventClass = new EventClass($db);
-        
-        $eventIdxParam = [
-          'idx'=> $getData['idx'],
-          'is_end'=> 'N'
-        ];
+		$eventData = $CONFIG_EVENT_ARRAY[$getData['event_type']];
+		if (empty($eventData['idx'])) {
+			throw new Exception('이벤트를 조회 할 수 없습니다.');
+		}
+
+		$eventType = $eventData['event_type'];
+		$eventName = $eventData['event_name'];
+		$eventStartDate = $eventData['start_date'];
+		$eventEndDate = $eventData['end_date'];
+		$eventIsEnd = $eventData['is_end'];
+
+		if ($today > $eventData['end_date']) {
+			$isReturnFeeProvider = true;
+		}
 		
-		$eventData = $eventClass->getEventDataByIdx($eventIdxParam);
-		if ($eventData === false) {
-			throw new Exception('이벤트를 조회 하는 중에 오류가 발생했습니다.');
-		}
-		$eventIdx = $eventData->fields['idx'];
-		$eventName = $eventData->fields['name'];
-		$eventType = $eventData->fields['event_type'];
-		$eventStartDate = $eventData->fields['start_date'];
-		$eventEndDate = $eventData->fields['end_date'];
-		$eventIsEnd = $eventData->fields['is_end'];
-
-		if (empty($eventIdx)) {
-			throw new Exception('이벤트를 조회할 수 없습니다.');
-		}
-
-		if ($today > $eventEndDate) {
-			$IsReturnFeeProvider = true;
-		}
-
 		$historyParam = [
-			'eventIdx'=> $eventIdx,
-			'limit'=> 10,
+			'event_type'=> $getData['event_type'],
+			'limit'=> 10
 		];
 
 		$eventHistoryList = $eventClass->getEventHistoryList($historyParam);

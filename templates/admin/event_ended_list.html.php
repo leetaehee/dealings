@@ -22,13 +22,13 @@
 	</thead>
 	<tbody>
 		<?php if($eventListCount > 0): ?>
-			<?php foreach($eventList as $key => $value): ?>
+			<?php foreach($CONFIG_EVENT_ARRAY as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['event_type']?></td>
 					<td>
-						<a href="<?=$issueEventResultURL?>?idx=<?=$value['idx']?>">
-							<?=$value['name']?>
+						<a href="<?=$issueEventResultURL?>?idx=<?=$value['idx']?>&event_type=<?=$value['event_type']?>">
+							<?=$value['event_name']?>
 						</a>
 					</td>
 					<td><?=$value['start_date']?></td>

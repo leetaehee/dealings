@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 마일리지 취소
+	 *  마일리지 취소
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -15,13 +15,13 @@
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/VirtualAccountClass.php';
 
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
         $alertMessage = '';
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -58,15 +58,15 @@
 		}
 
 		$mileageChangeParam[] = [
-				'member_idx'=>$chargeData->fields['member_idx'],
-				'mileage_idx'=>$chargeData->fields['mileage_idx'],
-				'accountNo'=>$chargeData->fields['charge_account_no'],
-				'accountBank'=>$chargeData->fields['charge_infomation'],
-				'chargeName'=>$chargeData->fields['charge_name'],
-				'chargeStatus'=>1,
-				'process_date'=>date('Y-m-d'),
-				'charge_idx'=>$chargeData->fields['idx'],
-				'charge_cost'=>$chargeData->fields['charge_cost'],
+				'member_idx'=> $chargeData->fields['member_idx'],
+				'mileage_idx'=> $chargeData->fields['mileage_idx'],
+				'accountNo'=> $chargeData->fields['charge_account_no'],
+				'accountBank'=> $chargeData->fields['charge_infomation'],
+				'chargeName'=> $chargeData->fields['charge_name'],
+				'chargeStatus'=> 1,
+				'process_date'=> date('Y-m-d'),
+				'charge_idx'=> $chargeData->fields['idx'],
+				'charge_cost'=> $chargeData->fields['charge_cost'],
 			];
 		$mileageType = $chargeData->fields['mileage_idx'];
 

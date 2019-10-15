@@ -1,7 +1,6 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 관리자 세션 체크 후 페이지 이동 
+	 * 관리자 세션 체크 후 페이지 이동 
 	 */
 
 	if(!isset($_SESSION['mIdx'])){

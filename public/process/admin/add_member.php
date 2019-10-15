@@ -1,13 +1,13 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 관리자 회원가입
+	 * 관리자 회원가입
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php'; // PHP메일보내기
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -22,6 +22,7 @@
 	try {
 		$alertMessage = '';
 		$returnUrl = SITE_ADMIN_DOMAIN;
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -30,7 +31,7 @@
 		$adminClass = new AdminClass($db);
 
         // 폼 데이터 받아서 유효성 검증
-        $returnUrl = SITE_ADMIN_DOMAIN.'/join.php'; // 유효성검증 실패시, 리턴 UTL
+        $returnUrl = SITE_ADMIN_DOMAIN . '/join.php'; // 유효성검증 실패시, 리턴 UTL
 
 		// injection, xss 방지코드
 		$_POST['isOverlapEmail'] = htmlspecialchars($_POST['isOverlapEmail']);
@@ -51,14 +52,11 @@
 		}
 
 		$db->startTrans();
-
-		// 트랜잭션시작
-		$db->beginTrans();
 		
 		$accountData = [
-			'phone'=>setEncrypt($postData['phone']),
-			'email'=>setEncrypt($postData['email']),
-			'id'=>$postData['id']
+			'phone'=> setEncrypt($postData['phone']),
+			'email'=> setEncrypt($postData['email']),
+			'id'=> $postData['id']
 		];
 		
 		$accountOverlapCount = $adminClass->getAccountOverlapCount($accountData, $isUseForUpdate);                

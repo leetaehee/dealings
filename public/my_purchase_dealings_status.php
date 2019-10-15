@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 나의 구매 등록현황 상세 화면 
+	/**
+	 * 나의 구매 등록현황 상세 화면 
 	 */
 	
 	// 공통
@@ -72,18 +71,6 @@
 		$totalMileage = $memberClass->getTotalMileage($memberIdx);
 
 		// 이용가능한 쿠폰 가져오기
-		/*
-			$couponParam = [
-				'sell_item_idx'=> $itemNo,
-				'issue_type'=> '구매',
-				'item_money'=> $itemMoney,
-				'is_coupon_del'=> 'N',
-				'is_del'=> 'N',
-				'p_member_idx'=> $_SESSION['idx'],
-				'member_idx'=> $_SESSION['idx'],
-				'is_refund'=> 'N'
-			];
-		*/
 		$couponParam = [
 			'sell_item_idx'=> $itemNo,
 			'issue_type'=> '구매',
@@ -137,6 +124,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

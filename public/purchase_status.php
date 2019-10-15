@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 목록
+	/**
+	 * 구매 거래 목록
 	 */
 	
 	// 공통
@@ -31,10 +30,10 @@
 		$dealingsClass = new DealingsClass($db);
 		
 		$purchaseParam = [
-			'dealings_member_idx'=>$_SESSION['idx'],
-			'dealings_type'=>$dealingsType,
-			'dealings_status'=>1,
-			'is_del'=>'N'
+			'dealings_member_idx'=> $_SESSION['idx'],
+			'dealings_type'=> $dealingsType,
+			'dealings_status'=> 1,
+			'is_del'=> 'N'
 		];
 
 		$purchaseList = $dealingsClass->getDealingIngList($purchaseParam);
@@ -51,6 +50,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

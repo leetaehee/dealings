@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 상품권 거래 삭제 (판매/구매)
+	 * 상품권 거래 삭제 (판매/구매)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -22,6 +22,7 @@
 	try {
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -54,10 +55,10 @@
 		}
 
 		$couponUseParam = [
-			'dealings_idx'=>$dealingsIdx,
-			'member_idx'=>$_SESSION['idx'],
-			'issue_type'=>$dealingsType == '판매' ? '판매' : '구매',
-			'is_refund'=>'N'
+			'dealings_idx'=> $dealingsIdx,
+			'member_idx'=> $_SESSION['idx'],
+			'issue_type'=> $dealingsType == '판매' ? '판매' : '구매',
+			'is_refund'=> 'N'
 		];
 
 		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
@@ -69,12 +70,11 @@
 		$couponMemberIdx = $useCouponData->fields['coupon_member_idx'];
 
 		if (!empty($couponIdx)){
-
 			// 판매삭제 시 사용내역에 쿠폰 환불입력
 			$couponStatusParam = [
-					'coupon_use_end_date'=> date('Y-m-d'),
-					'is_refund'=> 'Y',
-					'idx'=>$couponIdx
+				'coupon_use_end_date'=> date('Y-m-d'),
+				'is_refund'=> 'Y',
+				'idx'=> $couponIdx
 			];
 		
 			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);
@@ -106,9 +106,9 @@
 		}
 
 		$deleteParam = [
-			'is_del'=>'Y',
-			'dealings_status'=>$dealingsStatus,
-			'dealings_idx'=>$dealingsIdx
+			'is_del'=> 'Y',
+			'dealings_status'=> $dealingsStatus,
+			'dealings_idx'=> $dealingsIdx
 		];
 
 		$updateResult = $dealingsClass->updateDealingsDeleteStatus($deleteParam);

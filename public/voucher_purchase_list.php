@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 거래 목록
+	/**
+	 * 구매 거래 목록
 	 */
 	
 	// 공통
@@ -33,9 +32,9 @@
 		$dealingsClass = new DealingsClass($db);
 
 		$param = [
-			'dealingsType'=>$dealingsType,
-			'dealingsState'=>$dealingsState,
-			'is_del'=>'N'
+			'dealingsType'=> $dealingsType,
+			'dealingsState'=> $dealingsState,
+			'is_del'=> 'N'
 		];
 		$dealingsList = $dealingsClass->getDealingsList($param);
 		if ($dealingsList === false) {
@@ -51,6 +50,10 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

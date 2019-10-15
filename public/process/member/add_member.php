@@ -1,13 +1,13 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 회원가입 
+	 * 회원가입 
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php'; // PHP메일보내기
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -21,6 +21,7 @@
 
 	try {
         $alertMessage = ''; // 메세지
+		$isUseForUpdate = true;
 
 		$memberClass = new MemberClass($db);
         
@@ -52,9 +53,9 @@
 		$db->startTrans();
 
 		$accountData = [
-			'phone'=>setEncrypt($postData['phone']),
-			'email'=>setEncrypt($postData['email']),
-			'id'=>$postData['id']
+			'phone'=> setEncrypt($postData['phone']),
+			'email'=> setEncrypt($postData['email']),
+			'id'=> $postData['id']
 		];
 		
 		$accountOverlapCount = $memberClass->getAccountOverlapCount($accountData, $isUseForUpdate);                

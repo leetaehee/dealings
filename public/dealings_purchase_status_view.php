@@ -1,7 +1,6 @@
 <?php
 	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 구매 결제 상세 화면 
+	 * 구매 결제 상세 화면 
 	 */
 	
 	// 공통

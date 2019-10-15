@@ -1,7 +1,6 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 세션 체크 후 페이지 이동 
+	 * 세션 체크 후 페이지 이동 
 	 */
 	if(!isset($_SESSION['idx'])){
 		if(isset($_SESSION['tmp_idx'])){	

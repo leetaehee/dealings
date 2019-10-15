@@ -1,18 +1,17 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 
-	 *	1. 거래(판매,구매)글은 5일이 지난 경우 삭제
+	 *  1. 거래(판매,구매)글은 5일이 지난 경우 삭제
 	 *  2. imi_dealings에 expiration_date 컬럼을 이용할 것(오늘 날짜보다 작으면 삭제)
 	 *  3. 거래유저 테이블 및 처리과정 남길것
 	 *  4. 거래대기,결제대기에 대해 처리할것 
 	 */
 
-	$topDir = __DIR__.'/../../..';
+	$topDir = __DIR__ . '/../../..';
 
-	include_once $topDir . '/configs/config.php'; // 환경설정
-	include_once $topDir . '/messages/message.php'; // 메세지
-	include_once $topDir . '/includes/function.php'; // 공통함수
+	// 공통
+	include_once $topDir . '/configs/config.php';
+	include_once $topDir . '/messages/message.php';
+	include_once $topDir . '/includes/function.php';
 
 	// adodb
 	include_once $topDir . '/adodb/adodb.inc.php';
@@ -26,12 +25,13 @@
 
 	try {
 		$today = date('Y-m-d');
+		$isUseForUpdate = true;
 
         $db->startTrans(); // 트랜잭션시작
 
         $dealingsClass = new DealingsClass($db);
 
-		$dealingsDeleteList = $dealingsClass->getDealingsDeleteList();
+		$dealingsDeleteList = $dealingsClass->getDealingsDeleteList($isUseForUpdate);
         $dealingsDeleteCount = $dealingsDeleteList->recordCount();
         if ($dealingsDeleteCount > 0) {
 			// 삭제되는 거래 데이터를 배열로 변환하기

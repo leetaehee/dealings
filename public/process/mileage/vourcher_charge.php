@@ -1,12 +1,12 @@
 <?php
 	/**
-	 *  @author: LeeTaeHee
-	 *	@brief: 마일리지 충전 
+	 * 마일리지 충전 (상품권)
 	 */
-
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -15,7 +15,6 @@
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/VirtualAccountClass.php';
 
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -23,6 +22,7 @@
 	try {
         $returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
+		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -42,7 +42,6 @@
 
 		$mileageClass = new MileageClass($db);
 		$memberClass = new MemberClass($db);
-		$virtualClass = new VirtualAccountClass($db);
 
 		$resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
 
@@ -70,14 +69,14 @@
 
 		$chargeParam = [
 			'idx'=>$idx,
-			'account_bank'=>$postData['account_bank'],
-			'account_no'=>setEncrypt($postData['account_no']),
-			'charge_cost'=>$postData['charge_cost'],
-			'spare_cost'=>$postData['charge_cost'],
-			'charge_name'=>$postData['charge_name'],
-			'mileageType'=>$mileageType,
-			'chargeDate'=>$chargeDate,
-			'charge_status'=>3,
+			'account_bank'=> $postData['account_bank'],
+			'account_no'=> setEncrypt($postData['account_no']),
+			'charge_cost'=> $postData['charge_cost'],
+			'spare_cost'=> $postData['charge_cost'],
+			'charge_name'=> $postData['charge_name'],
+			'mileageType'=> $mileageType,
+			'chargeDate'=> $chargeDate,
+			'charge_status'=> 3,
 		];
 
 		if (!empty($expirationDate)) {

@@ -1,8 +1,6 @@
 <?php
 	/**
-	 * @file RollbackException.php
-	 * @brief 트랜잭션이 롤백 되었을 때 실행
-	 * @author 이태희
+	 * 트랜잭션이 롤백 되었을 때 예외 실행
 	 */
 	Class RollbackException extends Exception
 	{

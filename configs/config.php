@@ -1,7 +1,6 @@
 <?php
 	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 환경설정(DB,Session,Cookies, 에러메세지 처리) 
+	 * 환경설정(DB,Session,Cookies, 에러메세지 처리) 
 	 */
 
 	// 세션 활성화 
@@ -59,7 +58,7 @@
 	$JsTemplateUrl = '';
 	$templateFileName = '404.html.php';
 	$today = date('Y-m-d');
-	$isUseForUpdate = true;
+	//$isUseForUpdate = true; 
 
 	/**
 	 * 배열
@@ -105,6 +104,29 @@
 		'8'=> 10,
 		'9'=> 10,
 		'10'=> 10
+	];
+
+	$CONFIG_EVENT_ARRAY = [
+		'구매'=>[
+			'seq'=> 1,
+			'idx'=> 1,
+			'start_date'=> '2019-10-07',
+			'end_date'=> '2019-10-07',
+			'is_end'=> 'Y',
+			'event_type'=> '구매',
+			'event_name'=> '구매이벤트',
+			'is_end'=>'Y'
+		],
+		'판매'=>[
+			'seq'=> 2,
+			'idx'=> 1,
+			'start_date'=> '2019-10-07',
+			'end_date'=> '2019-10-18',
+			'is_end'=> 'N',
+			'event_type'=> '판매',
+			'event_name'=> '판매이벤트',
+			'is_end'=>'N'
+		]
 	];
 
 	// 페이지 접근금지

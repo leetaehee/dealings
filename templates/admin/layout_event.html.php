@@ -63,11 +63,13 @@
 				<p>[이벤트현황]</p>
 				<ul>
 					<li>
-						<a href="<?=SITE_ADMIN_DOMAIN?>/event_list.php">진행중인 이벤트</a>
+						<a href="<?=SITE_ADMIN_DOMAIN?>/event_list.php">이벤트현황</a>
 					</li>
+					<!--
 					<li>
 						<a href="<?=SITE_ADMIN_DOMAIN?>/event_ended_list.php">종료된 이벤트</a>
 					</li>
+					-->
 				</ul>
 			</aside>
 			<section>

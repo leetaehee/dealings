@@ -1,7 +1,6 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 판매 거래 등록 화면
+	/**
+	 * 판매 거래 등록 화면
 	 */
 	
 	// 공통
@@ -65,19 +64,6 @@
 		}
 
 		// 이용가능한 쿠폰 가져오기
-		/*
-			$couponParam = [
-				'sell_item_idx'=> $itemNo ?? '',
-				'issue_type'=> '판매',
-				'item_money'=> $itemMoney ?? '',
-				'is_coupon_del'=> 'N',
-				'is_del'=> 'N',
-				'p_member_idx'=> $_SESSION['idx'],
-				'member_idx'=> $_SESSION['idx'],
-				'is_refund'=> 'N'
-			];
-		*/
-
 		$couponParam = [
 			'sell_item_idx'=> $itemNo ?? '',
 			'issue_type'=> '판매',
@@ -96,11 +82,14 @@
 			$couponDataCount = $couponData->recordCount();
 		}
 
-
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/voucher_sell_enroll.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
+		if ($connection === true) {
+			$db->close();
+		}
+
 		if (!empty($alertMessage)) {
 			alertMsg($returnUrl,1,$alertMessage);
 		}

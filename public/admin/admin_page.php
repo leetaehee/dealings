@@ -1,13 +1,13 @@
 <?php
-	/*
-	 *  @author: LeeTaeHee
-	 *	@brief: 관리자 정보 조회
+	/**
+	 * 관리자 정보 조회
 	 */
-	
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php'; // 현재 세션체크
+
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
     
 	// adodb
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -41,7 +41,7 @@
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
-		if ($connection == true) {
+		if ($connection === true) {
 			$db->close();
 		}
 
