@@ -116,7 +116,7 @@
         $returnUrl = SITE_ADMIN_DOMAIN . '/event_list.php';
 		$alertMessage = '이벤트가 정상적으로 종료가 되었습니다.';
 
-		//$db->completeTrans();
+		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
 		$alertMessage = $e->getMessage();
