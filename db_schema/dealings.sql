@@ -36,7 +36,7 @@ CREATE TABLE `imi_dealings_commission` (
   `dealings_complete_date` date NOT NULL COMMENT '최종거래일자',
   `sell_item_idx` int(11) unsigned NOT NULL COMMENT 'imi_sell_item.idx FK',
   PRIMARY KEY (`idx`),
-  UNIQUE KEY `dealings_idx` (`dealings_idx`) USING BTREE,
+  UNIQUE KEY `dealings_idx` (`dealings_idx`),
   KEY `sell_item_idx` (`sell_item_idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='거래 수수료 테이블';
 
@@ -76,7 +76,7 @@ CREATE TABLE `imi_dealings_status_code` (
   `dealings_status_name` varchar(30) NOT NULL COMMENT '거래상태명',
   `process_type` varchar(10) NOT NULL DEFAULT '거래' COMMENT '진행과정타입(거래/비거래)',
   PRIMARY KEY (`idx`),
-  KEY `dealing_status_name` (`dealings_status_name`) USING BTREE
+  KEY `dealing_status_name` (`dealings_status_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='거래 상태 코드 테이블';
 
 CREATE TABLE `imi_dealings_user` (
