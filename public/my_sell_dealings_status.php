@@ -16,6 +16,7 @@
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
 
 	try {
 		// 템플릿에서 <title>에 보여줄 메세지 설정
@@ -40,12 +41,14 @@
 		// 디비에서 거래상태받아오기, 거래타입과 키값 보내기
 		$dealingsClass = new DealingsClass($db);
 		$couponClass = new CouponClass($db);
+		$memberClass = new MemberClass($db);
 
 		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
 		if ($dealingsData === false) {
 			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
 		}
 		$commission = $dealingsData->fields['dealings_commission'];
+		$dealingsMemberIdx = $dealingsData->fields['dealings_member_idx'];
 
 		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
 		$_SESSION['dealings_idx'] = $getData['idx'];
@@ -82,6 +85,14 @@
 		if (!empty($couponIdx) && $discountRate < 100) {
 			$finalRealPaymentSum -= $couponUseMileage;
 			$discountMoney =  $useCouponData->fields['coupon_use_mileage'];
+		}
+
+		// 구매자 정보 갖고오기
+		$purchaserData = $memberClass->getMyInfomation($dealingsMemberIdx);
+		if ($purchaserData === false) {
+			throw new Exception('구매자 정보를 가져 올 수 없습니다');
+		} else {
+			$purchaserDataCount = $purchaserData->recordCount();
 		}
 
 		// 거래상태 변경

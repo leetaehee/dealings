@@ -98,11 +98,34 @@
 		</p>
 	<?php endif; ?>
 
-	<?php if($dealingsData->fields['dealings_status'] == 2): ?>
+	<?php if ($dealingsData->fields['dealings_status'] == 2): ?>
 		<p>
 			<input type="button" id="submit-btn" value="<?=$btnName?>">
 		</p>
 	<?php endif ?>
+
+	<?php if ($dealingsData->fields['dealings_status'] > 1): ?>
+		<p>
+			---------------------------------------
+		</p>
+		<p>
+			[구매자정보]
+		</p>
+		<p>
+			1. 이름: <?=setDecrypt($purchaserData->fields['name'])?>
+			(<?=$purchaserData->fields['id']?>)
+			<input type="hidden" value="<?=$purchaserData->fields['idx']?>">
+		</p>
+		<p>
+			2. 연락처 <?=setDecrypt($purchaserData->fields['phone'])?>
+		</p>
+		<p>
+			3. 이메일: <?=setDecrypt($purchaserData->fields['email'])?>
+		</p>
+		<p>
+			---------------------------------------
+		</p>
+	<?php endif;?>
 
 	<?php if($dealingsData->fields['dealings_status'] == 3): ?>
 		<span>

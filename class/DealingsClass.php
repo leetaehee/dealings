@@ -79,14 +79,15 @@
         /**
          * 거래 가능한 상품권 리스트 출력
          *
-         * @param string $is_sell
          * @param $isUsseForUpdate 트랜잭션 사용 시 SELECT문에 FOR UPDATE 설정여부
          *
          * @return array/bool
          */
 		public function getVoucherList($isUseForUpdate = false)
 		{
-			$param = ['Y'];
+			$param = [
+				'is_sell'=> 'Y'
+			];
 
 			$query = 'SELECT `idx`, `item_name`, `commission` 
 					  FROM `imi_sell_item` 
@@ -295,6 +296,7 @@
 			}
 			
 			$result = $this->db->execute($query, $idx);
+
 			if ($result === false) {
 				return false;
 			}
