@@ -46,8 +46,8 @@
 
 		// 거래 데이터 상태 수정
 		$dealingsParam = [
-			'dealings_status'=>1,
-			'idx'=>$_SESSION['dealings_idx']
+			'dealings_status'=> 1,
+			'idx'=> $_SESSION['dealings_idx']
 		];
 
 		$updateDealingsStatusResult = $dealingsClass->updateDealingsStatus($dealingsParam);
@@ -94,9 +94,9 @@
 		if (!empty($couponIdx)){
 			// 판매취소시 쿠폰 취소 정보 수정
 			$couponStatusParam = [
-					'coupon_use_end_date'=> date('Y-m-d'),
-					'is_refund'=> 'Y',
-					'idx'=>$couponIdx
+				'coupon_use_end_date'=> date('Y-m-d'),
+				'is_refund'=> 'Y',
+				'idx'=>$couponIdx
 			];
 
 			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);

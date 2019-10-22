@@ -70,7 +70,7 @@ CREATE TABLE `imi_access_ip` (
   `access_user_agent` varchar(255) NOT NULL COMMENT '접근브라우저',
   PRIMARY KEY (`idx`),
   KEY `member_idx` (`member_idx`,`access_date`)
-) ENGINE=InnoDB EFAULT CHARSET=utf8 COMMENT='일반회원 접속 내역';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='일반회원 접속 내역';
 
 
 

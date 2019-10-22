@@ -11,7 +11,8 @@
 	 */
 
 	// DB 커넥션정보
-	define('DB_HOST', 'localhost'); 
+	//define('DB_HOST', 'localhost'); 
+	define('DB_HOST', '118.27.39.240'); 
 	define('DB_USER', 'imi');
 	define('DB_NAME', 'imi');
 	define('DB_PASSWORD', 'imith190819@');
