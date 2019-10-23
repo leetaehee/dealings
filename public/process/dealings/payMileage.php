@@ -274,7 +274,7 @@
 			$useageData = [
 				'type'=> '구매',
 				'dealings_idx'=> $_SESSION['dealings_idx'],
-				'coupon_idx'=> $postData['coupon_name'],
+				'coupon_idx'=> $couponIdx,
 				'member_idx'=> $_SESSION['idx'],
 				'coupon_use_before_mileage'=> $postData['dealings_mileage'],
 				'coupon_use_mileage'=> $dealingsMileage,

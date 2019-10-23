@@ -279,45 +279,6 @@
 		}
 
 		/**
-		 * 쿠폰 사용 정보 출력
-		 *
-		 * @param array $param  쿠폰 사용 내역 조회에 필요한 정보
-		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
-		 *
-		 * @return array/bool
-		 */
-		public function getUseCouponData($param, $isUseForUpdate = false)
-		{
-			$query = 'SELECT `ic`.`subject`,
-							 `ic`.`discount_rate`,
-							 `ic`.`item_money`,
-							 `icu`.`idx`,
-							 `icu`.`coupon_member_idx`,
-							 `icu`.`coupon_use_before_mileage`,
-							 `icu`.`coupon_use_mileage`,
-							 ROUND((`ic`.`item_money` * `ic`.`discount_rate`)/100) `discount_money`
-					  FROM `imi_coupon_useage` `icu`
-						LEFT JOIN `imi_coupon` `ic`
-							ON `icu`.`coupon_idx` = `ic`.`idx`
-					  WHERE `icu`.`dealings_idx` = ?
-					  AND `icu`.`member_idx` = ?
-					  AND `icu`.`issue_type` = ?
-					  AND `icu`.`is_refund` = ?';
-
-			if ($isUseForUpdate === true) {
-				$query .= ' FOR UPDATE';
-			}
-
-			$result = $this->db->execute($query, $param);
-
-			if ($result === false) {
-				return false;
-			}
-
-			return $result;
-		}
-
-		/**
 		 * 쿠폰 취소 처리
 		 *
 		 * @param array $param 쿠폰 취소시 필요한 정보
@@ -1011,5 +972,49 @@
 				return false;
 			}
 			return $affected_row;
+		}
+
+		/**
+		 * 함수 정리 ---
+		 */
+
+		/**
+		 * 쿠폰 사용 정보 출력
+		 *
+		 * @param array $param  쿠폰 사용 내역 조회에 필요한 정보
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
+		 *
+		 * @return array/bool
+		 */
+		public function getUseCouponData($param, $isUseForUpdate = false)
+		{
+			$query = 'SELECT `ic`.`subject`,
+							 `ic`.`discount_rate`,
+							 `ic`.`item_money`,
+							 `icu`.`idx`,
+							 `icu`.`coupon_member_idx`,
+							 `icu`.`coupon_use_before_mileage`,
+							 `icu`.`coupon_use_mileage`,
+							 ROUND((`ic`.`item_money` * `ic`.`discount_rate`)/100) `discount_money`
+					  FROM `imi_coupon_useage` `icu`
+						LEFT JOIN `imi_coupon` `ic`
+							ON `icu`.`coupon_idx` = `ic`.`idx`
+					  WHERE `icu`.`dealings_idx` = ?
+					  AND `icu`.`member_idx` = ?
+					  AND `icu`.`issue_type` = ?
+					  AND `icu`.`is_refund` = ?
+					  FOR UPDATE';
+
+			if ($isUseForUpdate === true) {
+				$query .= ' FOR UPDATE';
+			}
+
+			$result = $this->db->execute($query, $param);
+
+			if ($result === false) {
+				return false;
+			}
+
+			return $result;
 		}
 	}

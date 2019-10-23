@@ -24,7 +24,7 @@ $(function(){
 	});
 
 	$("#itemNo, #itemMoney").on("change", function(){
-		$("#vourcher-sell-form").attr('action','http://imi.th-study.co.kr/voucher_sell_enroll.php');
+		$("#vourcher-sell-form").attr('action','http://dealings.th-study.co.kr/voucher_sell_enroll.php');
 		$("#vourcher-sell-form").submit();	
 	});
 });

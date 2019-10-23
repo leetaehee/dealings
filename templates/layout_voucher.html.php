@@ -28,7 +28,7 @@
     <body>
 		<div id="wrapper">
 			<header>
-				<h1>IMI</h1>
+				<h1>상품권 거래 사이트</h1>
 			</header>
 			<nav>
 				<ul class="ul-nav">
@@ -79,7 +79,7 @@
 				<?php include_once $templateFileName?>
 			</section>
 			<footer>
-				&copy; IMI 회원정보 시스템 <?=date('Y')?> <br>
+				&copy; 상품권 거래 시스템 <?=date('Y')?> <br>
 				사이트에 오류가 있을 경우 관리자에게 문의바랍니다.
 			</footer>
 		</div>

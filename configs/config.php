@@ -21,8 +21,8 @@
 	define('DB_CONNECTION_ERROR_MESSAGE', '데이터베이스 서버에 접속 할 수 없습니다: ');
 
 	// 사이트 도메인 
-	define('SITE_DOMAIN', 'http://imi.th-study.co.kr');
-	define('SITE_ADMIN_DOMAIN', 'http://imi.th-study.co.kr/admin');
+	define('SITE_DOMAIN', 'http://dealings.th-study.co.kr');
+	define('SITE_ADMIN_DOMAIN', 'http://dealings.th-study.co.kr/admin');
 
 	// front-end(회원)
 	define('COMMON_JS_URL', SITE_DOMAIN . '/js/common.js'); // 공통 자바스크립트
@@ -112,7 +112,7 @@
 			'seq'=> 1,
 			'idx'=> 1,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-07',
+			'end_date'=> '2019-10-25',
 			'is_end'=> 'Y',
 			'event_type'=> '구매',
 			'event_name'=> '구매이벤트',
@@ -122,7 +122,7 @@
 			'seq'=> 2,
 			'idx'=> 1,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-18',
+			'end_date'=> '2019-10-25',
 			'is_end'=> 'N',
 			'event_type'=> '판매',
 			'event_name'=> '판매이벤트',
