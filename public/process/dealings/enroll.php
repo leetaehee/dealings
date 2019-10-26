@@ -22,7 +22,6 @@
 	try {
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -69,57 +68,46 @@
 
 		$db->startTrans();
 
-		$today = date('Y-m-d');
-		$expiration_date = date('Y-m-d',strtotime('+5 day',strtotime($today))); // 만료일
-
-		// 수수료 가져오기 
+		$expirationDate = date('Y-m-d',strtotime('+5 day',strtotime($today))); // 만료일
+		
+		// 수수료 데이터 검증 
 		$itemIdx = $postData['item_no'];
 
-		$commission = $sellItemClass->getCheckSellItemValue($itemIdx, $isUseForUpdate);
-		if ($commission === false) {
-			throw new RollbackException('수수료 데이터를 가져 오지 못했습니다.');
-		} 
-		
-		if ($commission == '') {
+		$rCommissionQ = 'SELECT `commission` FROM `imi_sell_item` WHERE `idx` = ?';
+
+		$rCommistionResult = $db->execute($rCommissionQ, $itemIdx);
+		if ($rCommistionResult === false) {
+			throw new RollbackException('수수료 정보를 조회 하면서 오류가 발생했습니다.');
+		}
+
+		$commission = $rCommistionResult->fields['commission'];
+		if (empty($commission)) {
 			throw new RollbackException('수수료 데이터를 조회 할 수 없습니다.');
 		}
 
-		// 거래상태 가져오기
-		$dealingsStatus = $dealingsClass->getDealingsStatus($postData['dealings_state'], $isUseForUpdate);
-		if ($dealingsStatus === false) {
-			throw new RollbackException('거래 테이블 상태를 가져올 수 없습니다.');
-		}
-
-		$insertData = [
-			'expiration_date'=>$expiration_date,
-			'register_date'=>$today,
-			'dealings_type'=>$postData['dealings_type'],
-			'dealings_subject'=>$postData['dealings_subject'],
-			'dealings_content'=>$postData['dealings_content'],
-			'item_no'=>$postData['item_no'],
-			'item_money'=>$postData['item_money'],
-			'item_object_no'=>$itemObjectNo,
-			'dealings_mileage'=>$postData['dealings_mileage'],
-			'dealings_commission'=>$commission,
-			'dealings_status'=>$dealingsStatus,
-			'memo'=>$postData['memo'],
-			'idx'=>$_SESSION['idx']
+		// 거래 데이터 
+		$cDealingsP = [
+			'expiration_date'=> $expirationDate,
+			'register_date'=> $today,
+			'dealings_type'=> '구매',
+			'dealings_subject'=> $postData['dealings_subject'],
+			'dealings_content'=> $postData['dealings_content'],
+			'item_no'=> $postData['item_no'],
+			'item_money'=> $postData['item_money'],
+			'item_object_no'=> $itemObjectNo,
+			'dealings_mileage'=> $postData['dealings_mileage'],
+			'dealings_commission'=> $commission,
+			'dealings_status'=> 1,
+			'memo'=> $postData['memo'],
+			'idx'=> $_SESSION['idx']
 		];
 
-		$insertResult = $dealingsClass->insertDealings($insertData);
-		if ($insertResult < 1) {
-			throw new RollbackException('거래데이터 생성 실패하였습니다.');
+		// 거래생성
+		$dealingsInsertProcess = $dealingsClass->dealingsInsertProcess($cDealingsP);
+		if ($dealingsInsertProcess['result'] === false) {
+			throw new RollbackException($dealingsInsertProcess['resultMessage']);
 		}
-
-		$processData = [
-			'dealings_idx'=>$insertResult,
-			'dealings_status_idx'=>$dealingsStatus
-		];
-
-		$insertProcessResult = $dealingsClass->insertDealingsProcess($processData);
-		if ($insertProcessResult < 1) {
-			throw new RollbackException('거래 처리과정 생성 실패하였습니다.');
-		}
+		$dealingsInsertId = $dealingsInsertProcess['insertId'];
 
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '정상적으로 거래글이 등록되었습니다.';

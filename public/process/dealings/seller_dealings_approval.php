@@ -3,9 +3,10 @@
 	 * 상품권 거래 완료 (판매자 시점)
 	 */
 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php'; // 환경설정
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php'; // 공통함수
+	// 공통
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -14,8 +15,6 @@
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/EventClass.php';
@@ -34,10 +33,7 @@
 
 		$dealingsClass = new DealingsClass($db);
 		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
-		$commissionClass = new DealingsCommissionClass($db);
 		$couponClass = new CouponClass($db);
-		$sellItemClass = new SellItemClass($db);
 		$eventClass = new EventClass($db);
 
 		// return시 url 설정
@@ -84,7 +80,8 @@
 			throw new RollbackException('거래 유저 테이블 조회 시 오류가 발생했습니다.');
 		}
 
-		$dealingsMileage = $fixedDealingsMileage = $dealingsResult->fields['dealings_mileage']; // 거래금액
+		$dealingsMileage = $dealingsResult->fields['dealings_mileage']; // 거래금액
+		$fixedDealingsMileage = $dealingsMileage;
 
 		$commission = $dealingsResult->fields['commission']; // 수수료
 		$itemNo = $dealingsResult->fields['item_no']; //상품권종류
@@ -113,21 +110,29 @@
 			$buyerMemberIdx = $dealingsMemberIdx;
 		}
 		
-
-		// 쿠폰 사용내역
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam);
-		if ($useCouponData === false) {
-			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
+		// 구매자 쿠폰 사용내역
+		$rUseageQ = 'SELECT `idx`,
+							`coupon_member_idx`,
+							`coupon_use_before_mileage`
+					 FROM `imi_coupon_useage`
+					 WHERE `dealings_idx` = ?
+					 AND `member_idx` = ?
+					 AND `issue_type` = ?
+					 AND `is_refund` = ?
+					 FOR UPDATE';
+		
+		$rUseageResult = $db->execute($rUseageQ, $couponUseParam);
+		if ($rUseageResult === false) {
+			throw new RollbackException('구매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
 		}
 
-		$couponIdx = $useCouponData->fields['idx'];
-		$coupon_use_mileage = $useCouponData->fields['coupon_use_mileage'];
-		$couponMemberIdx = $useCouponData->fields['coupon_member_idx'];
+		$couponIdx = $rUseageResult->fields['idx'];
+		$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
 
 		$commissionMemberIdx = 0;
 		
 		if (!empty($couponIdx)){
-			$dealingsMileage = $useCouponData->fields['coupon_use_before_mileage'];
+			$dealingsMileage = $rUseageResult->fields['coupon_use_before_mileage'];
 
 			// 거래 완료시 쿠폰완료일자 표기 (구매자)
 			$cpBuyerStParam = [
@@ -168,18 +173,42 @@
 			$commissionMemberIdx = $dealingsWriterIdx;
 		}
 
-		// 수수료 할인금액 가져오기
-		$commissionData = $couponClass->getUseCouponData($commissionInfoParam);
-		if ($commissionData === false) {
-			throw new RollbackException("수수료 할인금액을 가져오면서 오류가 발생했습니다.");
+		// 판매자 쿠폰 사용내역 가져오기
+		$rSellUseageQ = 'SELECT `idx`,
+								`coupon_idx`,
+								`coupon_use_mileage`
+						 FROM `imi_coupon_useage`
+						 WHERE `dealings_idx` = ?
+						 AND `member_idx` = ?
+						 AND `issue_type` = ?
+						 AND `is_refund` = ?
+						 FOR UPDATE';
+		
+		$rSellUseageResult = $db->execute($rSellUseageQ, $commissionInfoParam);
+		if ($rSellUseageResult === false) {
+			throw new RollbackException('판매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
 		}
-		$commisionCouponIdx = $commissionData->fields['idx'];
-		$discountRate = $commissionData->fields['discount_rate'];
+
+		$sellCouponIdx = $rSellUseageResult->fields['coupon_idx'];
+
+		// 쿠폰 정보 가져오기
+		$rSellCouponQ = 'SELECT `discount_rate`,
+								ROUND((`item_money` * `discount_rate`)/100) `discount_money`
+						 FROM `imi_coupon`
+						 WHERE `idx` = ?';
+
+		$rSellCouponResult = $db->execute($rSellCouponQ, $sellCouponIdx);
+		if ($rSellCouponResult === false) {
+			throw new RollbackException('쿠폰 정보를 조회 하면서 오류가 발생했습니다.');
+		}
+
+		$commisionCouponIdx = $rSellUseageResult->fields['idx'];
+		$discountRate = $rSellCouponResult->fields['discount_rate'];
 
 		if (!empty($commisionCouponIdx)) {
 			// 할인쿠폰 사용
-			$discountMoney = $commissionData->fields['discount_money'];
-			$couponUseMileage = $commissionData->fields['coupon_use_mileage'];
+			$discountMoney = $rSellCouponResult->fields['discount_money'];
+			$couponUseMileage = $rSellUseageResult->fields['coupon_use_mileage'];
 			// 쿠폰 사용해서 100% 할인 받는 경우
 			$commission -= $couponUseMileage;
 
@@ -207,7 +236,7 @@
 		$dealingsStatus = 4;
 
 		if ($dealingsMileage > 0) {
-			// 충전내역
+			// 충전 파라미터
 			$chargeParamGroup = [
 				'charge_param' => [
 					'member_idx'=> $sellerMemberIdx,
@@ -224,25 +253,25 @@
 				'dealings_status'=> 4
 			];
 
-			/** 충전하기 */
+			// 충전하기
 			$chargeResult = $mileageClass->chargeMileage($chargeParamGroup);
 			if ($chargeResult['result'] === false) {
 				throw new RollbackException($chargeResult['resultMessage']);
 			}
 
-			// 거래 상태
+			// 거래 상태 파라미터
 			$dealingsStPcParam = [
 				'dealings_status'=> 4,
 				'dealings_idx'=> $dealingsIdx
 			];
 
-			/** 거래상태 관련 */
+			// 거래상태 관련
 			$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
 			if ($dealingsProcessResult['result'] === false) {
 				throw new RollbackException($dealingsProcessResult['resultMessage']);
 			}
 
-			/** 수수료 부과 */
+			// 수수료 부과
 			if ($commission > 0) {
 				$rCommissionQ = 'SELECT `dealings_idx` 
 								   FROM `imi_dealings_commission`
@@ -278,9 +307,10 @@
 				}
 			}
 		}
+		
 		$db->completeTrans();
 		
-		/** 페이백 */
+		// 페이백
 		$db->startTrans();
 
 		$purEventParam = [
@@ -291,14 +321,14 @@
 			'itemNo'=> $itemNo
 		];
 
-		/** 구매 이벤트에 참여 가능한지 조회  */
+		// 구매 이벤트에 참여 가능한지 조회
 		$isPurEventResult = $eventClass->onProvideEvent($purEventParam);
 		if ($isPurEventResult['result'] === false) {
 			throw new RollbackException($isPurEventResult['resultMessage']);
 		}
 		
-		/** 페이백하기 */
-		if ($isPurEventResult['isParticipatIngEvent'] === true) {
+		// 페이백하기
+		if ($isPurEventResult['isParticipatePurIngEvent'] === true) {
 			// 이벤트 금액 계산
 			$payback = $isPurEventResult['payback'];
 			$paybackDealings = round($fixedDealingsMileage*$payback)/100;
@@ -318,10 +348,10 @@
 
 			$payBackGpResult = $mileageClass->chargeMileage($paybackGroup);
 			if ($payBackGpResult['result'] === false) {
-				throw new RollbackException($pageBackGpResult['resultMessage']);
+				throw new RollbackException($payBackGpResult['resultMessage']);
 			}
 
-			/** 이벤트 히스토리 추가(구매) */
+			// 이벤트 히스토리 추가(구매)
 			$historyParam = [
 				'member_idx'=> $buyerMemberIdx,
 				'event_type'=> '구매',
@@ -342,14 +372,14 @@
 			'itemNo'=> $itemNo
 		];
 
-		/** 판매 이벤트에 참여 가능한지 조회  */
+		// 판매 이벤트에 참여 가능한지 조회
 		$isSellEventResult = $eventClass->onProvideEvent($sellEventParam);
 		if ($isSellEventResult['result'] === false) {
 			throw new RollbackException($isSellEventResult['resultMessage']);
 		}
 
-		/** 이벤트 히스토리 추가(판매) */
-		if ($isSellEventResult['isParticipatIngEvent'] === true) {
+		// 이벤트 히스토리 추가(판매)
+		if ($isSellEventResult['isParticipateSellIngEvent'] === true) {
 			$sellHistoryParam = [
 				'member_idx'=> $sellerMemberIdx,
 				'event_type'=> '판매',

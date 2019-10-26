@@ -48,6 +48,8 @@
 		}
 
 		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
+		$_SESSION['dealings_member_idx'] = $dealingsData->fields['dealings_member_idx'];
+
 		$_SESSION['dealings_idx'] = $getData['idx'];
 		$_SESSION['dealings_status'] = $getData['type'];
 

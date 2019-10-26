@@ -31,9 +31,12 @@
 		// injection, xss 방지코드
 		$_POST['dealings_subject'] = htmlspecialchars($_POST['dealings_subject']);
 		$_POST['dealings_content'] = htmlspecialchars($_POST['dealings_content']);
-		$_POST['dealings_mileage'] = htmlspecialchars($_POST['dealings_mileage']);
 		$_POST['memo'] = htmlspecialchars($_POST['memo']);
 		$_POST['dealings_idx'] = htmlspecialchars($_POST['dealings_idx']);
+
+		if (isset($_POST['dealings_mileage'])) {
+			$_POST['dealings_mileage'] = htmlspecialchars($_POST['dealings_mileage']);
+		}
 
 		$itemObjectNo = null;
 		if (isset($_POST['item_object_no'])) {
@@ -55,18 +58,26 @@
 
 		$db->startTrans();
 
-		$updateData = [
+		$uDealingsP = [
 			'dealings_subject'=> $postData['dealings_subject'],
 			'dealings_content'=> $postData['dealings_content'],
-			'dealings_mileage'=> $postData['dealings_mileage'],
 			'memo'=> $postData['memo'],
 			'itemObjectNo'=> $itemObjectNo,
 			'dealins_idx'=> $postData['dealings_idx']
 		];
 
-		$updateResult = $dealingsClass->updateDealings($updateData);
-		if ($updateResult < 1) {
-			throw new RollbackException('거래데이터 수정 실패하였습니다.');
+		$uDealingsQ = 'UPDATE `imi_dealings` SET 
+						`dealings_subject` = ?,
+						`dealings_content` = ?,
+						`memo` = ?,
+						`item_object_no` = ?
+					   WHERE `idx` = ?';
+
+		$uDealingsResult = $db->execute($uDealingsQ, $uDealingsP);
+
+		$uDealingsAffectedRow = $db->affected_rows();
+		if ($uDealingsAffectedRow < 1) {
+			throw new RollbackException('거래글 수정하면서 오류가 발생하였습니다.');
 		}
 
 		$alertMessage = '정상적으로 거래글이 수정되었습니다.';

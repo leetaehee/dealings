@@ -975,10 +975,6 @@
 		}
 
 		/**
-		 * 함수 정리 ---
-		 */
-
-		/**
 		 * 쿠폰 사용 정보 출력
 		 *
 		 * @param array $param  쿠폰 사용 내역 조회에 필요한 정보
@@ -1016,5 +1012,139 @@
 			}
 
 			return $result;
+		}
+
+		/**
+		 * 함수 정리 ---
+		 */
+
+		/**
+		 * 거래 생성 시 쿠폰 상태 변경
+		 *
+		 * @param array $param  쿠폰 상태 변경시 필요한 정보를 배열로 전달
+		 *
+		 * @return array 
+		 */
+		public function couponStatusProcess($param)
+		{
+			$cUseageP = $param['useageP'];
+
+			$cUseageQ = 'INSERT INTO `imi_coupon_useage` SET 
+							`issue_type` = ?,
+							`dealings_idx` = ?,
+							`coupon_idx` = ?,
+							`member_idx` = ?,
+							`coupon_use_before_mileage` = ?,
+							`coupon_use_mileage` = ?,
+							`coupon_use_start_date` = CURDATE(),
+							`coupon_member_idx` = ?';
+			
+			$cUseageResult = $this->db->execute($cUseageQ, $cUseageP);
+			
+			$useageInserId = $this->db->insert_id();
+			if ($useageInserId < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰사용내역을 입력하는 중에 오류가 발생했습니다.'
+				];
+			}
+
+			$couponMbStParam = [
+				'coupon_status'=> $param['coupon_status_code'],
+				'idx'=> $param['useageP']['coupon_member_idx']
+			];
+
+			$uCouponMbQ = 'UPDATE `imi_coupon_member` SET 
+							`coupon_status` = ?
+							WHERE `idx` = ?';
+			
+			$uCouponMbResult = $this->db->execute($uCouponMbQ, $couponMbStParam);
+
+			$couponMbAffectedRow = $this->db->affected_rows();
+			if ($couponMbAffectedRow < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 지급 정보 상태를 변경하는 중에 오류가 발생했습니다.'
+				];
+			}
+
+			return [
+				'result'=> true,
+				'resultMessage'=> ''
+			];
+		}
+
+		/**
+		 * 거래 취소 시 쿠폰 복구 
+		 *
+		 * @param array $param  쿠폰 복구 시 필요한 정보를 배열로 전달
+		 *
+		 * @return array
+		 */
+		public function couponRefundProcess($param)
+		{
+			$uCouponUseP = [
+				'coupon_use_end_date'=> $param['coupon_use_end_date'],
+				'is_refund'=> $param['is_refund'],
+				'idx'=> $param['idx']
+			];
+
+			$uCoponUseQ = 'UPDATE `imi_coupon_useage` SET 
+							`coupon_use_end_date` = ?,
+							`is_refund` = ?
+							WHERE `idx` = ?';
+			
+			$couponUseResult = $this->db->execute($uCoponUseQ, $uCouponUseP);
+
+			$couponUseAffectedRow = $this->db->affected_rows();
+			if ($couponUseAffectedRow < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 사용내역을 수정하면서 오류가 발생했습니다.'
+				];
+			}
+
+			$couponStatusName = '사용대기';
+			
+			$cCouponCodeQ = 'SELECT `idx`  FROM `imi_coupon_status_code` WHERE `coupon_status_name` = ?';
+            
+			$cCouponCodeResult = $this->db->execute($cCouponCodeQ, $couponStatusName);
+			if ($cCouponCodeResult === false) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 상태 코드를 조회하면서 오류가 발생했습니다.'
+				];
+			}
+
+			$couponStatusCode = $cCouponCodeResult->fields['idx'];
+			if (empty($couponStatusCode)) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 상태 코드를 찾을 수 없습니다.'
+				];
+			}
+
+			$uCouponMemberP = [
+				'coupon_status'=> $couponStatusCode,
+				'idx'=> $param['coupon_member_idx']
+			];
+			$uCouponMemberQ = 'UPDATE `imi_coupon_member` SET 
+								`coupon_status` = ?
+								WHERE `idx` = ?';
+			
+			$uCouponMemberResult = $this->db->execute($uCouponMemberQ, $uCouponMemberP);
+			
+			$uCouponMemberAffectedRow = $this->db->affected_rows();
+			if ($uCouponMemberAffectedRow < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 고객 정보를 수정하면서 오류가 발생했습니다.'
+				];
+			}
+
+			return [
+				'result'=> true,
+				'resultMessage'=> ''
+			];
 		}
 	}

@@ -64,12 +64,6 @@
 	</p><br>
 
 	<p>
-		<label for="">거래금액:</label>
-		<input type="text" id="dealingsMileage" name="dealings_mileage" value="" size="15">원
-		<span id="display-commission"></span>
-	</p><br>
-
-	<p>
 		<label for="">비고:</label>
 		<input type="text" id="memo" name="memo" value="<?=$dealingsData->fields['memo']?>" size="50">
 		<input type="hidden" id="commission" name="commission" value="15">

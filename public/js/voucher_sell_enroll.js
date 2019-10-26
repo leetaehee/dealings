@@ -24,7 +24,7 @@ $(function(){
 	});
 
 	$("#itemNo, #itemMoney").on("change", function(){
-		$("#vourcher-sell-form").attr('action','http://dealings.th-study.co.kr/voucher_sell_enroll.php');
+		$("#vourcher-sell-form").attr('action','http://imi.th-study.co.kr/voucher_sell_enroll.php');
 		$("#vourcher-sell-form").submit();	
 	});
 });
@@ -100,24 +100,27 @@ function isVourcherPurchaseValidForm(){
 		return false;
 	}
 
-	if (dealingsMileage == '') {
-		alert('거래금액을 입력하세요.');
-		return false;
-	} else {
-		if (dealingsMileage < 1000) {
-			alert('거래금액은 1000원 이상 입력하세요.');
+
+	if (dealingsMileage != 'undefined') {
+		if (dealingsMileage == '') {
+			alert('거래금액을 입력하세요.');
 			return false;
+		} else {
+			if (dealingsMileage < 1000) {
+				alert('거래금액은 1000원 이상 입력하세요.');
+				return false;
+			}
+
+			if (dealingsMileage > 200000) {
+				alert('거래금액은 200,000원을 초과 할 수 없습니다.');
+				return false;
+			}
 		}
 
-		if (dealingsMileage > 200000) {
-			alert('거래금액은 200,000원을 초과 할 수 없습니다.');
+		if (memo.length > 100) {
+			alert('메모는 100자이내로 입력하세요.');
 			return false;
 		}
-	}
-
-	if (memo.length > 100) {
-		alert('메모는 100자이내로 입력하세요.');
-		return false;
 	}
 
 	return true;

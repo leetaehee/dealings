@@ -32,85 +32,6 @@
 			$this->db = $db;
 		}
 
-		
-		/**
-		 * 이벤트 히스토리 중복 체크 
-		 *
-		 * @param array 이벤트 키, 회원 키, 이벤트 타입 정보
-		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
-		 *
-		 * @return int/bool
-		 */
-		public function getIsExistEventHistoryIdx($param, $isUseForUpdate = false)
-		{
-			$query = 'SELECT `idx`
-					  FROM `imi_event_history`
-					  WHERE `member_idx` = ?
-					  AND `event_type` = ?';
-			
-			if ($isUseForUpdate === true) {
-				$query .= ' FOR UPDATE';
-			}
-
-			$result = $this->db->execute($query, $param);
-			if ($result === false) {
-				return false;
-			}
-			
-			return $result->fields['idx'];
-		}
-
-		/**
-		 * 이벤트 히스토리 추가
-		 *
-		 * @param array 이벤트 히스토리 입력 데이터
-		 *
-		 * @return int/bool
-		 */
-		public function insertEventHistory($param)
-		{
-			$query = 'INSERT INTO `imi_event_history` SET 
-						`member_idx` = ?,
-						`participate_date` = CURDATE(),
-						`participate_datetime` = NOW(),
-						`event_cost` = ?,
-						`event_type` = ?,
-						`participate_count` = ?';
-
-			$result = $this->db->execute($query, $param);
-			$inserId = $this->db->insert_id();
-
-			if ($inserId < 1) {
-				return false;
-			}
-
-			return $inserId;
-		}
-
-		/**
-		 * 이벤트 히스토리 수정 
-		 *
-		 * @param 이벤트 키, 이벤트 금액, 참여횟수 정보
-		 *
-		 * @return int/bool
-		 */
-		public function updateEventHistory($param)
-		{
-			$query = 'UPDATE `imi_event_history` SET 
-						`event_cost` = `event_cost` + ?,
-						`participate_count` = `participate_count` + ?
-						WHERE `idx` = ?';
-			
-			$result = $this->db->execute($query, $param);
-			$affected_row = $this->db->affected_rows();
-
-			if ($affected_row < 1) {
-				return false;
-			}
-
-			return $affected_row;
-		}
-
 		/**
 		 * 이벤트 히스토리 LIMIT를 통해  원하는 만큼 출력
 		 *
@@ -168,7 +89,9 @@
 			$itemNo = $param['itemNo'];
 			$CONFIG_EVENT_ARRAY = $param['CONF_EVENT_ARRAY'];
 
-			$isParticipatIngEvent = false;
+			$isParticipatePurIngEvent = false;
+			$isParticipateSellIngEvent = false;
+
 			$payback = 0;
 
 			$rJoinDateQ = 'SELECT `join_approval_date` FROM `imi_members` WHERE `idx` = ?';
@@ -189,7 +112,7 @@
 
 			if ($isJoinPeriodExceed === true) { 
 				/** 쿠폰 사용하지 않은 경우에만 해당 됨(구매자 쿠폰). */
-				if (empty($couponIdx)){				
+				if (empty($couponIdx)){		
 					// 이벤트 기간 체크 (구매)
 					$event = $CONFIG_EVENT_ARRAY['구매'];
 			
@@ -207,7 +130,7 @@
 						// 이벤트 진행중이며, 페이백이 설정되어있는 경우만 이벤트 진행하도록 함.
 						$payback = $rSellItemResult->fields['payback'];
 						if ($payback > 0) {
-							$isParticipatIngEvent = true;
+							$isParticipatePurIngEvent = true;
 						}
 					} 
 				}
@@ -218,14 +141,15 @@
 					$event = $CONFIG_EVENT_ARRAY['판매'];
 			
 					if ($event['start_date'] <= $today && $event['end_date'] >= $today) {
-						$isParticipatIngEvent = true;
+						$isParticipateSellIngEvent = true;
 					}
 				}
 			}
 
 			return [
 				'result'=> true,
-				'isParticipatIngEvent'=> $isParticipatIngEvent,
+				'isParticipatePurIngEvent'=> $isParticipatePurIngEvent,
+				'isParticipateSellIngEvent'=> $isParticipateSellIngEvent,
 				'payback'=> $payback,
 				'paybackMileageType'=> 8
 			];

@@ -175,7 +175,6 @@
 			$query = 'UPDATE `imi_dealings` SET
 					   `dealings_subject` = ?,
 					   `dealings_content` = ?,
-					   `dealings_mileage` = ?,
 					   `memo` = ?,
 					   `item_object_no` = ?
 					   WHERE `idx` = ?';
@@ -830,7 +829,7 @@
          * 거래 타입 가져오기 
          *
          * @param int $dealingsIdx
-		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부ㄴ
+		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
          *
          * @return string/bool
          */
@@ -853,13 +852,179 @@
 		/**
 		 * 함수 정리 ---
 		 */
+
+		/**
+		 * 거래글 생성 프로세스 
+		 *
+		 * @param array @param 거래 생성시 필요한 데이터를 배열로 전달
+		 * 
+		 * @return array
+		 */
+		public function dealingsInsertProcess($param)
+		{
+			// 거래생성
+			$cDealingsQ = 'INSERT INTO `imi_dealings` SET
+							`expiration_date` = ?,
+							`register_date` = ?,
+							`dealings_type` = ?,
+							`dealings_subject` = ?,
+							`dealings_content` = ?,
+							`item_no` = ?,
+							`item_money` = ?,
+							`item_object_no` = ?,
+							`dealings_mileage` = ?,
+							`dealings_commission` = ?,
+							`dealings_status` = ?,
+							`memo` = ?,
+							`writer_idx` = ?';
+			
+			$cDealingsResult = $this->db->execute($cDealingsQ, $param);
+			$dealingsInsertId = $this->db->insert_id();
+
+			if ($dealingsInsertId < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '거래글 등록하면서 오류가 발생했습니다.'
+				];
+			}
+
+			// 거래 처리과정 생성
+			$cProcessP = [
+				'dealings_idx'=> $dealingsInsertId,
+				'dealings_status_idx'=> 1
+			];
+
+			$cDealingsProcessQ = 'INSERT INTO `imi_dealings_process` SET
+									`dealings_idx` = ?,
+									`dealings_status_idx` = ?,
+									`dealings_datetime` = now()';
+				
+			$cDealingsProcessResult = $this->db->execute($cDealingsProcessQ, $cProcessP);
+			$dealingsProcessId = $this->db->insert_id();
+
+			if ($dealingsProcessId < 1) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '거래 처리과정 생성하면서 오류가 발생했습니다.'
+				];
+			}
+
+			return [
+				'result'=> true,
+				'resultMessage'=> '',
+				'insertId'=> $dealingsInsertId
+			];
+		}
+
+		/**
+		 * 거래 유저 프로세스  
+		 *
+		 * @param array $param 거래 유저 추가/수정하기 위한 정보을 담은 배열 
+		 *
+		 * @return array 
+		 */
+		public function dealingsUsersProcess($param)
+		{
+			$dealingsStatus = $param['dealings_status'];
+			$dealingsIdx = $param['dealings_idx'];
+			$memberIdx = $param['member_idx'];
+
+			$rUserCountQ = 'SELECT COUNT(`idx`) cnt FROM `imi_dealings_user` WHERE `dealings_idx` = ?';
+			
+			$rUserCountResult = $this->db->execute($rUserCountQ, $dealingsIdx);
+			if ($rUserCountResult === false) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '거래 유저 테이블 카운트하면서 오류가 발생하였습니다.'
+				];
+			}
+
+			$dealingsUserCnt = $rUserCountResult->fields['cnt'];
+
+			// 거래 기본정보 DB에서 받아오기
+			$rDealingsQ = 'SELECT `dealings_type`,
+								  `dealings_status`,
+								  `writer_idx`,
+								  `idx`
+							FROM `imi_dealings`
+							WHERE `idx` = ?
+							FOR UPDATE';
+			
+			$rDealingsResult = $this->db->execute($rDealingsQ, $dealingsIdx);
+			if ($rDealingsResult === false) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '거래 정보 조회 하면서 오류가 발생하였습니다.'
+				];
+			}
+
+			$dealingsNewStatus = $rDealingsResult->fields['dealings_status']+1;
+			$dealingsNewIdx = $rDealingsResult->fields['idx'];
+
+			if ($dealingsStatus == 1 && $dealingsUserCnt == 0) {
+				// 해당 거래글이 없는 경우 추가
+				$rDealingsUserP = [
+					'dealings_idx'=> $rDealingsResult->fields['idx'],
+					'dealings_writer_idx'=> $rDealingsResult->fields['writer_idx'],
+					'dealings_member_idx'=> $memberIdx,
+					'dealings_status'=> $dealingsStatus,
+					'dealings_type'=> $rDealingsResult->fields['dealings_type']
+				];
+
+				$cDealingsUserQ = 'INSERT INTO `imi_dealings_user` SET
+									`dealings_idx` = ?,
+									`dealings_writer_idx` = ?,
+									`dealings_member_idx` = ?,
+									`dealings_status` = ?,
+									`dealings_type` = ?,
+									`dealings_date` = curdate()';
+			
+				$cDealingsUserResult = $this->db->execute($cDealingsUserQ, $rDealingsUserP);
+				$cDealingsUserInserId = $this->db->insert_id();
+
+				if ($cDealingsUserInserId < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '거래 유저를 추가하면서 오류가 발생하였습니다.'
+					];
+				}
+			} else {
+				// 해당 거래글이 있는 경우 수정
+				$rDealingsUserP = [
+					'dealings_status'=> $dealingsNewStatus,
+					'dealings_idx'=> $rDealingsResult->fields['idx']
+				];
+
+				$uDealingsUserQ = 'UPDATE `imi_dealings_user` SET 
+									`dealings_status` = ?,
+									`dealings_date` = curdate()
+									WHERE `dealings_idx` = ?';
+
+				$uDealingsUserResult = $this->db->execute($uDealingsUserQ, $rDealingsUserP);
+
+				$uDealingsUsersAffectedRow = $this->db->affected_rows();
+				if ($uDealingsUsersAffectedRow < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '거래 유저를 수정하면서 오류가 발생했습니다.'
+					];
+				}
+			}
+
+			return [
+				'result'=> true,
+				'resultMessage'=> '',
+				'dealingsNewStatus'=> $dealingsNewStatus,
+				'dealingsNewIdx'=> $dealingsNewIdx
+			];
+		}
 		
 		/**
 		 * 거래 상태 프로세스 
 		 *
-		 * @param array $param 거래 상태 프로세스 수정하기 위한 정보
+		 * @param array $param 거래 상태 프로세스 수정하기 위한 정보을 담은 배열
 		 *
-		 * @return int/bool
+		 * @return array
 		 */
 		public function dealignsStatusProcess($param)
 		{
@@ -903,7 +1068,7 @@
 			if ($inserId < 1) {
 				return [
 					'result'=> false,
-					'resultMessage'=> '거래 프로세스 테이블 수정하면서 오류가 발생했습니다.'
+					'resultMessage'=> '거래 프로세스 테이블 추가 하면서 오류가 발생했습니다.'
 				];
 			}
 

@@ -40,85 +40,56 @@
 			throw new Exception('유효하지 않은 거래 타입입니다. 다시 시도하세요.');
 		}
 
+		if (!array_key_exists($_SESSION['dealings_status'], $CONFIG_DEALINGS_STATUS_CODE)){
+			throw new Exception('거래 상태가 유효하지 않습니다.');
+		}
+
 		$db->startTrans();
-		
-		$param = [
-			'idx'=>$_SESSION['dealings_idx'],
-			'is_del'=>'N',
-			'dealinges_status'=>$_SESSION['dealings_status'],
+
+		$rDealingsExistP = [
+			'idx'=> $_SESSION['dealings_idx'],
+			'is_del'=> 'N',
+			'dealinges_status'=> $_SESSION['dealings_status'],
 		];
 
-		$existCount = $dealingsClass->isDealingsDataExist($param, $isUseForUpdate);
-		if ($existCount === false){
-			throw new RollbackException('거래 데이터 이중등록 체크에 오류가 발생했습니다.');
+		$rDealingsExistQ = 'SELECT count(`idx`) cnt 
+							FROM `imi_dealings`
+							WHERE `idx` = ? 
+							AND `is_del` = ?
+							AND `dealings_status` = ?';
+			
+		$rDealingsExistResult = $db->execute($rDealingsExistQ, $rDealingsExistP);
+		if ($rDealingsExistResult === false) {
+			throw new RollbackException('거래 이중 등록 확인하는 중에 오류가 발생했습니다.');
 		}
 
-		if($existCount === 0){
-			throw new RollbackException('해당 데이터는 대기상태가 아닙니다!');
+		$existCount = $rDealingsExistResult->fields['cnt'];
+		if ($existCount == 0) {
+			throw new RollbackException('해당 거래글은 거래대기 상태가 아닙니다.');
 		}
 
-		// 다음 거래상태 구하기
-		$statusData = [
-			'dealings_status'=>$_SESSION['dealings_status']
+		// 거래유저 데이터 처리(추가/수정)
+		$dealingsUserP = [
+			'dealings_idx'=> $_SESSION['dealings_idx'],
+			'member_idx'=> $_SESSION['idx'],
+			'dealings_status'=> $_SESSION['dealings_status']
 		];
 
-		$nextStatus = $dealingsClass->getNextDealingsStatus($statusData, $isUseForUpdate);
-		if ($nextStatus === false) {
-			throw new RollbackException('거래 상태에 오류가 발생했습니다.');
+		$dealingsUserProcResult = $dealingsClass->dealingsUsersProcess($dealingsUserP);
+		if ($dealingsUserProcResult['result'] === false) {
+			throw new RollbackException($dealingsUserProcResult['resultMessage']);
 		}
 
-		$dealingsExistCount = $dealingsClass->isExistDealingsIdx($_SESSION['dealings_idx'], $isUseForUpdate);
-		if ($dealingsExistCount === false) {
-			throw new RollbackException('거래 유저 테이블에 오류가 발생했습니다.');
-		}
-
-		if ($_SESSION['dealings_status'] == 1 && $dealingsExistCount == 0) {
-			// 판매대기, 구매대기의 경우 거래유저테이블에 데이터 생성	
-			$userData = [
-				'dealings_idx'=> $_SESSION['dealings_idx'],
-				'dealings_writer_idx'=> $_SESSION['dealings_writer_idx'],
-				'dealings_member_idx'=> $_SESSION['idx'],
-				'dealings_status'=> $nextStatus,
-				'dealings_type'=> $postData['dealings_type']
-			];
-
-			$insertResult = $dealingsClass->insertDealingsUser($userData);
-			if ($insertResult < 1) {
-				throw new RollbackException('거래 유저 생성 실패하였습니다.');
-			}
-		} else {
-			// 거래유저테이블에 데이터 수정
-			$userData = [
-				'dealings_status'=> $nextStatus,
-				'dealings_idx'=> $_SESSION['dealings_idx']
-			];
-
-			$updateResult = $dealingsClass->updateDealingsUser($userData);
-			if ($updateResult < 1) {
-				throw new RollbackException('거래 유저 수정 실패하였습니다.');
-			}
-		}
-
-		$dealingsParam = [
-			'nextStatus'=> $nextStatus,
-			'idx'=> $_SESSION['dealings_idx']
-		];
-		
-		// 거래테이블 상태변경 
-		$updateDealingsStatus = $dealingsClass->updateDealingsStatus($dealingsParam);
-		if ($updateDealingsStatus < 1) {
-			throw new RollbackException('거래 상태 정보 수정 실패하였습니다.');
-		}
-
-		// 처리절차 생성하기
-		$processData = [
-			'dealings_idx'=>$_SESSION['dealings_idx'],
-			'dealings_status_idx'=>$nextStatus
+		// 거래 상태 파라미터
+		$dealingsStPcParam = [
+			'dealings_status'=> $dealingsUserProcResult['dealingsNewStatus'],
+			'dealings_idx'=> $dealingsUserProcResult['dealingsNewIdx']
 		];
 
-		$insertProcessResult = $dealingsClass->insertDealingsProcess($processData);
-		if ($insertProcessResult < 1) {
-			throw new RollbackException('거래 처리과정 생성 실패하였습니다.');
+		// 거래상태 관련
+		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
+		if ($dealingsProcessResult['result'] === false) {
+			throw new RollbackException($dealingsProcessResult['resultMessage']);
 		}
 
 		$_SESSION['dealings_writer_idx'] = '';

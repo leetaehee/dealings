@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * 상품권 거래 완료 (판매자시점)
+	 * 상품권 거래 취소 (판매자시점)
 	 */
 	
 	// 공통
@@ -15,9 +15,6 @@
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsCommissionClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/SellItemClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/EventClass.php';
 
@@ -36,10 +33,7 @@
 
 		$dealingsClass = new DealingsClass($db);
 		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
-		$commissionClass = new DealingsCommissionClass($db);
 		$couponClass = new CouponClass($db);
-		$sellItemClass = new SellItemClass($db);
 		$eventClass = new EventClass($db);
 
 		// return시 url 설정
@@ -57,20 +51,44 @@
 		
 		$db->startTrans();
 
-		// 환불시 필요한 데이터 추출 
-		$chargeData = $dealingsClass->getMileageChargeDataByDealings($dealingsIdx, $isUseForUpdate);
-		if ($chargeData === false) {
-			throw new RollbackException('마일리지 충전에 필요한 데이터를 가져올 수 없습니다');
+		$rDealingsQ = 'SELECT `dealings_mileage`,
+							  `dealings_commission`,
+							  ROUND((`dealings_mileage` * `dealings_commission`)/100) `commission`,
+							  `dealings_subject`,
+							  `item_no`,
+							  `idx`
+						FROM `imi_dealings`
+						WHERE `idx` = ?
+						FOR UPDATE';
+	
+		// 거래 테이블 조회
+		$dealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
+		if ($dealingsResult === false) {
+			throw new RollbackException('거래 테이블 조회 시 오류가 발생하였습니다.');
 		}
-		$dealingsMileage = $chargeData->fields['dealings_mileage']; // 거래금액
-		$fixedDealingsMileage = $dealingsMileage;
-		$commission = $chargeData->fields['commission']; // 수수료
 
-		$dealingsStatus = $chargeData->fields['dealings_status']; // 현재 거래상태
-		$itemNo = $chargeData->fields['item_no']; //상품권종류
-		$dealingsWriterIdx = $chargeData->fields['dealings_writer_idx']; // 거래글 작성자
-		$dealingsMemberIdx = $chargeData->fields['dealings_member_idx']; // 거래하는 사람
-		$sellerMemberIdx = 0;
+		$rDealingsUserQ = 'SELECT `dealings_date`,
+								  `dealings_writer_idx`,
+								  `dealings_member_idx` 
+							FROM `imi_dealings_user` 
+							WHERE `dealings_idx` = ?
+							FOR UPDATE';
+
+		// 거래 유저 테이블 조회
+		$dealingsUserResult = $db->execute($rDealingsUserQ, $dealingsIdx);
+		if ($dealingsUserResult === false) {
+			throw new RollbackException('거래 유저 테이블 조회 시 오류가 발생했습니다.');
+		}
+
+		$dealingsMileage = $dealingsResult->fields['dealings_mileage']; // 거래금액
+		$fixedDealingsMileage = $dealingsMileage;
+
+		$commission = $dealingsResult->fields['commission']; // 수수료
+		$itemNo = $dealingsResult->fields['item_no']; //상품권종류
+		$dealingsWriterIdx = $dealingsUserResult->fields['dealings_writer_idx']; // 거래글 작성자
+		$dealingsMemberIdx = $dealingsUserResult->fields['dealings_member_idx']; // 거래하는 사람
+	
+		$sellerMemberIdx = $buyerMemberIdx  = 0;
 
 		if ($getData['target'] == 'member_idx') {
 			$couponUseParam = [
@@ -92,59 +110,50 @@
 			$buyerMemberIdx = $dealingsMemberIdx;
 		}
 
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
-		if ($useCouponData === false) {
-			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
+		// 구매자 쿠폰 사용내역
+		$rUseageQ = 'SELECT `idx`,
+							`coupon_member_idx`,
+							`coupon_use_before_mileage`,
+							`coupon_use_mileage`
+					 FROM `imi_coupon_useage`
+					 WHERE `dealings_idx` = ?
+					 AND `member_idx` = ?
+					 AND `issue_type` = ?
+					 AND `is_refund` = ?
+					 FOR UPDATE';
+		
+		$rUseageResult = $db->execute($rUseageQ, $couponUseParam);
+		if ($rUseageResult === false) {
+			throw new RollbackException('구매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
 		}
-		$couponIdx = $useCouponData->fields['idx'];
-		$coupon_use_mileage = $useCouponData->fields['coupon_use_mileage'];
-		$couponMemberIdx = $useCouponData->fields['coupon_member_idx'];
+	
+		$couponIdx = $rUseageResult->fields['idx'];
+		$couponUseMileage = $rUseageResult->fields['coupon_use_mileage'];
+		$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
 
 		$commissionMemberIdx = 0;
 
-		$nextStatus = 5;
-
+		/** 쿠폰 환불 처리(구매자) */ 
 		if (!empty($couponIdx)){
-			if ($coupon_use_mileage > 0) {
-				$dealingsMileage = $coupon_use_mileage;
+			if ($couponUseMileage > 0) {
+				$dealingsMileage = $couponUseMileage;
 			}
 
-			if ($coupon_use_mileage == 0){
+			if ($couponUseMileage == 0){
 				$dealingsMileage = 0;
 			}
-
-			// 거래취소시 쿠폰 환불정보 수정 (구매자)
+			
 			$couponStatusParam = [
+				'issue_type'=> '구매',
 				'coupon_use_end_date'=> date('Y-m-d'),
 				'is_refund'=> 'Y',
-				'idx'=>$couponIdx
+				'idx'=> $couponIdx,
+				'coupon_member_idx'=> $couponMemberIdx
 			];
 
-			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);
-			if ($updateCouponResult < 1) {
-				throw new RollbackException('구매자 쿠폰: 거래취소로 쿠폰 복구 중에 문제가 생겼습니다.');
-			}
-
-			// 거래 취소시 구매자 쿠폰 복구
-			$couponStatusName = '사용대기';
-
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
-			if ($couponStatusCode === false) {
-				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
-			}
-
-			if (empty($couponStatusCode)) {
-				throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
-			}
-
-			$couponPurMbStParam = [
-				'coupon_status'=> $couponStatusCode,
-				'idx'=> $couponMemberIdx
-			];
-
-			$updateCouponPurMbStResult = $couponClass->updateCouponMemberStatus($couponPurMbStParam);
-			if ($updateCouponPurMbStResult < 1) {
-				throw new RollbackException('쿠폰 상태 코드를 변경하면서 오류가 발생했습니다.');
+			$couponRefundResult = $couponClass->couponRefundProcess($couponStatusParam);
+			if ($couponRefundResult['result'] === false) {
+				throw new RollbackException($couponRefundResult['resultMessage']);
 			}
 		}
 
@@ -155,153 +164,79 @@
 			'is_refund'=>'N'
 		];
 
-
-		$useSellCouponData = $couponClass->getUseCouponData($couponSellUseParam, $isUseForUpdate);
-		if ($useSellCouponData === false) {
-			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
+		// 판매자 쿠폰 사용내역 가져오기
+		$rSellUseageQ = 'SELECT `idx`,
+								`coupon_member_idx`
+						 FROM `imi_coupon_useage`
+						 WHERE `dealings_idx` = ?
+						 AND `member_idx` = ?
+						 AND `issue_type` = ?
+						 AND `is_refund` = ?
+						 FOR UPDATE';
+		
+		$rSellUseageResult = $db->execute($rSellUseageQ, $couponSellUseParam);
+		if ($rSellUseageResult === false) {
+			throw new RollbackException('판매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
 		}
-		$couponSellerIdx = $useSellCouponData->fields['idx'];
-		$couponSellerMemberIdx = $useSellCouponData->fields['coupon_member_idx'];
 
+		$couponSellerIdx = $rSellUseageResult->fields['idx'];
+		$couponSellerMemberIdx = $rSellUseageResult->fields['coupon_member_idx'];
+
+		/** 쿠폰 환불 처리(판매자) */
 		if (!empty($couponSellerIdx)) {
-
-			// 거래취소시 쿠폰 환불정보 수정 (판매자)
-			$couponSellStatusParam = [
+			$sellCouponStatusParam = [
+				'issue_type'=> '판매',
 				'coupon_use_end_date'=> date('Y-m-d'),
 				'is_refund'=> 'Y',
-				'idx'=>$couponSellerIdx
+				'idx'=> $couponSellerIdx,
+				'coupon_member_idx'=> $couponSellerMemberIdx
 			];
 
-			$updateSellerCouponResult = $couponClass->updateCouponStatus($couponSellStatusParam);
-			if ($updateSellerCouponResult < 1) {
-				throw new RollbackException('판매자 쿠폰: 거래취소로 쿠폰 복구 중에 문제가 생겼습니다.');
-			}
-
-			// 거래 취소시 판매자 쿠폰 복구
-			$couponStatusName = '사용대기';
-
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
-			if ($couponStatusCode === false) {
-				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
-			}
-
-			if (empty($couponStatusCode)) {
-				throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
-			}
-
-			$couponSellMbStParam = [
-				'coupon_status'=> $couponStatusCode,
-				'idx'=> $couponMemberIdx
-			];
-
-			$updateCouponSellMbStResult = $couponClass->updateCouponMemberStatus($couponSellMbStParam);
-			if ($updateCouponSellMbStResult < 1) {
-				throw new RollbackException('쿠폰 상태 코드를 변경하면서 오류가 발생했습니다.');
+			$couponSellRefundResult = $couponClass->couponRefundProcess($sellCouponStatusParam);
+			if ($couponSellRefundResult['result'] === false) {
+				throw new RollbackException($couponSellRefundResult['resultMessage']);
 			}
 		}
 
 		if ($dealingsMileage > 0) {
-			$chargeParam = [
-				'idx'=> $buyerMemberIdx,
-				'account_bank'=> '아이엠아이',
-				'account_no'=> setEncrypt($chargeData->fields['dealings_subject']),
-				'charge_cost'=> $dealingsMileage,
-				'spare_cost'=> $dealingsMileage,
-				'charge_name'=> '관리자',
-				'mileageType'=> $mileageType,
-				'dealings_date'=> date('Y-m-d'),
-				'charge_status'=> $chargeStatus
+			// 충전 파라미터
+			$chargeParamGroup = [
+				'charge_param' => [
+					'member_idx'=> $buyerMemberIdx,
+					'charge_infomation'=> '아이엠아이',
+					'charge_account_no'=> setEncrypt($dealingsResult->fields['dealings_subject']),
+					'charge_cost'=> $dealingsMileage,
+					'spare_cost'=> $dealingsMileage,
+					'charge_name'=> '관리자',
+					'mileage_idx'=> $mileageType,
+					'charge_date'=> date('Y-m-d'),
+					'charge_status'=> $chargeStatus
+				],
+				'dealings_idx'=> $dealingsIdx,
+				'dealings_status'=> 4
 			];
 
-			// 충전정보 추가
-			$insertChargeResult = $mileageClass->insertMileageCharge($chargeParam);
-			if ($insertChargeResult < 1) {
-				throw new RollbackException('마일리지 충전 실패하였습니다.');
+			// 충전하기
+			$chargeResult = $mileageClass->chargeMileage($chargeParamGroup);
+			if ($chargeResult['result'] === false) {
+				throw new RollbackException($chargeResult['resultMessage']);
 			}
 
-			$mileageParam = [
-				'charge_cost'=>$dealingsMileage,
-				'idx'=> $buyerMemberIdx
-			];
-			$updateResult = $memberClass->updateMileageCharge($mileageParam); // 마일리지변경
-			if ($updateResult < 1) {
-				throw new RollbackException('회원 마일리지 정보 수정 실패하였습니다.');
-			}
-
-			$memberMileageType = $mileageClass->getMemberMileageTypeIdx($buyerMemberIdx, $isUseForUpdate);
-			if ($memberMileageType == false) {
-				$mileageTypeParam = [
-					'member_idx'=> $buyerMemberIdx, 
-					'mileage'=> $dealingsMileage
-				];
-				$mileageTypeInsert = $mileageClass->mileageTypeInsert($mileageType, $mileageTypeParam);
-				if ($mileageTypeInsert < 1) {
-					throw new RollbackException('마일리지 유형별 합계 삽입 실패 하였습니다.');
-				} 
-			} else {
-				$mileageTypeParam = [
-					'mileage'=> $dealingsMileage,
-					'member_idx'=> $buyerMemberIdx
-				];
-				$mileageTypeUpdate = $mileageClass->mileageTypeChargeUpdate($mileageType, $mileageTypeParam);
-				if ($mileageTypeUpdate < 1) {
-					throw new RollbackException('마일리지 유형별 합계 정보 수정 실패 하였습니다.');
-				}
-			}
-
-			$changeData = [
-				'dealings_status'=>$nextStatus,
-				'dealings_idx'=>$dealingsIdx
+			// 거래 상태 파라미터
+			$dealingsStPcParam = [
+				'dealings_status'=> 5,
+				'dealings_idx'=> $dealingsIdx
 			];
 
-			$mileagechangeIdx = $dealingsClass->getMileageChangeIdx($dealingsIdx, $isUseForUpdate);
-			if ($mileagechangeIdx === false) {
-				throw new RollbackException("거래 마일리지 변동정보를 읽어오다가 오류가 발생했습니다.");
+			// 거래상태 관련
+			$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
+			if ($dealingsProcessResult['result'] === false) {
+				throw new RollbackException($dealingsProcessResult['resultMessage']);
 			}
-
-			// 마일리지 변동내역 상태 수정 (100% 쿠폰 할인인경우 결제 안했기 때문에 안해도 됨)		
-			if(!empty($mileagechangeIdx)){
-				$updateDealingsChangeResult = $dealingsClass->updateDealingsChange($changeData);
-				if ($updateDealingsChangeResult < 1) {
-					throw new RollbackException('거래 마일리지 내역에 상태 수정 실패하였습니다.');
-				}
-			}
-		}
-
-		// 거래 데이터 상태 수정
-		$dealingsParam = [
-			'dealings_status'=>$nextStatus,
-			'idx'=>$dealingsIdx
-		];
-
-		$updateDealingsStatusResult = $dealingsClass->updateDealingsStatus($dealingsParam);
-		if ($updateDealingsStatusResult < 1) {
-			throw new RollbackException('거래정보 상태 수정 실패하였습니다.');
-		}
-
-		// 거래유저정보 상태 수정
-		$userData = [
-			'dealings_status'=>$nextStatus,
-			'dealings_idx'=>$dealingsIdx
-		];
-
-		$updateDealingsUserResult = $dealingsClass->updateDealingsUser($userData);
-		if ($updateDealingsUserResult < 1) {
-			throw new RollbackException('거래 유저 수정 실패 하였습니다.');
-		}
-
-		// 처리절차 생성하기
-		$processData = [
-			'dealings_idx'=>$dealingsIdx,
-			'dealings_status_idx'=>$nextStatus
-		];
-
-		$insertProcessResult = $dealingsClass->insertDealingsProcess($processData);
-		if ($insertProcessResult < 1) {
-			throw new RollbackException('거래 처리과정 생성 실패하였습니다.');
 		}
 
 		$alertMessage = '정상적으로 거래가 취소되었습니다.';
+
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

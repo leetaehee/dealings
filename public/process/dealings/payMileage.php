@@ -117,11 +117,12 @@
 
 			// 쿠폰 생성시 가격을 정해놓지 않은 경우 (모든가격)
 			if ($discountMileage == 0) {
-				$dealingsMileage = round(($postData['dealings_mileage']*$discountRate)/100);
+				$dealingsMileage = $postData['dealings_mileage'];
+				$dealingsMileage -= round(($postData['dealings_mileage']*$discountRate)/100);
 			}
-
+			
+			// 할인율이 100퍼센트 이하일때만 체크 (할인율 100%는 무료 구매)
 			if ($discountRate == 100) {
-				// 할인율이 100퍼센트 이하일때만 체크 (할인율 100%는 무료 구매)
 				$dealingsMileage = 0;
 			}
 		} else {
@@ -204,7 +205,7 @@
 			$mileageChangeParam = [
 				'dealings_idx'=>$_SESSION['dealings_idx'],
 				'dealings_writer_idx'=>$_SESSION['dealings_writer_idx'],
-				'dealings_member_idx'=>$_SESSION['purchaser_idx'],
+				'dealings_member_idx'=>$_SESSION['dealings_member_idx'],
 				'dealings_status_code'=>$nextStatus
 			];
 
@@ -309,6 +310,7 @@
 		}
 
 		$_SESSION['dealings_writer_idx'] = '';
+		$_SESSION['dealings_member_idx'] = '';
 		$_SESSION['dealings_idx'] = '';
 		$_SESSION['dealigng_status'] = '';
 		$_SESSION['purchaser_idx'] = '';

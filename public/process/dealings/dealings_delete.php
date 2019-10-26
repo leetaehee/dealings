@@ -13,7 +13,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
     // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
 
 	// Exception 파일 
@@ -22,14 +21,12 @@
 	try {
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
 		// 글삭제
-		$dealingsClass = new DealingsClass($db);
 		$couponClass = new CouponClass($db);
 
 		// return시 url 설정
@@ -44,76 +41,96 @@
 		}
 
 		$dealingsIdx = $getData['idx'];
-		$dealingsStatus = 6;
 
 		$db->startTrans();
 
-		// 거래타입 가져오기
-		$dealingsType = $dealingsClass->getDealingsType($dealingsIdx, $isUseForUpdate);
-		if ($dealingsType === false) {
-			throw new RollbackException('거래타입을 가져오는 중에 오류가 발생했습니다.');
+		// 현재 게시글의 거래타입 가져오기
+		$rDealingsQ = 'SELECT `dealings_type` FROM `imi_dealings` WHERE `idx` = ?';
+
+		$rDealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
+		if ($rDealingsResult === false) {
+			throw new RollbackException('거래 타입을 조회 하면서 오류가 발생하였습니다.');
 		}
 
-		$couponUseParam = [
+		$dealingsType = $rDealingsResult->fields['dealings_type'];
+		if ($dealings_type == 'Y') {
+			throw new RollbackException('이미 삭제 된 거래내역입니다.');
+		}
+
+		$couponUseP = [
 			'dealings_idx'=> $dealingsIdx,
 			'member_idx'=> $_SESSION['idx'],
-			'issue_type'=> $dealingsType == '판매' ? '판매' : '구매',
+			'issue_type'=> '판매',
 			'is_refund'=> 'N'
 		];
 
-		$useCouponData = $couponClass->getUseCouponData($couponUseParam, $isUseForUpdate);
-		if ($useCouponData === false) {
-			throw new RollbackException("쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.");
-		}
+		if ($dealingsType == '판매') {
+			// 쿠폰 사용내역 및 쿠폰정보 가져오기
+			$rUseageQ = 'SELECT `idx`,
+								`coupon_member_idx`
+						 FROM `imi_coupon_useage`
+						 WHERE `dealings_idx` = ?
+						 AND `member_idx` = ?
+						 AND `issue_type` = ?
+						 AND `is_refund` = ?';
 
-		$couponIdx = $useCouponData->fields['idx'];
-		$couponMemberIdx = $useCouponData->fields['coupon_member_idx'];
-
-		if (!empty($couponIdx)){
-			// 판매삭제 시 사용내역에 쿠폰 환불입력
-			$couponStatusParam = [
-				'coupon_use_end_date'=> date('Y-m-d'),
-				'is_refund'=> 'Y',
-				'idx'=> $couponIdx
-			];
-		
-			$updateCouponResult = $couponClass->updateCouponStatus($couponStatusParam);
-			if ($updateCouponResult < 1) {
-				throw new RollbackException('판매취소로 쿠폰 복구 중에 문제가 생겼습니다.');
-			}
-			
-			// 판매삭제 시 쿠폰 복구
-			$couponStatusName = '사용대기';
-
-			$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
-			if ($couponStatusCode === false) {
-				throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
+			$rUseageResult = $db->execute($rUseageQ, $couponUseP);
+			if ($rUseageResult === false) {
+				throw new RollbackException('쿠폰 사용내역을 조회 하면서 오류가 발생하였습니다.');
 			}
 
-			if (empty($couponStatusCode)) {
-				throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
-			}
+			$couponIdx = $rUseageResult->fields['idx'];
+			$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
 
-			$couponMbStParam = [
-				'coupon_status'=> $couponStatusCode,
-				'idx'=> $couponMemberIdx
-			];
+			// 쿠폰 복구
+			if (!empty($couponIdx)) {
+				$couponStatusP = [
+					'issue_type'=> '판매',
+					'coupon_use_end_date'=> $today,
+					'is_refund'=> 'Y',
+					'idx'=> $couponIdx,
+					'coupon_member_idx'=> $couponMemberIdx
+				];
 
-			$updateCouponMbStatusResult = $couponClass->updateCouponMemberStatus($couponMbStParam);
-			if ($updateCouponMbStatusResult < 1) {
-				throw new RollbackException('쿠폰 상태 코드를 변경하면서 오류가 발생했습니다.');
+				$couponRefundResult = $couponClass->couponRefundProcess($couponStatusP);
+				if ($couponRefundResult['result'] === false) {
+					throw new RollbackException($couponRefundResult['resultMessage']);
+				}
 			}
 		}
 
-		$deleteParam = [
+		$uDeleteDealingsP = [
 			'is_del'=> 'Y',
-			'dealings_status'=> $dealingsStatus,
+			'dealings_status'=> 6,
 			'dealings_idx'=> $dealingsIdx
 		];
 
-		$updateResult = $dealingsClass->updateDealingsDeleteStatus($deleteParam);
-		if ($updateResult < 1) {
-			throw new RollbackException('거래 데이터 삭제 시 오류가 발생했습니다.');
+		$uDealingsQ = 'UPDATE `imi_dealings` SET 
+						`is_del` = ?,
+						`dealings_status` = ?
+						WHERE `idx` = ?';
+
+		$uDealingsResult = $db->execute($uDealingsQ, $uDeleteDealingsP);
+		$uDealingsAffectedRow = $db->affected_rows();
+		if ($uDealingsAffectedRow < 1) {
+			throw new RollbackException('거래 글을 삭제하면서 오류가 발생하였습니다.');
+		}
+
+		$uDealingsProcP = [
+			'dealings_status'=> 6,
+			'dealings_idx'=> $dealingsIdx
+		];
+
+		$uDealingsProcQ = 'INSERT INTO `imi_dealings_process` SET
+								`dealings_status_idx` = ?,
+								`dealings_idx` = ?,
+								`dealings_datetime` = now()';
+			
+		$uDealingsProcQ = $db->execute($uDealingsProcQ, $uDealingsProcP);
+		$uDealingsInsertId = $db->insert_id();
+
+		if ($uDealingsInsertId < 1) {
+			throw new RollbackException('거래 절차를 추가 하면서 오류가 발생하였습니다.');
 		}
 
 		$alertMessage = '거래 데이터가 정상적으로 삭제 되었습니다.';
