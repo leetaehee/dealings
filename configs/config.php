@@ -11,8 +11,7 @@
 	 */
 
 	// DB 커넥션정보
-	//define('DB_HOST', 'localhost'); 
-	define('DB_HOST', '118.27.39.240'); 
+	define('DB_HOST', 'localhost'); 
 	define('DB_USER', 'imi');
 	define('DB_NAME', 'imi');
 	define('DB_PASSWORD', 'imith190819@');
@@ -112,7 +111,7 @@
 			'seq'=> 1,
 			'idx'=> 1,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-25',
+			'end_date'=> '2019-10-31',
 			'is_end'=> 'N',
 			'event_type'=> '구매',
 			'event_name'=> '구매이벤트'
@@ -121,7 +120,7 @@
 			'seq'=> 2,
 			'idx'=> 1,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-25',
+			'end_date'=> '2019-10-31',
 			'is_end'=> 'N',
 			'event_type'=> '판매',
 			'event_name'=> '판매이벤트'

@@ -1,9 +1,6 @@
 <?php
 	/**
-	 *  1. 거래(판매,구매)글은 5일이 지난 경우 삭제
-	 *  2. imi_dealings에 expiration_date 컬럼을 이용할 것(오늘 날짜보다 작으면 삭제)
-	 *  3. 거래유저 테이블 및 처리과정 남길것
-	 *  4. 거래대기,결제대기에 대해 처리할것 
+	 * 특정기간 지날 경우 거래글 자동 삭지 (크론탭)
 	 */
 
 	$topDir = __DIR__ . '/../../..';
@@ -24,71 +21,111 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
-		$today = date('Y-m-d');
-		$isUseForUpdate = true;
+		$dealingsClass = new DealingsClass($db);
 
-        $db->startTrans(); // 트랜잭션시작
-
-        $dealingsClass = new DealingsClass($db);
-
-		$dealingsDeleteList = $dealingsClass->getDealingsDeleteList($isUseForUpdate);
-        $dealingsDeleteCount = $dealingsDeleteList->recordCount();
-        if ($dealingsDeleteCount > 0) {
-			// 삭제되는 거래 데이터를 배열로 변환하기
-            $dealingsData = $dealingsClass->getDealingsDeleteData($dealingsDeleteList);
-            if ($dealingsData === false) {
-                throw new RollbackException('데이터를 배열로 저장하면서 오류가 발생했습니다. |');
-            }
-			
-			for ($i = 0; $i < count($dealingsData); $i++) {
-				$param = [
-					'dealings_status'=>6,
-					'idx'=>$dealingsData[$i]['idx']
-				];
-
-				$updateParam = [
-					'is_del'=>'Y',
-					'dealings_status'=>6,
-					'idx'=>$dealingsData[$i]['idx']
-				];
-
-				$insertParam = [
-					'idx'=>$dealingsData[$i]['idx'],
-					'dealings_status'=>6
-
-				];
-
-				$dealingsIdx = $dealingsData[$i]['idx'];
-
-				$updateDealingsStatusResult = $dealingsClass->updateDealingsDeleteStatus($updateParam);
-				if ($updateDealingsStatusResult < 1) {
-					throw new RollbackException('거래 데이터 상태 변경 중에 오류가 발생했습니다. |');
-				}
-
-				$dealingsExistCount = $dealingsClass->isExistDealingsIdx($dealingsIdx, $isUseForUpdate);
-				if ($dealingsExistCount === false) {
-					throw new RollbackException('거래 유저를 조회하면서 오류가 발생했습니다. |');
-				}
-
-				if($dealingsExistCount > 0) {
-					$updateDealingsUserResult = $dealingsClass->updateDealingsUser($param);
-					if ($updateDealingsUserResult < 1) {
-						throw new RollbackException('거래 유저 상태 변경 시 오류가 발생했습니다. |');
-					}
-				}
-
-				$insertProcessResult = $dealingsClass->insertDealingsProcess($insertParam);
-				if ($insertProcessResult < 1) {
-					throw new RollbackException('거래 처리과정 생성 실패 하였습니다. |');
-				}
-
-				$alertMessage = '삭제 예정중인 거래데이터가 지워졌습니다! 감사합니다. |';
+		// 트랜잭션시작
+        $db->startTrans();
 		
-				$db->completeTrans();
-			}
-		} else {
-			$alertMessage = '삭제할 데이터가 존재하지 않습니다. |';
+		$rDeleteP = [
+			'is_del'=>'N',
+			'expiration_date'=> $today
+		];
+
+		$rDeleteQ = 'SELECT `idx`,
+							`dealings_status`
+					 FROM `imi_dealings`
+					 WHERE `is_del` = ?
+					 AND `expiration_date` < ?
+					 AND `dealings_status` IN (1,2)
+					 FOR UPDATE';
+				
+		$rDeleteResult = $db->execute($rDeleteQ, $rDeleteP);
+		if ($rDeleteResult === false) {
+			throw new RollbackException('거래 삭제 가능한 데이터를 조회 하면서 오류가 발생했습니다.');
 		}
+
+		$rDeleteResultCount = $rDeleteResult->recordCount();
+		if ($rDeleteResultCount < 1) {
+			throw new RollbackException('거래 삭제 가능한 데이터가 존재하지 않습니다.');
+		}
+
+		foreach($rDeleteResult as $key => $value){
+			$delData[] = [
+				'dealings_status'=> $value['dealings_status'],
+				'idx'=> $value['idx']
+			];
+		}
+
+		for ($i = 0; $i < count($delData); $i++) {
+			// 거래 상태 파라미터
+			$dealingsStatusP = [
+				'is_del'=> 'Y',
+				'dealings_status'=> 6,
+				'dealings_idx'=> $delData[$i]['idx']
+			];
+
+			$uDealingsQ = 'UPDATE `imi_dealings` SET 
+							`is_del` = ?,
+							`dealings_status` = ?
+						   WHERE `idx` = ?';
+
+			$uDealingsResult = $db->execute($uDealingsQ, $dealingsStatusP);
+
+			$dealingsResultAffectedRow = $db->affected_rows();
+			if ($dealingsResultAffectedRow < 1) {
+				throw new RollbackException('거래 삭제하는 중에 오류가 발생했습니다.');
+			}
+
+			$dealingsIdx = $delData[$i]['idx'];
+
+			$rDeliangUserQ = 'SELECT COUNT(`idx`) cnt FROM `imi_dealings_user` WHERE `dealings_idx` = ?';
+
+			$rDealingsUserResult = $db->execute($rDeliangUserQ, $dealingsIdx);
+			if ($rDealingsUserResult === false) {
+				throw new RollbackException('거래 유저 테이블을 조회 하면서 오류가 발생했습니다.');
+			}
+			
+			$isExistDealingsCount = $rDealingsUserResult->fields['cnt'];
+			if ($isExistDealingsCount > 0) {
+				$uDealingsUserP = [
+					'dealings_status'=> 6,
+					'idx'=> $dealingsIdx
+				];
+
+				$uDealingsUserQ = 'UPDATE `imi_dealings_user` SET 
+									`dealings_status` = ?,
+									`dealings_date` = curdate()
+								  WHERE `dealings_idx` = ?';
+
+				$uDealingsUserResult = $db->execute($uDealingsUserQ, $uDealingsUserP);
+
+				$dealingsUserAffectedRow = $db->affected_rows();
+				if ($dealingsUserAffectedRow < 1) {
+					throw new RollbackException('거래 유저 상태를 변경하는 중에 오류가 발생했습니다.');
+				}
+			}
+
+			$cProcessP = [
+				'idx'=> $dealingsIdx,
+				'dealings_status'=> 6
+			];
+
+			$cProcessQ = 'INSERT INTO `imi_dealings_process` SET
+							`dealings_idx` = ?,
+							`dealings_status_idx` = ?,
+							`dealings_datetime` = now()';
+			
+			$cDealingsProcessResult = $db->execute($cProcessQ, $cProcessP);
+			
+			$dealingsProcessInsertId = $db->insert_id();
+			if ($dealingsProcessInsertId < 1) {
+				throw new RollbackException('거래 처리 과정을 생성하면서 오류가 발생했습니다.');
+			}
+		}
+
+		$alertMessage = '삭제 예정중인 거래데이터가 지워졌습니다! 감사합니다. |';
+
+		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
 		$alertMessage = $e->getMessage();

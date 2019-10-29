@@ -1020,80 +1020,229 @@
 		 */
 
 		/**
-         * 마일리지 타입별 합계 테이블에 회원, 컬럼 찾아서 마일리지 삽입 
-         *
-         * @param int $mileageType, array $mileageTypeParam
-         *
-         * @return int/bool
-         */
-		public function mileageTypeInsert($mileageType, $mileageTypeParam)
+		 * 결제 시 마일리지 차감 
+		 *
+		 * @param array @param 결제 시 차감 되는 마일리지 정보  
+		 *
+		 * @return array 
+		 */
+		public function payMileageProcess($param)
 		{
-			// 마일리지 타입에 대해서 컬럼 지정
-			$colName = $this->getMileageTypeColumn($mileageType);
+			// 결제 가능한 마일리지 리스트
+			$mileageWithdrawalList = $param['mileageWithdrawalList'];
+			// 결제 해야 하는 마일리지 
+			$dealingsMileage = $param['dealingsMileage'];
+			// 구분 (거래인지, 마일리지 출금인지)
+			$type = $param['type'];
+			// 거래상태 
+			$dealingsStatsus = $param['dealings_status'];
+			
+			$withdrawalListCount = $mileageWithdrawalList->recordCount();
+			$remainCost = $dealingsMileage;
 
-			$query = "INSERT INTO `imi_mileage_type_sum` SET
-						`member_idx` = ?,
-						`{$colName}` = `{$colName}` + ?
-					";
+			if ($withdrawalListCount > 0) {
+				// 충전 된 마일리지가 있는 경우 결제(거래)하는 금액만큼 리스트 추출
+				foreach ($mileageWithdrawalList as $key => $value) {
+					$useCost = 0;
+					$tmpCost = $value['spare_cost'] - $remainCost;
 
-			$result = $this->db->execute($query, $mileageTypeParam);
-			$insertId = $this->db->insert_id();
+					if ($tmpCost < 0) {
+						$useCost = $value['spare_cost'];
+						$remainCost -= $value['spare_cost'];
+					} else {
+						$useCost += $remainCost;
+						$remainCost -= $remainCost;
+					}
 
-			if ($insertId < 1) {
-				return false;
+					$mileageChargeData[] = [
+						'use_cost'=> $useCost,
+						'idx'=> $value['idx'],
+						'mileage_idx'=> $value['mileage_idx']
+					];
+
+					if ($useCost==0) {
+						array_pop($mileageChargeData);
+					}
+
+					if ($tmpCost > 0) {
+						break;
+					}	
+				}
+			} else {
+				return [
+					'result'=> false,
+					'resultMessage'=> '출금 가능한 마일리지가 존재하지 않습니다.'
+				];
 			}
 
-			return $insertId;
-		}
+			// 충전된 마일리지에서 결제하는 금액만큼 사용처리
+			for ($i = 0; $i < count($mileageChargeData); $i++) {
+				$uChargeP = [
+					'spare_cost'=> $mileageChargeData[$i]['use_cost'],
+					'use_cost'=> $mileageChargeData[$i]['use_cost'],
+					'idx'=> $mileageChargeData[$i]['idx'] 
+				];
 
-		/**
-         * 마일리지 타입별 합계 테이블에 회원, 컬럼 찾아서 마일리지 수정 (누적) 
-         *
-         * @param int $mileageType, array $mileageTypeParam
-         *
-         * @return int/bool
-         */
-		public function mileageTypeChargeUpdate($mileageType, $mileageTypeParam)
-		{
-			// 마일리지 타입에 대해서 컬럼 지정
-			$colName = $this->getMileageTypeColumn($mileageType);
+				// 충전된 마일리지에서 차감
+				$uChargeQ = 'UPDATE `imi_mileage_charge` SET
+									 `spare_cost` = `spare_cost` - ?,
+									 `use_cost` = `use_cost` + ?
+									WHERE `idx` = ?';
+					
+				$uChargeResult = $this->db->execute($uChargeQ, $uChargeP);
+				$chargeAffectedRow = $this->db->affected_rows();
 
-			$query = "UPDATE `imi_mileage_type_sum` SET
-						`{$colName}` = `{$colName}` + ?
-						WHERE `member_idx` = ?
-					";
+				if ($chargeAffectedRow < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '충전금액을 사용 처리 하면서 오류가 발생했습니다.'
+					];
+				}
 
-			$result = $this->db->execute($query, $mileageTypeParam);
-			$affected_row = $this->db->affected_rows();
+				$mileageIdx = $mileageChargeData[$i]['mileage_idx'];
 
-			if ($affected_row < 1) {
-				return false;
+				// 마일리지 유형별로 차감 
+				$colName = $this->getMileageTypeColumn($mileageIdx);
+
+				$uMileageSumP = [
+					'use_cost'=> $mileageChargeData[$i]['use_cost'],
+					'member_idx'=> $_SESSION['purchaser_idx']
+				];
+
+				$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET
+								`{$colName}` = `{$colName}` - ?
+								WHERE `member_idx` = ?";
+
+				$uMileageSumResult = $this->db->execute($uMileageSumQ, $uMileageSumP);
+
+				$mileageSumAffectedRow = $this->db->affected_rows();
+				if ($mileageSumAffectedRow < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '마일리지 유형별 출금금액을 수정하면서 오류가 발생했습니다.'
+					];
+				}
 			}
 
-			return $affected_row;
+			// 사용처리 한 금액에서 모두 사용하였지만 상태가 '사용완료'가 아닌 항목 카운트
+			$rUseChargeQ = 'SELECT COUNT(`spare_cost`) spare_cost
+							FROM `imi_mileage_charge`
+							WHERE `spare_cost` < 1
+							AND `charge_status` <> 6';
+			
+			$rUseChargeResult = $this->db->execute($rUseChargeQ);
+			if ($rUseChargeResult === false) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '사용완료 된 금액을 조회 하면서 오류가 발생했습니다.'
+				];
+			}
+
+			// 사용된 금액이 0이면서 상태가 변경되지 않은 항목 카운트
+			$spareZeroCount = $rUseChargeResult->fields['spare_cost'];
+			if ($spareZeroCount > 0) {
+				$uChargeStatusQ = 'UPDATE `imi_mileage_charge` SET
+									`charge_status` = 6
+									WHERE `spare_cost` = 0';
+			
+				$uChargeStatusQ = $this->db->execute($uChargeStatusQ);
+				
+				$chargeStatusAffectedRow = $this->db->affected_rows();
+				if ($chargeStatusAffectedRow < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '사용 완료 상태를 변경하면서 오류가 발생했습니다.'
+					];
+				}
+			}
+
+			// 출금내역 생성
+			if ($type == 'dealings') {
+				// 거래 시 출금내역은 `imi_dealings_mileage_change` 삽입
+				for ($i = 0; $i<count($mileageChargeData); $i++) {
+					// imi_dealings_mileage_change 에 입력데이터 생성
+					$cChangeP[] = [
+						'use_cost'=> $mileageChargeData[$i]['use_cost'],
+						'idx'=> $mileageChargeData[$i]['idx'],
+						'dealings_idx'=> $_SESSION['dealings_idx'],
+						'dealings_writer_idx'=> $_SESSION['dealings_writer_idx'],
+						'dealings_member_idx'=> $_SESSION['dealings_member_idx'],
+						'dealings_status_code'=> $dealingsStatsus
+					];
+				}
+
+				// 마일리지 변동내역 생성
+				for ($i = 0; $i < count($cChangeP); $i++) {
+					$cChangeQ = 'INSERT INTO `imi_dealings_mileage_change` SET
+									`dealings_money` = ?,
+									`charge_idx` = ?,
+									`dealings_idx` = ?,
+									`dealings_writer_idx` = ?,
+									`dealings_member_idx` = ?,
+									`dealings_status_code` = ?,
+									`dealings_date` = CURDATE()';
+
+					$cChangeResult = $this->db->execute($cChangeQ, $cChangeP[$i]);
+					
+					$changeInsertId = $this->db->insert_id(); // 추가
+					if ($changeInsertId < 1) {
+						return [
+							'result'=> false,
+							'resultMessage'=> '거래 출금데이터을 생성하면서 오류가 발생했습니다.'
+						];
+					}
+				}
+
+				$uMbMileageP = [
+					'mileage'=> $dealingsMileage,
+					'idx'=> $_SESSION['purchaser_idx']
+				];
+
+				// 회원별 마일리지 수정 
+				$uMbMileageQ = 'UPDATE `imi_members` SET
+								`mileage` = `mileage` - ? 
+								WHERE `idx` = ?';
+
+				$uMbMileageResult = $this->db->execute($uMbMileageQ, $uMbMileageP);
+
+				$mbMileageAffectedRow = $this->db->affected_rows();
+				if ($mbMileageAffectedRow < 1) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '회원 마일리지를 수정하면서 오류가 발생했습니다.'
+					];
+				}
+			}
+
+			return [
+				'result'=> true,
+				'resultMessage'=> ''
+			];
 		}
 
 		/**
 		 * 마일리지 충전
 		 *
-		 * @param array $chargeData 마일리지 충전을 위한 데이터를 배열로 받음
+		 * @param array $param 마일리지 충전을 위한 데이터를 배열로 받음
 		 *
 		 * @return array
 		 */
-		public function chargeMileage($param)
+		public function chargeMileageProcess($param)
 		{
-			/** 충전자 고유번호 */
+			// 충전자 고유번호
 			$memberIdx = $param['charge_param']['member_idx'];
-			/** 마일리지 고유번호 */
+			// 마일리지 고유번호
 			$mileageIdx = $param['charge_param']['mileage_idx'];
-			/** 마일리지 금액*/
+			// 마일리지 금액
 			$chargeCost = $param['charge_param']['charge_cost'];
-			/** 거래 고유번호 */
+			// 거래 고유번호
 			$dealingsIdx = $param['dealings_idx'];
-			/** 거래 상태번호 */
+			// 거래 상태번호
 			$dealignsStatus = $param['dealings_status'];
+			// 마일리지 타입
+			$mileageType = $param['mileageType'];
 
-			/** 충전내역 추가 */
+			// 충전내역 추가
 			$cChargeQ = 'INSERT INTO `imi_mileage_charge` SET
 							`member_idx` = ?,
 							`charge_infomation` = ?,
@@ -1119,7 +1268,7 @@
 				];
 			}
 
-			/** 회원 마일리지 변경 */
+			// 회원 마일리지 변경
 			$mileageParam = [
 				'mileage'=> $param['charge_param']['charge_cost'],
 				'member_idx'=> $memberIdx
@@ -1142,7 +1291,7 @@
 					];
 				}
 
-				/** 마일리지 유형별 합계 테이블에 데이터 확인 */
+				// 마일리지 유형별 합계 테이블에 데이터 확인
 				$rTypeSumQ = 'SELECT `idx`
 							  FROM `imi_mileage_type_sum` 
 							  WHERE `member_idx` = ? 
@@ -1159,29 +1308,51 @@
 				}
 
 				if (!empty($typeSumIdx)){
-					/** 마일리지 유형별 합계 업데이트*/
+					// 마일리지 유형별 합계 업데이트
 					$mileageTypeParam = [
 						'mileage'=> $chargeCost,
 						'member_idx'=> $memberIdx
 					];
-					$mileageTypeUpdate = $this->mileageTypeChargeUpdate($mileageIdx, $mileageTypeParam);
-					if ($mileageTypeUpdate < 1) {
-						throw new RollbackException('마일리지 유형별 합계 정보 수정 실패 하였습니다.');
+	
+					$colName = $this->getMileageTypeColumn($mileageType);
+
+					$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET
+										 `{$colName}` = `{$colName}` + ?
+										 WHERE `member_idx` = ?";
+
+					$uMileageSumResult = $this->db->execute($uMileageSumQ, $mileageTypeParam);
+					
+					$mileageSumAffectedRows = $this->db->affected_rows();
+					if ($mileageSumAffectedRows < 1) {
+						return [
+							'result'=> false,
+							'resultMessage'=> '마일리지 유형별 합계 수정하는데 실패했습니다.' 
+						];
 					}
 				} else {
-					/** 마일리지 유형별 합계 추가 */
-					$mileageTypeParam = [
+					// 마일리지 유형별 합계 추가
+					$cMileageSumP = [
 						'member_idx'=> $memberIdx, 
 						'mileage'=> $chargeCost
 					];
-					$mileageTypeInsert = $this->mileageTypeInsert($mileageType, $mileageTypeParam);
-					if ($mileageTypeInsert < 1) {
-						throw new RollbackException('마일리지 유형별 합계 삽입 실패 하였습니다.');
-					} 
+
+					$cMileageSumQ = "INSERT INTO `imi_mileage_type_sum` SET
+										`member_idx` = ?,
+										`{$colName}` = `{$colName}` + ?";
+
+					$cMileageSumResult = $this->db->execute($cMileageSumQ, $cMileageSumP);
+					$mileageSumInsertId = $this->db->insert_id();
+
+					if ($mileageSumInsertId < 1) {
+						return [
+							'result'=> false,
+							'resultMessage'=> '마일리지 유형별 합계 삽입 실패 하였습니다.' 
+						];
+					}
 				}
 
 				if (isset($param['mode']) != 'payback') {
-					/* 거래 마일리지 키 가져오기 */
+					// 거래 마일리지 키 가져오기
 					$rDealingsChangeQ = 'SELECT `idx`
 										 FROM `imi_dealings_mileage_change` 
 										 WHERE `dealings_idx` = ?
@@ -1210,7 +1381,6 @@
 
 						$affected_row = $this->db->affected_rows();
 						if ($affected_row < 1) {
-							exit;
 							return [
 								'result'=> false,
 								'resultMessage'=> '거래마일리지 변동내역 수정 시 오류가 발생했습니다.'

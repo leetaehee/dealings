@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * 상품권 거래 상태 변경 (판매/구매)
+	 * 거래 변경 시 상태변경 
 	 */
 
 	// 공통
@@ -31,6 +31,8 @@
 
 		$_POST['dealings_type'] = htmlspecialchars($_POST['dealings_type']);
 		$postData = $_POST;
+
+		$memberIdx = $_SESSION['idx'];
 
 		// returnURL
 		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
@@ -68,26 +70,14 @@
 			throw new RollbackException('해당 거래글은 거래대기 상태가 아닙니다.');
 		}
 
-		// 거래유저 데이터 처리(추가/수정)
-		$dealingsUserP = [
-			'dealings_idx'=> $_SESSION['dealings_idx'],
-			'member_idx'=> $_SESSION['idx'],
-			'dealings_status'=> $_SESSION['dealings_status']
-		];
-
-		$dealingsUserProcResult = $dealingsClass->dealingsUsersProcess($dealingsUserP);
-		if ($dealingsUserProcResult['result'] === false) {
-			throw new RollbackException($dealingsUserProcResult['resultMessage']);
-		}
-
 		// 거래 상태 파라미터
 		$dealingsStPcParam = [
-			'dealings_status'=> $dealingsUserProcResult['dealingsNewStatus'],
-			'dealings_idx'=> $dealingsUserProcResult['dealingsNewIdx']
+			'dealings_status'=> $_SESSION['dealings_status'],
+			'dealings_idx'=> $_SESSION['dealings_idx']
 		];
 
 		// 거래상태 관련
-		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
+		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam, $memberIdx);
 		if ($dealingsProcessResult['result'] === false) {
 			throw new RollbackException($dealingsProcessResult['resultMessage']);
 		}

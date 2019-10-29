@@ -110,31 +110,26 @@
 			$buyerMemberIdx = $dealingsMemberIdx;
 		}
 
-		// 구매자 쿠폰 사용내역
-		$rUseageQ = 'SELECT `idx`,
-							`coupon_member_idx`,
-							`coupon_use_before_mileage`,
-							`coupon_use_mileage`
-					 FROM `imi_coupon_useage`
-					 WHERE `dealings_idx` = ?
-					 AND `member_idx` = ?
-					 AND `issue_type` = ?
-					 AND `is_refund` = ?
-					 FOR UPDATE';
-		
-		$rUseageResult = $db->execute($rUseageQ, $couponUseParam);
-		if ($rUseageResult === false) {
-			throw new RollbackException('구매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
-		}
-	
-		$couponIdx = $rUseageResult->fields['idx'];
-		$couponUseMileage = $rUseageResult->fields['coupon_use_mileage'];
-		$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
-
 		$commissionMemberIdx = 0;
 
-		/** 쿠폰 환불 처리(구매자) */ 
-		if (!empty($couponIdx)){
+		$couponStatusParam = [
+			'dealings_idx'=> $dealingsIdx,
+			'member_idx'=> $buyerMemberIdx,
+			'issue_type'=> '구매',
+			'coupon_use_end_date'=> $today,
+			'is_refund'=> 'N'
+		];
+
+		// 구매자 쿠폰 환불처리
+		$couponRefundResult = $couponClass->couponRefundProcess($couponStatusParam);
+		if ($couponRefundResult['result'] === false) {
+			throw new RollbackException($couponRefundResult['resultMessage']);
+		}
+
+		if (!empty($couponRefundResult['data']['couponIdx'])) {
+			$couponUseMileage = $couponRefundResult['data']['couponUseMileage'];
+			
+			// 쿠폰 환불 처리(구매자) 
 			if ($couponUseMileage > 0) {
 				$dealingsMileage = $couponUseMileage;
 			}
@@ -142,60 +137,20 @@
 			if ($couponUseMileage == 0){
 				$dealingsMileage = 0;
 			}
-			
-			$couponStatusParam = [
-				'issue_type'=> '구매',
-				'coupon_use_end_date'=> date('Y-m-d'),
-				'is_refund'=> 'Y',
-				'idx'=> $couponIdx,
-				'coupon_member_idx'=> $couponMemberIdx
-			];
-
-			$couponRefundResult = $couponClass->couponRefundProcess($couponStatusParam);
-			if ($couponRefundResult['result'] === false) {
-				throw new RollbackException($couponRefundResult['resultMessage']);
-			}
 		}
 
-		$couponSellUseParam = [
-			'dealings_idx'=>$dealingsIdx,
-			'member_idx'=>$sellerMemberIdx,
-			'issue_type'=>'판매',
-			'is_refund'=>'N'
+		$sellCouponStatusParam = [
+			'dealings_idx'=> $dealingsIdx,
+			'member_idx'=> $sellerMemberIdx,
+			'issue_type'=> '판매',
+			'coupon_use_end_date'=> date('Y-m-d'),
+			'is_refund'=> 'N'
 		];
 
-		// 판매자 쿠폰 사용내역 가져오기
-		$rSellUseageQ = 'SELECT `idx`,
-								`coupon_member_idx`
-						 FROM `imi_coupon_useage`
-						 WHERE `dealings_idx` = ?
-						 AND `member_idx` = ?
-						 AND `issue_type` = ?
-						 AND `is_refund` = ?
-						 FOR UPDATE';
-		
-		$rSellUseageResult = $db->execute($rSellUseageQ, $couponSellUseParam);
-		if ($rSellUseageResult === false) {
-			throw new RollbackException('판매자 쿠폰 사용내역을 조회 하면서 오류가 발생했습니다.');
-		}
-
-		$couponSellerIdx = $rSellUseageResult->fields['idx'];
-		$couponSellerMemberIdx = $rSellUseageResult->fields['coupon_member_idx'];
-
-		/** 쿠폰 환불 처리(판매자) */
-		if (!empty($couponSellerIdx)) {
-			$sellCouponStatusParam = [
-				'issue_type'=> '판매',
-				'coupon_use_end_date'=> date('Y-m-d'),
-				'is_refund'=> 'Y',
-				'idx'=> $couponSellerIdx,
-				'coupon_member_idx'=> $couponSellerMemberIdx
-			];
-
-			$couponSellRefundResult = $couponClass->couponRefundProcess($sellCouponStatusParam);
-			if ($couponSellRefundResult['result'] === false) {
-				throw new RollbackException($couponSellRefundResult['resultMessage']);
-			}
+		// 판매자 쿠폰 환불처리
+		$couponSellRefundResult = $couponClass->couponRefundProcess($sellCouponStatusParam);
+		if ($couponSellRefundResult['result'] === false) {
+			throw new RollbackException($couponSellRefundResult['resultMessage']);
 		}
 
 		if ($dealingsMileage > 0) {
@@ -213,11 +168,12 @@
 					'charge_status'=> $chargeStatus
 				],
 				'dealings_idx'=> $dealingsIdx,
-				'dealings_status'=> 4
+				'dealings_status'=> 4,
+				'mileageType'=> $mileageType
 			];
 
 			// 충전하기
-			$chargeResult = $mileageClass->chargeMileage($chargeParamGroup);
+			$chargeResult = $mileageClass->chargeMileageProcess($chargeParamGroup);
 			if ($chargeResult['result'] === false) {
 				throw new RollbackException($chargeResult['resultMessage']);
 			}

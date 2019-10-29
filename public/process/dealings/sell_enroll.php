@@ -55,6 +55,8 @@
 		$postData = $_POST;
 		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
 
+		$memberIdx = $_SESSION['idx'];
+
 		// 폼 데이터 받아서 유효성 검증 실패시 리다이렉트 경로
 		if ($postData['dealings_state'] !== '거래대기') {
 			throw new Exception('유효하지 않은 거래 상태입니다. 다시 시도하세요.');
@@ -74,77 +76,59 @@
 		$db->startTrans();
 
 		if (!empty($postData['coupon_name'])) {
+			// 쿠폰 지급 고유키
 			$couponMemberIdx =  $postData['coupon_name'];
 
-			$memberCouponP = [
-				'coupon_member_idx'=> $couponMemberIdx,
-				'is_del'=> 'N'
-			];
-
-			// 쿠폰 고유 키 가져오기
-			$rCouponMbQ = 'SELECT `coupon_idx` 
-							FROM `imi_coupon_member` 
-							WHERE `idx` = ?
-							AND `is_del` = ?
-							FOR UPDATE';
+			$rCoponMbQ = 'SELECT `coupon_idx`,
+								 `member_idx`,
+								 `coupon_status`
+						  FROM `imi_coupon_member`
+						  WHERE `idx` = ?
+						  FOR UPDATE';
             
-			$rCouponMbResult = $db->execute($rCouponMbQ, $memberCouponP);
+			$rCouponMbResult = $db->execute($rCoponMbQ, $couponMemberIdx);
 			if ($rCouponMbResult === false) {
-				throw new RollbackException('쿠폰 지급 내역을 조회 하면서 오류가 발생했습니다.');
+				throw new RollbackException('쿠폰의 고객 정보를 조회하면서 오류가 발생했습니다.');
 			}
 
 			$couponIdx = $rCouponMbResult->fields['coupon_idx'];
+			$couponStatus = $rCouponMbResult->fields['coupon_status'];
 
-			$couponValidP = [
+			if ($memberIdx != $_SESSION['idx']) {
+				throw new RollbackException('쿠폰 지급대상자가 아닙니다.');
+			}
+
+			if ($couponStatus == 2) {
+				throw new RollbackException('선택하신 쿠폰은 이미 사용중입니다.');
+			}
+
+			$rCouponCheckP = [
 				'idx'=> $couponIdx,
 				'is_del'=> 'N'
 			];
 			
-			// 현재 쿠폰이 유효한지 확인 하기/필요항목 가져오기
-			$rCouponQ = 'SELECT * FROM `imi_coupon` WHERE `idx` = ? AND `is_del` = ? FOR UPDATE';
-
-			$rCouponResult = $db->execute($rCouponQ, $couponValidP);
-			if ($rCouponResult === false) {
-				throw new RollbackException('쿠폰 고유정보를 조회 하면서 오류가 발생했습니다.');
-			}
-
-			$isValidCoupon = $rCouponResult->fields['idx'];
-			$discountRate = $rCouponResult->fields['discount_rate'];
-
-			if ($isValidCoupon == null) {
-				throw new RollbackException('쿠폰 정보가 유효하지 않아 사용 할 수 없습니다.');
-			}
-
-			// 쿠폰 사용유무 확인 (중복체크)
-			$availableCouponP = [
-				'idx'=> $couponIdx,
-				'is_del'=> 'N',
-				'member_idx'=> $_SESSION['idx'],
-				'is_refund'=> 'N'
-			];
-
-			$rUseageQ = 'SELECT `icu`.`member_idx`
-						  FROM `imi_coupon` `ic`
-							LEFT JOIN `imi_coupon_useage` `icu`
-								ON `ic`.idx = `icu`.`coupon_idx`
-						  WHERE `ic`.`idx` = ? 
-						  AND `ic`.`is_del` = ?
-						  AND `icu`.`member_idx` = ?
-						  AND `icu`.`is_refund` = ?
-						  AND `icu`.`coupon_use_end_date` is not null
-						  FOR UPDATE';
+			$rCouponCheckQ = 'SELECT `idx`,
+									 `discount_mileage`,
+									 `discount_rate`,
+									 `item_money`
+							  FROM `imi_coupon`
+							  WHERE `idx` = ?
+							  AND `is_del` = ?
+							  FOR UPDATE';
 			
-			$rUseageResult = $db->execute($rUseageQ, $availableCouponP);
-			if ($rUseageResult === false) {
-				throw new RollbackException('쿠폰 사용 유무를 조회 하면서 오류가 발생했습니다.');
+			$rCouponCheckResult = $db->execute($rCouponCheckQ, $rCouponCheckP);
+			if ($rCouponCheckResult === false) {
+				throw new RollbackException('쿠폰의 키 값을 확인하는 중에 오류가 발생했습니다.');
 			}
 
-			$isAvailableCoupon = $rUseageResult->fields['member_idx'];
-			if ($isAvailableCoupon != null) {
-				throw new RollbackException('선택하신 쿠폰은 이미 사용 했습니다.');
+			$idx = $rCouponCheckResult->fields['idx'];
+			if ($idx == null) {
+				throw new RollbackException('유효하지 않은 쿠폰은 사용 할 수 없습니다.');
 			}
+
+			$discountRate = $rCouponCheckResult->fields['discount_rate'];
 		}
-		
+
 		// 만료일
 		$expirationDate = date('Y-m-d',strtotime('+5 day',strtotime($today)));
 
@@ -215,7 +199,7 @@
 
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '정상적으로 거래글이 등록되었습니다.';
-
+		
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

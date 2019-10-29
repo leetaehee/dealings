@@ -53,49 +53,23 @@
 		}
 
 		$dealingsType = $rDealingsResult->fields['dealings_type'];
-		if ($dealings_type == 'Y') {
+		if ($dealingsType == 'Y') {
 			throw new RollbackException('이미 삭제 된 거래내역입니다.');
 		}
 
-		$couponUseP = [
-			'dealings_idx'=> $dealingsIdx,
-			'member_idx'=> $_SESSION['idx'],
-			'issue_type'=> '판매',
-			'is_refund'=> 'N'
-		];
-
 		if ($dealingsType == '판매') {
-			// 쿠폰 사용내역 및 쿠폰정보 가져오기
-			$rUseageQ = 'SELECT `idx`,
-								`coupon_member_idx`
-						 FROM `imi_coupon_useage`
-						 WHERE `dealings_idx` = ?
-						 AND `member_idx` = ?
-						 AND `issue_type` = ?
-						 AND `is_refund` = ?';
-
-			$rUseageResult = $db->execute($rUseageQ, $couponUseP);
-			if ($rUseageResult === false) {
-				throw new RollbackException('쿠폰 사용내역을 조회 하면서 오류가 발생하였습니다.');
-			}
-
-			$couponIdx = $rUseageResult->fields['idx'];
-			$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
-
 			// 쿠폰 복구
-			if (!empty($couponIdx)) {
-				$couponStatusP = [
-					'issue_type'=> '판매',
-					'coupon_use_end_date'=> $today,
-					'is_refund'=> 'Y',
-					'idx'=> $couponIdx,
-					'coupon_member_idx'=> $couponMemberIdx
-				];
+			$couponStatusP = [
+				'dealings_idx'=> $dealingsIdx,
+				'member_idx'=> $_SESSION['idx'],
+				'issue_type'=> '판매',
+				'coupon_use_end_date'=> $today,
+				'is_refund'=> 'N'
+			];
 
-				$couponRefundResult = $couponClass->couponRefundProcess($couponStatusP);
-				if ($couponRefundResult['result'] === false) {
-					throw new RollbackException($couponRefundResult['resultMessage']);
-				}
+			$couponRefundResult = $couponClass->couponRefundProcess($couponStatusP);
+			if ($couponRefundResult['result'] === false) {
+				throw new RollbackException($couponRefundResult['resultMessage']);
 			}
 		}
 

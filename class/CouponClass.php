@@ -1083,10 +1083,55 @@
 		 */
 		public function couponRefundProcess($param)
 		{
+			// 쿠폰 사용내역 파라미터
+			$couponUseP = [
+				'dealings_idx'=> $param['dealings_idx'],
+				'member_idx'=> $param['member_idx'],
+				'issue_type'=> $param['issue_type'],
+				'is_refund'=> $param['is_refund']
+			];
+
+			// 쿠폰 사용내역 및 쿠폰정보 가져오기
+			$rUseageQ = 'SELECT * 
+						 FROM `imi_coupon_useage`
+						 WHERE `dealings_idx` = ?
+						 AND `member_idx` = ?
+						 AND `issue_type` = ?
+						 AND `is_refund` = ?
+						 FOR UPDATE';
+
+			$rUseageResult = $this->db->execute($rUseageQ, $couponUseP);
+			if ($rUseageResult === false) {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰 사용내역을 조회 하면서 오류가 발생하였습니다.'
+				];
+			}
+
+			$couponIdx = $rUseageResult->fields['idx'];
+			$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
+			$couponisRefund = $rUseageResult->fields['is_refund'];
+			$couponUseMileage = $rUseageResult->fields['coupon_use_mileage'];
+
+			if (empty($couponIdx)) {
+				// 쿠폰 사용내역이 없으면 진행하지 않음
+				return [
+					'result'=> true,
+					'resultMessage'=> ''
+				];
+			}
+
+			if ($couponisRefund == 'Y') {
+				return [
+					'result'=> false,
+					'resultMessage'=> '쿠폰이 이미 환불 되었습니다.'
+				];
+			}
+
 			$uCouponUseP = [
 				'coupon_use_end_date'=> $param['coupon_use_end_date'],
-				'is_refund'=> $param['is_refund'],
-				'idx'=> $param['idx']
+				'is_refund'=> 'Y',
+				'idx'=> $couponIdx
 			];
 
 			$uCoponUseQ = 'UPDATE `imi_coupon_useage` SET 
@@ -1126,7 +1171,7 @@
 
 			$uCouponMemberP = [
 				'coupon_status'=> $couponStatusCode,
-				'idx'=> $param['coupon_member_idx']
+				'idx'=> $couponMemberIdx
 			];
 			$uCouponMemberQ = 'UPDATE `imi_coupon_member` SET 
 								`coupon_status` = ?
@@ -1144,7 +1189,11 @@
 
 			return [
 				'result'=> true,
-				'resultMessage'=> ''
+				'resultMessage'=> '',
+				'data'=> [
+					'couponIdx'=> $couponIdx,
+					'couponUseMileage'=> $couponUseMileage
+				]
 			];
 		}
 	}

@@ -51,31 +51,31 @@
 		
 		$db->startTrans();
 
-		$query = 'SELECT `dealings_mileage`,
-						 `dealings_commission`,
-						 ROUND((`dealings_mileage` * `dealings_commission`)/100) `commission`,
-						 `dealings_subject`,
-						 `item_no`,
-						 `idx`
-				  FROM `imi_dealings`
-				  WHERE `idx` = ?
-				  FOR UPDATE';
-	
+		$rDealingsQ = 'SELECT `dealings_mileage`,
+							  `dealings_commission`,
+							  ROUND((`dealings_mileage` * `dealings_commission`)/100) `commission`,
+							  `dealings_subject`,
+							  `item_no`,
+							  `idx`
+						FROM `imi_dealings`
+						WHERE `idx` = ?
+						FOR UPDATE';
+		
 		// 거래 테이블 조회
-		$dealingsResult = $db->execute($query, $dealingsIdx);
+		$dealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
 		if ($dealingsResult === false) {
 			throw new RollbackException('거래 테이블 조회 시 오류가 발생하였습니다.');
 		}
 
-		$query = 'SELECT `dealings_date`,
-						 `dealings_writer_idx`,
-						 `dealings_member_idx` 
-				   FROM `imi_dealings_user` 
-				   WHERE `dealings_idx` = ?
-				   FOR UPDATE';
+		$rDealingsUserQ = 'SELECT `dealings_date`,
+								  `dealings_writer_idx`,
+								  `dealings_member_idx` 
+							FROM `imi_dealings_user` 
+							WHERE `dealings_idx` = ?
+							FOR UPDATE';
 
 		// 거래 유저 테이블 조회
-		$dealingsUserResult = $db->execute($query, $dealingsIdx);
+		$dealingsUserResult = $db->execute($rDealingsUserQ, $dealingsIdx);
 		if ($dealingsUserResult === false) {
 			throw new RollbackException('거래 유저 테이블 조회 시 오류가 발생했습니다.');
 		}
@@ -214,7 +214,7 @@
 
 			// 거래 완료시 쿠폰완료일자 표기 (판매자)
 			$cpSellerStParam = [
-				'coupon_use_end_date'=> date('Y-m-d'),
+				'coupon_use_end_date'=> $today,
 				'is_refund'=> 'N',
 				'idx'=>$commisionCouponIdx
 			];
@@ -246,15 +246,16 @@
 					'spare_cost'=> $dealingsMileage,
 					'charge_name'=> '관리자',
 					'mileage_idx'=> $mileageType,
-					'charge_date'=> date('Y-m-d'),
+					'charge_date'=> $today,
 					'charge_status'=> $chargeStatus
 				],
 				'dealings_idx'=> $dealingsIdx,
-				'dealings_status'=> 4
+				'dealings_status'=> 4,
+				'mileageType'=> $mileageType
 			];
 
 			// 충전하기
-			$chargeResult = $mileageClass->chargeMileage($chargeParamGroup);
+			$chargeResult = $mileageClass->chargeMileageProcess($chargeParamGroup);
 			if ($chargeResult['result'] === false) {
 				throw new RollbackException($chargeResult['resultMessage']);
 			}
@@ -346,7 +347,7 @@
 
 			$paybackGroup['mode'] = 'payback';
 
-			$payBackGpResult = $mileageClass->chargeMileage($paybackGroup);
+			$payBackGpResult = $mileageClass->chargeMileageProcess($paybackGroup);
 			if ($payBackGpResult['result'] === false) {
 				throw new RollbackException($payBackGpResult['resultMessage']);
 			}

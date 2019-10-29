@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * 상품권 거래 > 판매 > 판매등록물품 > 판매취소 기능
+	 * 마이룸 > 판매 > 판매중인물품 > 판매취소 버튼 클릭 시 기능 정의
 	 */
 	
 	// 공통
@@ -28,15 +28,13 @@
         }
 
 		$dealingsClass = new DealingsClass($db);
-		$couponClass= new CouponClass($db);
+		$couponClass = new CouponClass($db);
 
 		$_POST['dealings_type'] = htmlspecialchars($_POST['dealings_type']);
 		$postData = $_POST;
 
 		// returnURL
 		$returnUrl = SITE_DOMAIN . '/mypage.php';
-
-		$dealingsIdx = $_SESSION['dealings_idx'];
 
 		$dealingsTypeArray = ['구매', '판매'];
 		if (!in_array($postData['dealings_type'], $dealingsTypeArray)) {
@@ -46,23 +44,30 @@
 		$db->startTrans();
 
 		// 거래 상태 파라미터
-		$dealingsStPcParam = [
+		$uDealingsStatusP = [
 			'dealings_status'=> 1,
-			'dealings_idx'=> $dealingsIdx
+			'dealings_idx'=> $_SESSION['dealings_idx']
 		];
 
 		// 거래상태 관련
-		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
+		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($uDealingsStatusP);
 		if ($dealingsProcessResult['result'] === false) {
 			throw new RollbackException($dealingsProcessResult['resultMessage']);
 		}
 
-		/**
-		 * 판매취소 시 쿠폰삭제는 하지않으며 거래글을 삭제할 때 쿠폰을 삭제함
-		 * /process/dealings/dealings_delete.php 구현됨
-		 */
+		// 쿠폰 복구
+		$couponStatusP = [
+			'dealings_idx'=> $_SESSION['dealings_idx'],
+			'member_idx'=> $_SESSION['idx'],
+			'issue_type'=> '판매',
+			'coupon_use_end_date'=> $today,
+			'is_refund'=> 'N'
+		];
 
-		$_SESSION['dealings_idx'] = '';
+		$couponRefundResult = $couponClass->couponRefundProcess($couponStatusP);
+		if ($couponRefundResult['result'] === false) {
+			throw new RollbackException($couponRefundResult['resultMessage']);
+		}
 
 		$returnUrl = SITE_DOMAIN.'/mypage.php';
 		$alertMessage = '판매가 취소되었습니다!';
