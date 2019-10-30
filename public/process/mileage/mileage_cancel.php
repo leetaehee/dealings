@@ -14,86 +14,131 @@
 
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$returnUrl = SITE_ADMIN_DOMAIN.'/charge_list.php'; // 작업이 끝나고 이동하는 URL
+		$returnUrl = SITE_ADMIN_DOMAIN . '/charge_list.php'; // 작업이 끝나고 이동하는 URL
 		
 		// xss, inject 방지 코드
 		$chargeIdx = isset($_GET['idx']) ? htmlspecialchars($_GET['idx']) : '';
+		
 		if (empty($chargeIdx)) {
 			throw new Exception('잘못된 접근입니다! 관리자에게 문의하세요.');
 		}
 
 		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
 
 		$db->startTrans();
 
-		$chargeData = $mileageClass->getChargeInsertData($chargeIdx, $isUseForUpdate);
-		if ($chargeData === false) {
-			throw new RollbackException('충전정보를 가져오는 중에 오류가 발생했습니다.');
+		$rChargeQ = 'SELECT `member_idx`,
+							`mileage_idx`,
+							`charge_account_no` ,
+							`charge_infomation`,
+							`charge_name`,
+							`charge_status`,
+							`idx`,
+							`charge_cost`
+					 FROM `imi_mileage_charge`
+					 WHERE `idx` = ?
+					 FOR UPDATE';
+			
+		$rChargeResult = $db->execute($rChargeQ, $chargeIdx);
+		if ($rChargeResult === false) {
+			throw new RollbackException('충전정보를 조회 하면서 오류가 발생했습니다.');
 		}
 
-		// 충전취소는 남은금액은 삭감시키지않는다.
-		$statusParam = [
-			'charge_status'=> 1,
-			'spare_cost'=> 0,
-			'use_cost'=> 0,
-			'idx'=> $chargeIdx
+		$chargeStatus = $rChargeResult->fields['charge_status'];
+		if ($chargeStatus == 1) {
+			throw new RollbackException('이미 충전 취소 되었습니다.');
+		}
+
+		$uChargeQ = 'UPDATE `imi_mileage_charge` SET
+					   `charge_status` = 1,
+					   `spare_cost` = 0,
+					   `use_cost` = 0
+					  WHERE `idx` = ?';
+			
+		$uChargeResult = $db->execute($uChargeQ, $chargeIdx);
+		
+		$chargeAffectedRow = $db->affected_rows();
+		if ($chargeAffectedRow < 1) {
+			throw new RollbackException('충전 취소 하면서 오류가 발생했습니다.');
+		}
+
+		// 마일리지 타입 
+		$mileageType = $rChargeResult->fields['mileage_idx'];
+
+		// 마일리지 변동내역에 추가
+		$cChargeChangeP = [
+			'member_idx'=> $rChargeResult->fields['member_idx'],
+			'mileage_idx'=> $rChargeResult->fields['mileage_idx'],
+			'charge_account_no'=> $rChargeResult->fields['charge_account_no'],
+			'charge_infomation'=> $rChargeResult->fields['charge_infomation'],
+			'charge_name'=> $rChargeResult->fields['charge_name'],
+			'charge_idx'=> $rChargeResult->fields['idx'],
+			'charge_cost'=> $rChargeResult->fields['charge_cost'],
+			'charge_status'=> 1
 		];
-		$updateStatusResult = $mileageClass->updateChargeStatus($statusParam);
-		if ($updateStatusResult < 1) {
-			throw new RollbackException('충전내역 상태를 변경하는 중에 오류가 발생했습니다.');
+
+		$cChargeChangeQ = 'INSERT INTO `imi_mileage_change` SET 
+							`member_idx` = ?,
+							`mileage_idx` = ?,
+							`charge_account_no` = ?,
+							`charge_infomation` = ?,
+							`charge_name` = ?,
+							`charge_idx` = ?,
+							`charge_cost` = ?,
+							`charge_status` = ?,
+							`process_date` = CURDATE()';
+
+		$cChargeChangeResult = $db->execute($cChargeChangeQ, $cChargeChangeP);
+		
+		$chargeInsertId = $db->insert_id(); 
+		if ($chargeInsertId < 1) {
+			throw new RollbackException('마일리지 변동내역에 추가하면서 오류가 발생했습니다.');
 		}
 
-		$mileageChangeParam[] = [
-				'member_idx'=> $chargeData->fields['member_idx'],
-				'mileage_idx'=> $chargeData->fields['mileage_idx'],
-				'accountNo'=> $chargeData->fields['charge_account_no'],
-				'accountBank'=> $chargeData->fields['charge_infomation'],
-				'chargeName'=> $chargeData->fields['charge_name'],
-				'chargeStatus'=> 1,
-				'process_date'=> date('Y-m-d'),
-				'charge_idx'=> $chargeData->fields['idx'],
-				'charge_cost'=> $chargeData->fields['charge_cost'],
-			];
-		$mileageType = $chargeData->fields['mileage_idx'];
-
-		// 출금데이터 생성
-		$insertChangeResult = $mileageClass->insertMileageChange($mileageChangeParam);
-		if ($insertChangeResult < 1) {
-			throw new RollbackException('출금데이터 생성 실패했습니다.');
-		}
-
-		$mileageParam = [
-			'charge_cost'=>$chargeData->fields['charge_cost'],
-			'idx'=>$chargeData->fields['member_idx']
+		// 회원 마일리지 변경
+		$uMileageP = [
+			'charge_cost'=> $rChargeResult->fields['charge_cost'],
+			'idx'=> $rChargeResult->fields['member_idx']
 		];
 
-		$updateResult = $memberClass->updateMileageWithdrawal($mileageParam); // 마일리지변경
-		if ($updateResult < 1) {
-			throw new RollbackException('회원 마일리지 수정 실패 실패했습니다.');
+		$uMileageQ = 'UPDATE `imi_members` SET
+					   `mileage` = `mileage` - ? 
+					  WHERE `idx` = ?';
+
+		$uMileageResult = $db->execute($uMileageQ, $uMileageP);
+		
+		$mileageAffectedRow = $db->affected_rows();
+		if ($mileageAffectedRow < 1) {
+			throw new RollbackException('회원 마일리지를 수정하면서 오류가 발생했습니다.');
 		}
 
-		$mileageTypeParam = [
-			'charge_cost'=>$chargeData->fields['charge_cost'],
-			'idx'=>$chargeData->fields['member_idx']
+		// 마일리지 타입 컬럼명 추출
+		$colName = $CONFIG_MILEAGE_TYPE_COLUMN[$mileageType];
+
+		$uMileageSumP = [
+			'charge_cost'=> $rChargeResult->fields['charge_cost'],
+			'idx'=> $rChargeResult->fields['member_idx']
 		];
 
-		$mileageTypeUpdate = $mileageClass->mileageTypeWithdrawalUpdate($mileageType, $mileageTypeParam);
-		if ($mileageTypeUpdate < 1) {
-			throw new RollbackException('마일리지 유형별 출금 합계 수정 오류가 발생했습니다.');
+		$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET 
+						  `{$colName}` = `{$colName}` - ?
+						 WHERE `member_idx` = ?";
+
+		$uMileageSumResult = $db->execute($uMileageSumQ, $uMileageSumP);
+		
+		$mileageSumAffectedRow = $db->affected_rows();
+		if ($mileageSumAffectedRow < 1) {
+			throw new RollbackException('마일리지 유형별 합계 수정하면서 오류가 발생했습니다.');
 		}
 
 		$alertMessage = '충전이 취소 되었습니다.';

@@ -143,5 +143,15 @@
 		'2'=> '사용완료',
 	];
 
+	// 마일리지 유형별 타입 정의
+	$CONFIG_MILEAGE_TYPE_COLUMN = [
+		'1'=> 'card_sum',
+		'2'=> 'phone_sum',
+		'3'=> 'culcture_voucher_sum',
+		'5'=> 'virtual_account_sum',
+		'7'=> 'dealings_sum',
+		'8'=> 'event_sum',
+	];
+
 	// 페이지 접근금지
 	$CONFIG_PROHIBIT_ACCESS = 1;

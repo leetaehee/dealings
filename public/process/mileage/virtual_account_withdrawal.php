@@ -14,17 +14,12 @@
 
 	// Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/VirtualAccountClass.php';
-
 
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
     try {
-		$processDate = date('Y-m-d');
 		$alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -43,11 +38,9 @@
 		}
 
 		$mileageClass = new MileageClass($db);
-		$memberClass = new MemberClass($db);
-		$virtualClass = new VirtualAccountClass($db);
 
 		$resultMileageValidCheck = $mileageClass->checkChargeFormValidate($postData);
-		if( $resultMileageValidCheck['isValid'] === false) {
+		if ($resultMileageValidCheck['isValid'] === false) {
 			// 폼 데이터 받아서 유효성 검증
 			throw new Exception($resultMileageValidCheck['errorMessage']);
 		}
@@ -55,106 +48,76 @@
 		// 트랜잭션시작
 		$db->startTrans();
 
-		// 마일리지 초과하는지 확인
-		$maxMileageParam = [
-			'mileageType'=>$mileageType,
-			'idx'=>$idx
-		];
-
-		$maxMileage = $mileageClass->getAvailableMileage($maxMileageParam, $isUseForUpdate);
-		if ($maxMileage === false) {
-			throw new RollbackException('출금 가능한 마일리지 가져오는 중에 오류 발생! 관리자에게 문의하세요!');
+		// 출금가능 금액 추출
+		$rTypeSumQ = 'SELECT `virtual_account_sum`
+					  FROM `imi_mileage_type_sum`
+					  WHERE `member_idx` = ?
+					  FOR UPDATE';
+		
+		$rTypeSumResult = $db->execute($rTypeSumQ, $idx);
+		if ($rTypeSumResult === false) {
+			throw new RollbackException('가상계좌 출금금액을 조회하면서 오류가 발생하였습니다.');
 		}
 
+		$maxMileage = $rTypeSumResult->fields['virtual_account_sum'];
 		if ($postData['charge_cost'] > $maxMileage) {
-			throw new RollbackException('출금금액이 출금가능금액을 초과합니다!');
+			throw new RollbackException('가상계좌 출금금액을 초과 합니다.');
 		}
 
-		$param = [
-			'mileage_idx'=>$mileageType,
-			'member_idx'=>$idx,
-			'charge_status'=>3
+		$rChargeListP = [
+			'mileage_idx'=> $mileageType,
+			'member_idx'=> $idx,
+			'charge_status'=> 3
 		];
 
-		// 충전가능한 내역 리스트
-		$virtualWitdrawaLlist = $mileageClass->getVirutalAccountWithdrawalPossibleList($param, $isUseForUpdate);
-		if ($virtualWitdrawaLlist === false) {
-			throw new RollbackException('충전 내역을 가져오는 중에 오류가 발생하였습니다.');
-		}
-		
-		// 회원 가상 계좌 가져오기
-		$accountData = $virtualClass->getVirtualAccountData($idx, $isUseForUpdate);
-		if ($accountData === false) {
-			throw new RollbackException('가상계좌를 가져오는 중에 오류가 발생했습니다.');
-		}
-
-		$accountNo = $accountData->fields['virtual_account_no'];
-		$accountBank = $accountData->fields['bank_name'];
-
-		//imi_mileage_charge 수량 변경을 위한 정보 얻어오기
-		$pChargeData = $postData['charge_cost']; 
-		$chargeArray = $mileageClass->getMildateChargeInfomationData($virtualWitdrawaLlist, $pChargeData);
-		if ($chargeArray === false) {
-			throw new RollbackException('수량정보 데이터를 가져오는 중에 오류가 발생하였습니다.');
-		}
-		$chargeData = $chargeArray['update_data'];
-
-		$updateChargeResult = $mileageClass->updateMileageCharge($chargeData);
-		if ($updateChargeResult === false) {
-			throw new RollbackException('출금 수정 실패! 관리자에게 문의하세요');
+		// 가상계좌 출금 가능 리스트 추출 
+		$rChargeListQ = 'SELECT `idx`,
+								`charge_cost`,
+								`spare_cost`,
+								`mileage_idx`
+						 FROM `imi_mileage_charge`
+						 WHERE `mileage_idx` = ?
+						 AND `member_idx` = ?
+						 AND `charge_status` = ?
+						 AND `spare_cost` > 0
+						 ORDER BY `charge_date` ASC
+						 FOR UPDATE';
+	
+		$rChargeListResult = $db->execute($rChargeListQ, $rChargeListP);
+		if ($rChargeListResult == false) {
+			throw new RollbackException('가상계좌 충전내역을 조회하면서 오류가 발생했습니다.');
 		}
 
-		$spareZeroCount = $mileageClass->getCountChargeSpareCountZero($isUseForUpdate);
-		if ($spareZeroCount < 0) {
-			throw new RollbackException('마일리지 상태 조회 오류! 관리자에게 문의하세요');
+		$rAccountQ = 'SELECT `virtual_account_no`,
+							 `bank_name`
+					  FROM `imi_member_virtual_account`
+					  WHERE `member_idx` = ?';
+			
+		$rAccountResult = $db->execute($rAccountQ, $idx);
+		if ($rAccountResult === false) {
+			throw new RollbackException('가상계좌 정보를 조회하면서 오류가 발생했습니다.');
 		}
 
-		if ($spareZeroCount > 0) {
-			$updateZeroResult = $mileageClass->updateChargeZeroStatus();
-			if ($updateZeroResult === false) {
-				throw new RollbackException('마일리지 출금 상태 변경 실패! 관리자에게 문의하세요');
-			}
-		}
+		$accountNo = $rAccountResult->fields['virtual_account_no'];
+		$accountBank = $rAccountResult->fields['bank_name'];
 
-		$mileageChangeParam = [
-			'memberIdx'=>$idx,
-			'mileageIdx'=>$mileageType,
-			'accountNo'=>$accountNo,
-			'accountBank'=>$accountBank,
-			'chargeName'=>$_SESSION['name'],
-			'chargeStatus'=>2,
-			'process_date'=>date('Y-m-d')
-		];
-		$changeData = $mileageClass->updateMileageArray($chargeData, $mileageChangeParam);
-		if ($changeData === false) {
-			throw new RollbackException('배열 데이터 생성 오류');
-		}
-
-		// 출금데이터 생성
-		$insertChangeResult = $mileageClass->insertMileageChange($changeData);
-		if ($insertChangeResult < 1) {
-			throw new RollbackException('출금데이터 생성 실패! 관리자에게 문의하세요');
-		}
-
-		$mileageParam = [
-			'mileage'=>$postData['charge_cost'],
-			'idx'=>$idx
+		// 마일리지 출금 처리
+		$mileageP = [
+			'mileageWithdrawalList'=> $rChargeListResult,
+			'dealingsMileage'=> $postData['charge_cost'],
+			'type'=> 'withdrawal',
+			'member_idx'=> $idx,
+			'account_no'=> $accountNo,
+			'account_bank'=> $accountBank,
+			'charge_name'=> $_SESSION['name'],
+			'charge_status'=> 2
 		];
 
-		$updateResult = $memberClass->updateMileageWithdrawal($mileageParam); // 마일리지변경
-		if ($updateResult < 1) {
-			throw new RollbackException('회원 마일리지 수정 실패! 관리자에게 문의하세요');
+		$payMileageResult = $mileageClass->withdrawalMileageProcess($mileageP);
+		if ($payMileageResult['result'] === false) {
+			throw new RollbackException($payMileageResult['resultMessage']);
 		}
 
-		$mileageTypeParam = [
-			$postData['charge_cost'], 
-			$idx
-		];
-		$mileageTypeUpdate = $mileageClass->mileageTypeWithdrawalUpdate($mileageType, $mileageTypeParam);
-		if ($mileageTypeUpdate < 1) {
-			throw new RollbackException('마일리지 유형별 출금금액 수정 오류가 발생했습니다.');
-		}
-		
 		$returnUrl = SITE_DOMAIN.'/my_withdrawal_list.php';
 		$alertMessage = '출금이 완료되었습니다! 감사합니다';
 

@@ -18,9 +18,11 @@
 	include_once $topDir . '/class/DealingsClass.php'; 
 
 	// Exception 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
+	include_once $topDir . '/Exception/RollbackException.php';
 
 	try {
+		$alertMessage = '';
+
 		$dealingsClass = new DealingsClass($db);
 
 		// 트랜잭션시작

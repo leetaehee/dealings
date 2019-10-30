@@ -39,6 +39,7 @@
 		$postData = $_POST;
 
 		$memberIdx = $_SESSION['idx'];
+		$dealingsIdx = $_SESSION['dealings_idx'];
 
 		// returnURL
 		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
@@ -104,8 +105,6 @@
 			}
 
 			$discountRate = $rCouponCheckResult->fields['discount_rate'];
-
-			$dealingsIdx = $_SESSION['dealings_idx'];
 
 			$rCommissionQ = 'SELECT `dealings_commission` 
 							 FROM `imi_dealings` 

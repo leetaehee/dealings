@@ -74,8 +74,9 @@
 
 			$couponIdx = $rCouponMbResult->fields['coupon_idx'];
 			$couponStatus = $rCouponMbResult->fields['coupon_status'];
+			$couponMemberIdx = $rCouponMbResult->fields['member_idx'];
 
-			if ($memberIdx != $_SESSION['idx']) {
+			if ($memberIdx != $couponMemberIdx) {
 				throw new RollbackException('쿠폰 지급대상자가 아닙니다.');
 			}
 
@@ -187,11 +188,15 @@
 				'mileageWithdrawalList'=> $rChargeListResult,
 				'dealingsMileage'=> $dealingsMileage,
 				'type'=> 'dealings',
-				'dealings_status'=> $dealingsStatus
+				'member_idx'=> $_SESSION['idx'],
+				'dealings_status'=> $dealingsStatus,
+				'dealings_idx'=> $_SESSION['dealings_idx'],
+				'dealings_writer_idx'=> $_SESSION['dealings_writer_idx'],
+				'dealings_member_idx'=> $_SESSION['dealings_member_idx']
 			];
 
 			// 마일리지 결제 처리
-			$payMileageResult = $mileageClass->payMileageProcess($mileageP);
+			$payMileageResult = $mileageClass->withdrawalMileageProcess($mileageP);
 			if ($payMileageResult['result'] === false) {
 				throw new RollbackException($payMileageResult['resultMessage']);
 			}
