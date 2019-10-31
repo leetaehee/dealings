@@ -72,31 +72,6 @@
 			throw new RollbackException('유효하지 않은 가상 계좌 입니다. 계좌를 확인하세요.');
 		}
 
-		// 유효기간 정보 추출 
-		$rMileageQ = 'SELECT `expiration_day`,
-							 `period` 
-					  FROM `imi_mileage` 
-					  WHERE `idx` = ?
-					  FOR UPDATE';
-
-		$rMileageResult = $db->execute($rMileageQ, $mileageType);
-		if ($rMileageResult === false) {
-			return [
-				'result'=> false,
-				'resultMessage'=> '마일리지 유효기간을 조회하면서 오류가 발생했습니다.'
-			];
-		}
-
-		$day = $rMileageResult->fields['expiration_day'];
-		$period = $rMileageResult->fields['period'];
-
-		// 유효기간 만료일자 지정
-		$expirationDate = '';
-		if ($period != 'none') {
-			$period = "+".$day.' '.$period;
-			$expirationDate = date('Y-m-d', strtotime($period, strtotime($today)));
-		}
-
 		$chargeParamGroup = [
 			'charge_param' => [
 				'member_idx'=> $idx,
@@ -111,10 +86,6 @@
 			],
 			'mileageType'=> $mileageType
 		];
-
-		if (!empty($expirationDate)) {
-			$chargeParamGroup['charge_param']['expirationDate'] = $expirationDate;
-		}
 
 		// 충전하기
 		$chargeResult = $mileageClass->chargeMileageProcess($chargeParamGroup);

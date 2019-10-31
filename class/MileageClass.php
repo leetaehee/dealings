@@ -1295,6 +1295,10 @@
 			$dealignsStatus = $param['dealings_status'] ?? '';
 			// 마일리지 타입
 			$mileageType = $param['mileageType'];
+			// 만료일자 설정 여부
+			if (isset($param['is_set_expiration'])) {
+				$isSetExpiration = $param['is_set_expiration'];
+			}
 
 			// 충전내역 추가
 			$cChargeQ = 'INSERT INTO `imi_mileage_charge` SET
@@ -1308,8 +1312,42 @@
 							`charge_date` = ?,
 							`charge_status` = ?';
 			
-			if(isset($param['charge_param']['expirationDate'])){
-				$cChargeQ .= ',`expiration_date` = ?';
+			if(isset($isSetExpiration) && $isSetExpiration == 'Y'){
+				/**
+				 * 유효기간 정보 추출하여 정보 넣기 (가상계좌의 경우 주기설정이 없어 진행하지않음)
+				 */
+				$rMileageQ = 'SELECT `expiration_day`,
+									 `period` 
+							  FROM `imi_mileage` 
+							  WHERE `idx` = ?
+							  FOR UPDATE';
+
+				$rMileageResult = $this->db->execute($rMileageQ, $mileageType);
+				if ($rMileageResult === false) {
+					return [
+						'result'=> false,
+						'resultMessage'=> '마일리지 유효기간을 조회하면서 오류가 발생했습니다.'
+					];
+				}
+
+				$day = $rMileageResult->fields['expiration_day'];
+				$period = $rMileageResult->fields['period'];
+
+				// 유효기간 만료일자 지정
+				$expirationDate = '';
+				if ($period != 'none') {
+					// 지역변수
+					$today = date('Y-m-d');
+
+					$period = "+".$day.' '.$period;
+					$expirationDate = date('Y-m-d', strtotime($period, strtotime($today)));
+				}
+
+				// 컬럼추가.
+				$cChargeQ .= ', `expiration_date` = ?';
+
+				// 값 설정하여 배열에 추가
+				$param['charge_param']['expiration_date'] = $expirationDate;
 			}
 
 			$cChargeResult = $this->db->execute($cChargeQ, $param['charge_param']);
