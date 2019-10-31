@@ -68,7 +68,7 @@
 		}
 
 		$myAccountNo = setDecrypt($rAccountResult->fields['virtual_account_no']);
-		if ($postData['account_no'] !== $myAccountNo) {
+		if ($postData['account_no'] != $myAccountNo) {
 			throw new RollbackException('유효하지 않은 가상 계좌 입니다. 계좌를 확인하세요.');
 		}
 
