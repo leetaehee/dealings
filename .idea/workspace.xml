@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1cf75cad-2da9-42d2-a808-bcacaeb35d3d" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/class/AdminClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/AdminClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/CouponClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/CouponClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/DealingsClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/DealingsClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/DealingsCommissionClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/DealingsCommissionClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/EventClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/EventClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/LoginClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/LoginClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/MemberClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/MemberClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/MileageClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/MileageClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/SellItemClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/SellItemClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/VirtualAccountClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/VirtualAccountClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/class/VoucherClass.php" beforeDir="false" afterPath="$PROJECT_DIR$/class/VoucherClass.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/configs/config.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/admin.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/admin.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/coupon.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/coupon.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/dealings.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/dealings.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/event.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/event.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/member.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/member.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_schema/mileage.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db_schema/mileage.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/imi_db_2019-10-24.sql" beforeDir="false" afterPath="$PROJECT_DIR$/dealings_db_2019-10-24.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/includes/eventFunction.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/js/voucher_sell_enroll.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/js/voucher_sell_enroll.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/admin/backup/admin_process.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/backup/dealings_process.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/changeSellStatus.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/changeSellStatus.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/changeStatus.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/changeStatus.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/dealings_crontab.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/dealings_crontab.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/dealings_delete.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/dealings_delete.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/dealings_modify.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/dealings_modify.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/enroll.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/enroll.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/payMileage.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/payMileage.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/sell_enroll.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/sell_enroll.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/seller_dealings_approval.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/seller_dealings_approval.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/dealings/seller_dealings_cancel.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/dealings/seller_dealings_cancel.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/mileage/backup/mileage_process.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/mileage/mileage_cancel.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/mileage/mileage_cancel.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/mileage/mileage_crontab.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/mileage/mileage_crontab.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/mileage/virtual_account_charge.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/mileage/virtual_account_charge.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/process/mileage/virtual_account_withdrawal.php" beforeDir="false" afterPath="$PROJECT_DIR$/public/process/mileage/virtual_account_withdrawal.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/layout_voucher.html.php" beforeDir="false" afterPath="$PROJECT_DIR$/templates/layout_voucher.html.php" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings" doNotAsk="true" synchronizationState="DONT_SYNCHRONIZE" updatePackages="false">
+    <pharConfigPath>$PROJECT_DIR$/adodb/composer.json</pharConfigPath>
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="localhost::imi" type="feb32156:DbDataSourceImpl" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="localhost::imi" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/configs/config.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="340">
+              <caret line="22" column="23" selection-start-line="22" selection-start-column="12" selection-end-line="22" selection-end-column="23" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/public/voucher_sell_enroll.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1541">
+              <caret line="96" column="74" selection-start-line="96" selection-start-column="60" selection-end-line="96" selection-end-column="74" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/public/js/voucher_sell_enroll.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret column="13" selection-start-column="13" selection-end-column="13" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/layout_voucher.html.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-9">
+              <caret line="62" column="20" selection-start-line="62" selection-start-column="20" selection-end-line="62" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>imi_</find>
+      <find>imi</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>th_</replace>
+      <replace>dealings</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/composer.json" />
+        <option value="$PROJECT_DIR$/class/AdminClass.php" />
+        <option value="$PROJECT_DIR$/class/CouponClass.php" />
+        <option value="$PROJECT_DIR$/class/DealingsClass.php" />
+        <option value="$PROJECT_DIR$/class/DealingsCommissionClass.php" />
+        <option value="$PROJECT_DIR$/class/EventClass.php" />
+        <option value="$PROJECT_DIR$/class/LoginClass.php" />
+        <option value="$PROJECT_DIR$/class/MemberClass.php" />
+        <option value="$PROJECT_DIR$/class/MileageClass.php" />
+        <option value="$PROJECT_DIR$/class/SellItemClass.php" />
+        <option value="$PROJECT_DIR$/class/VirtualAccountClass.php" />
+        <option value="$PROJECT_DIR$/class/VoucherClass.php" />
+        <option value="$PROJECT_DIR$/db_schema/admin.sql" />
+        <option value="$PROJECT_DIR$/db_schema/coupon.sql" />
+        <option value="$PROJECT_DIR$/db_schema/dealings.sql" />
+        <option value="$PROJECT_DIR$/db_schema/event.sql" />
+        <option value="$PROJECT_DIR$/db_schema/member.sql" />
+        <option value="$PROJECT_DIR$/db_schema/mileage.sql" />
+        <option value="$PROJECT_DIR$/public/process/dealings/changeSellStatus.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/changeStatus.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/dealings_delete.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/dealings_crontab.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/dealings_modify.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/enroll.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/payMileage.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/sell_enroll.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/seller_dealings_approval.php" />
+        <option value="$PROJECT_DIR$/public/process/dealings/seller_dealings_cancel.php" />
+        <option value="$PROJECT_DIR$/public/process/mileage/mileage_cancel.php" />
+        <option value="$PROJECT_DIR$/public/process/mileage/mileage_crontab.php" />
+        <option value="$PROJECT_DIR$/public/process/mileage/virtual_account_charge.php" />
+        <option value="$PROJECT_DIR$/public/process/mileage/virtual_account_withdrawal.php" />
+        <option value="$PROJECT_DIR$/imi_db_2019-10-24.sql" />
+        <option value="$PROJECT_DIR$/dealings_db_2019-10-24.sql" />
+        <option value="$PROJECT_DIR$/configs/config.php" />
+        <option value="$PROJECT_DIR$/templates/layout_voucher.html.php" />
+        <option value="$PROJECT_DIR$/public/js/voucher_sell_enroll.js" />
+      </list>
+    </option>
+  </component>
+  <component name="PhpServers">
+    <servers />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP 7.3" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="y" value="23" />
+    <option name="width" value="1680" />
+    <option name="height" value="978" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="imi" type="b2602c69:ProjectViewProjectNode" />
+              <item name="imi" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="imi" type="b2602c69:ProjectViewProjectNode" />
+              <item name="imi" type="462c0819:PsiDirectoryNode" />
+              <item name="public" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="imi" type="b2602c69:ProjectViewProjectNode" />
+              <item name="imi" type="462c0819:PsiDirectoryNode" />
+              <item name="public" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="database.console.LAST_STATE" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="reference.webide.settings.project.settings.php" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1cf75cad-2da9-42d2-a808-bcacaeb35d3d" name="Default Changelist" comment="" />
+      <created>1572076799544</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1572076799544</updated>
+      <workItem from="1572076802114" duration="1622000" />
+      <workItem from="1572094030140" duration="156000" />
+      <workItem from="1572185113396" duration="295000" />
+      <workItem from="1572185439108" duration="92000" />
+      <workItem from="1572362868518" duration="23000" />
+      <workItem from="1572446610714" duration="99000" />
+      <workItem from="1572448107509" duration="30000" />
+      <workItem from="1572448214218" duration="97000" />
+      <workItem from="1572449174278" duration="182000" />
+      <workItem from="1572449387465" duration="112000" />
+      <workItem from="1572449504318" duration="60000" />
+      <workItem from="1572471566349" duration="118000" />
+      <workItem from="1572471702668" duration="136000" />
+      <workItem from="1572472072182" duration="46000" />
+      <workItem from="1572474155521" duration="49000" />
+      <workItem from="1572525595422" duration="271000" />
+      <workItem from="1572525898247" duration="1000" />
+      <workItem from="1572526058974" duration="273000" />
+      <workItem from="1572526335020" duration="17000" />
+      <workItem from="1572526586889" duration="39000" />
+      <workItem from="1572527047655" duration="151000" />
+      <workItem from="1572527201932" duration="326000" />
+      <workItem from="1572527930669" duration="37000" />
+      <workItem from="1572594246342" duration="2175000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="6407000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="1680" height="979" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24114774" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Database Changes" order="8" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info anchor="bottom" id="Terminal" order="10" visible="true" weight="0.22886133" />
+      <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
+      <window_info anchor="bottom" id="Database Console" order="12" weight="0.3295711" />
+      <window_info anchor="bottom" id="SQL Generator" order="13" weight="0.3295711" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" visible="true" weight="0.1898657" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="php">
+          <url>file://$PROJECT_DIR$/public/process/dealings/dealings_delete.php</url>
+          <line>22</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/public/dealings_sell_detail_view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="57" column="13" selection-start-line="57" selection-start-column="13" selection-end-line="57" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/composer.json" />
+    <entry file="file://$PROJECT_DIR$/public/dealings_sell_status_view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-292" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/adodb/composer.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="29" column="12" selection-start-line="29" selection-start-column="12" selection-end-line="29" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/AdminClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5524">
+          <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/CouponClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15465">
+          <caret line="1175" column="43" selection-start-line="1175" selection-start-column="43" selection-end-line="1175" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/DealingsClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15208">
+          <caret line="1061" column="46" selection-start-line="1061" selection-start-column="46" selection-end-line="1061" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/DealingsCommissionClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="222">
+          <caret line="68" column="39" selection-start-line="68" selection-start-column="39" selection-end-line="68" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/EventClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3614">
+          <caret line="216" column="52" selection-start-line="216" selection-start-column="52" selection-end-line="216" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/LoginClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2919">
+          <caret line="291" column="32" selection-start-line="291" selection-start-column="32" selection-end-line="291" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/MileageClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3185">
+          <caret line="1466" column="57" selection-start-line="1466" selection-start-column="57" selection-end-line="1466" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/SellItemClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="464">
+          <caret line="68" column="41" selection-start-line="68" selection-start-column="41" selection-end-line="68" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/VirtualAccountClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="645">
+          <caret line="117" column="32" selection-start-line="117" selection-start-column="32" selection-end-line="117" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/VoucherClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="314">
+          <caret line="48" column="45" selection-start-line="48" selection-start-column="45" selection-end-line="48" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/admin.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="129">
+          <caret line="11" column="13" lean-forward="true" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/coupon.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="928">
+          <caret line="58" column="54" selection-start-line="58" selection-start-column="54" selection-end-line="58" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/dealings.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1421">
+          <caret line="87" column="59" selection-start-line="87" selection-start-column="59" selection-end-line="87" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/event.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="54" selection-start-line="6" selection-start-column="54" selection-end-line="6" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/member.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="850">
+          <caret line="65" column="54" selection-start-line="65" selection-start-column="54" selection-end-line="65" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db_schema/mileage.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="129">
+          <caret line="11" column="51" lean-forward="true" selection-start-line="11" selection-start-column="51" selection-end-line="11" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/includes/eventFunction.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-931" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/dealings_purchase_detail_view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="381">
+          <caret line="59" column="12" lean-forward="true" selection-start-line="59" selection-start-column="12" selection-end-line="59" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/card_charge.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/voucher_purchase_list.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/admin/add_member.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1250" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/changeCancelStatus.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="15" column="9" selection-start-line="15" selection-start-column="9" selection-end-line="15" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/changeSellStatus.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1763">
+          <caret line="65" column="12" lean-forward="true" selection-start-line="65" selection-start-column="12" selection-end-line="65" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/changeStatus.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="267">
+          <caret line="57" column="38" selection-start-line="57" selection-start-column="38" selection-end-line="57" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/dealings_delete.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="525">
+          <caret line="97" column="44" selection-start-line="97" selection-start-column="44" selection-end-line="97" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/dealings_crontab.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1599">
+          <caret line="114" column="43" selection-start-line="114" selection-start-column="43" selection-end-line="114" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/dealings_modify.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="277">
+          <caret line="68" column="35" selection-start-line="68" selection-start-column="35" selection-end-line="68" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/enroll.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="327">
+          <caret line="75" column="55" selection-start-line="75" selection-start-column="55" selection-end-line="75" selection-end-column="55" />
+          <folding>
+            <element signature="e#7#37#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/myChangeCancelStatus.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-86" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/payMileage.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2283">
+          <caret line="171" column="44" selection-start-line="171" selection-start-column="44" selection-end-line="171" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/sell_enroll.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1259">
+          <caret line="137" column="55" selection-start-line="137" selection-start-column="55" selection-end-line="137" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/seller_dealings_approval.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="39" column="31" lean-forward="true" selection-start-line="39" selection-start-column="31" selection-end-line="39" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/dealings/seller_dealings_cancel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1054">
+          <caret line="64" column="45" selection-start-line="64" selection-start-column="45" selection-end-line="64" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/event/issue_event_result.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/card_charge.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/mileage_cancel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="342">
+          <caret line="132" column="37" selection-start-line="132" selection-start-column="37" selection-end-line="132" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/mileage_crontab.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3624">
+          <caret line="224" column="37" selection-start-line="224" selection-start-column="37" selection-end-line="224" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/phone_charge.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="603">
+          <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/virtual_account_charge.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="59" column="32" selection-start-line="59" selection-start-column="32" selection-end-line="59" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/virtual_account_withdrawal.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="928">
+          <caret line="92" column="32" selection-start-line="92" selection-start-column="32" selection-end-line="92" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/process/mileage/vourcher_charge.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-983" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dealings_db_2019-10-24.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="303">
+          <caret line="161" column="26" lean-forward="true" selection-start-line="161" selection-start-column="26" selection-end-line="161" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class/MemberClass.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7677">
+          <caret line="578" lean-forward="true" selection-start-line="578" selection-end-line="578" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/config.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="22" column="23" selection-start-line="22" selection-start-column="12" selection-end-line="22" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/layout_voucher.html.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-9">
+          <caret line="62" column="20" selection-start-line="62" selection-start-column="20" selection-end-line="62" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/voucher_sell_enroll.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1541">
+          <caret line="96" column="74" selection-start-line="96" selection-start-column="60" selection-end-line="96" selection-end-column="74" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/js/voucher_sell_enroll.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="13" selection-start-column="13" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

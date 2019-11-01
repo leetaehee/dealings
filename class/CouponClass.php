@@ -106,7 +106,7 @@
 		 */
 		public function insertCupon($param)
 		{
-			$query = 'INSERT INTO `imi_coupon` SET 
+			$query = 'INSERT INTO `th_coupon` SET 
 						`issue_type` = ?,
 						`sell_item_idx` = ?,
 						`subject` = ?,
@@ -140,7 +140,7 @@
 							 `icm`.`subject`,
 							 `icm`.`item_money`,
 							 `icm`.`discount_rate`
-					   FROM `imi_coupon_member` `icm` 
+					   FROM `th_coupon_member` `icm` 
 					   WHERE `icm`.`sell_item_idx` IN (?,5)  
 					   AND `icm`.`issue_type` = ?
 					   AND `icm`.`item_money` IN (?,0)
@@ -173,7 +173,7 @@
 		public function getCheckValidCoupon($param, $isUseForUpdate = false)
 		{	
 			$query = 'SELECT `idx`
-					  FROM `imi_coupon`
+					  FROM `th_coupon`
 					  WHERE `issue_type` = ?
 					  AND `idx` = ?
 					  AND `is_del` = ?';
@@ -201,8 +201,8 @@
 		public function getCheckAvailableCoupon($param, $isUseForUpdate = false)
 		{
 			$query  = 'SELECT `icu`.`member_idx`
-					   FROM `imi_coupon` `ic`
-							LEFT JOIN `imi_coupon_useage` `icu`
+					   FROM `th_coupon` `ic`
+							LEFT JOIN `th_coupon_useage` `icu`
 								ON `ic`.idx = `icu`.`coupon_idx`
 					   WHERE `ic`.`idx` = ? 
 					   AND `ic`.`is_del` = ?
@@ -235,7 +235,7 @@
 			$query = 'SELECT `discount_mileage`,
 							 `discount_rate`,
 							 `item_money`
-					  FROM `imi_coupon` 
+					  FROM `th_coupon` 
 					  WHERE `idx` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -259,7 +259,7 @@
 		 */
 		public function insertCouponUseage($param)
 		{
-			$query = 'INSERT INTO `imi_coupon_useage` SET 
+			$query = 'INSERT INTO `th_coupon_useage` SET 
 						`issue_type` = ?,
 						`dealings_idx` = ?,
 						`coupon_idx` = ?,
@@ -287,7 +287,7 @@
 		 */
 		public function updateCouponStatus($param)
 		{
-			$query = 'UPDATE `imi_coupon_useage` SET 
+			$query = 'UPDATE `th_coupon_useage` SET 
 						`coupon_use_end_date` = ?,
 						`is_refund` = ?
 					   WHERE `idx` = ?';
@@ -322,12 +322,12 @@
 							 `im`.`name`,
 							 `icu`.`is_refund`,
 							 `icu`.`coupon_use_end_date`
-					  FROM `imi_coupon_useage` `icu`
-						INNER JOIN `imi_coupon` `ic`
+					  FROM `th_coupon_useage` `icu`
+						INNER JOIN `th_coupon` `ic`
 							ON `icu`.`coupon_idx` = `ic`.`idx`
-						INNER JOIN `imi_sell_item` `isi`
+						INNER JOIN `th_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
-						INNER JOIN `imi_members` `im`
+						INNER JOIN `th_members` `im`
 							ON `icu`.`member_idx` = `im`.`idx`
 					  ORDER BY `ic`.`subject` ASC, `ic`.`idx` DESC, `icu`.`coupon_use_end_date` DESC';
 			
@@ -362,8 +362,8 @@
 							 `ic`.`start_date`,
 							 `ic`.`expiration_date`,
 							 `isi`.`item_name`
-					  FROM `imi_coupon` `ic`
-						INNER JOIN `imi_sell_item` `isi`
+					  FROM `th_coupon` `ic`
+						INNER JOIN `th_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 					  ORDER BY `ic`.`issue_date` DESC, `ic`.`subject` ASC';
 
@@ -390,7 +390,7 @@
 		public function getCheckCouponValidDateCount($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) `cnt` 
-					  FROM `imi_coupon` 
+					  FROM `th_coupon` 
 					  WHERE `expiration_date` < ?  
 					  AND `is_del` <> ?';
 			
@@ -418,8 +418,8 @@
 		public function getCheckCouponValidDateList($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `ic`.`idx`
-					  FROM `imi_coupon` `ic`
-						LEFT JOIN `imi_coupon_member` `icm`
+					  FROM `th_coupon` `ic`
+						LEFT JOIN `th_coupon_member` `icm`
 							ON `ic`.`idx` = `icm`.`coupon_idx`
 					  WHERE `ic`.`expiration_date` < ?  
 					  AND `ic`.`is_del` = ?
@@ -446,7 +446,7 @@
 		 * @return int/bool
 		 */
 		public function updateCouponDelete($param){
-			$query = 'UPDATE `imi_coupon` SET 
+			$query = 'UPDATE `th_coupon` SET 
 						`is_del` = ?
 					   WHERE `expiration_date` < ?
 					   AND `is_del` <> ?';
@@ -476,7 +476,7 @@
 					'coupon_idx'=> $value['idx']
 				];
 				
-				$query = 'UPDATE `imi_coupon_member` SET 
+				$query = 'UPDATE `th_coupon_member` SET 
 							`is_coupon_del` = ?
 						   WHERE `coupon_idx` = ?';
 
@@ -500,7 +500,7 @@
 		 */
 		public function getCheckUserCouponMatch($param, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_coupon` WHERE `item_money` = ? AND `sell_item_idx` = ?';
+			$query = 'SELECT `idx` FROM `th_coupon` WHERE `item_money` = ? AND `sell_item_idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -532,12 +532,12 @@
 							 `ic`.`discount_mileage`,
 							 `isi`.`item_name`,
 							 `icm`.`idx` `coupon_idx`
-					  FROM `imi_coupon` `ic`
-						LEFT JOIN `imi_coupon_member` `icm`
+					  FROM `th_coupon` `ic`
+						LEFT JOIN `th_coupon_member` `icm`
 							ON `ic`.`idx` = `icm`.`coupon_idx`
 							AND `icm`.`member_idx` = ?
 							AND `icm`.`is_del` = ?
-						LEFT JOIN `imi_sell_item` `isi`
+						LEFT JOIN `th_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 				      WHERE `icm`.`idx` IS NULL
 					  AND `ic`.`is_del` = ?';
@@ -574,8 +574,8 @@
 							 `ic`.`sell_item_idx`,
 							 `ic`.`is_del`,
 							 `isi`.`item_name`
-					  FROM `imi_coupon` `ic`
-						LEFT JOIN `imi_sell_item` `isi`
+					  FROM `th_coupon` `ic`
+						LEFT JOIN `th_sell_item` `isi`
 							ON `ic`.`sell_item_idx` = `isi`.`idx`
 				      WHERE `ic`.`idx`= ?';
             
@@ -600,7 +600,7 @@
          */
 		public function getValidCouponIdx($couponIdx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_coupon` WHERE `idx` = ?';
+			$query = 'SELECT `idx` FROM `th_coupon` WHERE `idx` = ?';
             
             if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -623,7 +623,7 @@
          */
 		public function getCouponStatusCode($couponStatusName, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_coupon_status_code` WHERE `coupon_status_name` = ?';
+			$query = 'SELECT `idx` FROM `th_coupon_status_code` WHERE `coupon_status_name` = ?';
             
             if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -645,7 +645,7 @@
          */
 		public function insertCouponMember($param)
 		{
-			$query = 'INSERT INTO `imi_coupon_member` SET 
+			$query = 'INSERT INTO `th_coupon_member` SET 
 						`issue_type` = ?,
 						`coupon_idx` = ?,
 						`sell_item_idx` = ?,
@@ -674,7 +674,7 @@
 		public function getCheckCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `coupon_idx` 
-					  FROM `imi_coupon_member` 
+					  FROM `th_coupon_member` 
 					  WHERE `idx` = ?
 					  AND `is_del` = ?';
             
@@ -710,12 +710,12 @@
 							 `icu`.`coupon_use_mileage`,
 							 `icm`.`is_del`,
 							 `ic`.`idx` `coupon_idx`
-					  FROM `imi_coupon_member` `icm`
-						INNER JOIN `imi_sell_item` `isi`
+					  FROM `th_coupon_member` `icm`
+						INNER JOIN `th_sell_item` `isi`
 							ON `icm`.`sell_item_idx` = `isi`.`idx`
-						INNER JOIN `imi_coupon` `ic`
+						INNER JOIN `th_coupon` `ic`
 							ON `icm`.`coupon_idx` = `ic`.`idx`
-						LEFT JOIN `imi_coupon_useage` `icu`
+						LEFT JOIN `th_coupon_useage` `icu`
 							ON `icm`.`idx` = `icu`.`coupon_member_idx`
 							AND `icu`.`is_refund` = ?
 					  WHERE `icm`.`member_idx` = ?
@@ -745,7 +745,7 @@
 		public function getCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx`
-					  FROM `imi_coupon_member` 
+					  FROM `th_coupon_member` 
 					  WHERE `idx` = ? 
 					  AND is_del = ?';
             
@@ -769,7 +769,7 @@
          */
 		public function deleteCouponMember($param)
 		{
-			$query = 'UPDATE `imi_coupon_member` SET 
+			$query = 'UPDATE `th_coupon_member` SET 
 						`is_del` = ?
 					   WHERE `idx` = ?';
 			$result = $this->db->execute($query, $param);
@@ -791,7 +791,7 @@
 		public function getCheckIsUseCouponByMember($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` 
-					  FROM `imi_coupon_useage`
+					  FROM `th_coupon_useage`
 					  WHERE `coupon_member_idx` = ?
 					  AND `coupon_idx` = ?
 					  AND `is_refund` = ?';
@@ -827,10 +827,10 @@
 							 `icm`.`idx`,
 							 `icm`.`coupon_status`,
 							 `isi`.`item_name`
-					  FROM `imi_coupon_member` `icm`
-						INNER JOIN `imi_sell_item` `isi`
+					  FROM `th_coupon_member` `icm`
+						INNER JOIN `th_sell_item` `isi`
 							ON `icm`.`sell_item_idx` = `isi`.`idx`
-						INNER JOIN `imi_coupon` `ic`
+						INNER JOIN `th_coupon` `ic`
 							ON `icm`.`coupon_idx` = `ic`.`idx`
 					  WHERE `icm`.`is_coupon_del` = ?
 					  AND `icm`.`is_del` = ?
@@ -858,7 +858,7 @@
 		public function getCheckCouponOverlapData($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) `count`
-					  FROM `imi_coupon_member`
+					  FROM `th_coupon_member`
 					  WHERE `coupon_idx` = ?
 					  AND `member_idx` = ?
 					  AND `issue_type` = ?
@@ -886,7 +886,7 @@
          */
 		public function getCheckCouponMemeberDelete($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `is_del` FROM `imi_coupon_member` WHERE `idx` = ?';
+			$query = 'SELECT `is_del` FROM `th_coupon_member` WHERE `idx` = ?';
             
             if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -910,7 +910,7 @@
 		public function getExistCouponMemberIdx($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `coupon_idx`
-					  FROM `imi_coupon_member`
+					  FROM `th_coupon_member`
 					  WHERE `coupon_idx` = ?
 					  AND `member_idx` = ?
 					  AND `is_del` = ? ';
@@ -935,7 +935,7 @@
          */
 		public function updateCouponMember($param)
 		{
-			$query = 'UPDATE `imi_coupon_member` SET 
+			$query = 'UPDATE `th_coupon_member` SET 
 					  `issue_type` = ?,
 					  `coupon_idx` = ?,
 					  `sell_item_idx` = ?,
@@ -962,7 +962,7 @@
          */
 		public function updateCouponMemberStatus($param)
 		{
-			$query = 'UPDATE `imi_coupon_member` SET 
+			$query = 'UPDATE `th_coupon_member` SET 
 						`coupon_status` = ?
 						WHERE `idx` = ?';
 			
@@ -992,8 +992,8 @@
 							 `icu`.`coupon_use_before_mileage`,
 							 `icu`.`coupon_use_mileage`,
 							 ROUND((`ic`.`item_money` * `ic`.`discount_rate`)/100) `discount_money`
-					  FROM `imi_coupon_useage` `icu`
-						LEFT JOIN `imi_coupon` `ic`
+					  FROM `th_coupon_useage` `icu`
+						LEFT JOIN `th_coupon` `ic`
 							ON `icu`.`coupon_idx` = `ic`.`idx`
 					  WHERE `icu`.`dealings_idx` = ?
 					  AND `icu`.`member_idx` = ?
@@ -1029,7 +1029,7 @@
 		{
 			$cUseageP = $param['useageP'];
 
-			$cUseageQ = 'INSERT INTO `imi_coupon_useage` SET 
+			$cUseageQ = 'INSERT INTO `th_coupon_useage` SET 
 							`issue_type` = ?,
 							`dealings_idx` = ?,
 							`coupon_idx` = ?,
@@ -1054,7 +1054,7 @@
 				'idx'=> $param['useageP']['coupon_member_idx']
 			];
 
-			$uCouponMbQ = 'UPDATE `imi_coupon_member` SET 
+			$uCouponMbQ = 'UPDATE `th_coupon_member` SET 
 							`coupon_status` = ?
 							WHERE `idx` = ?';
 			
@@ -1093,7 +1093,7 @@
 
 			// 쿠폰 사용내역 및 쿠폰정보 가져오기
 			$rUseageQ = 'SELECT * 
-						 FROM `imi_coupon_useage`
+						 FROM `th_coupon_useage`
 						 WHERE `dealings_idx` = ?
 						 AND `member_idx` = ?
 						 AND `issue_type` = ?
@@ -1134,7 +1134,7 @@
 				'idx'=> $couponIdx
 			];
 
-			$uCoponUseQ = 'UPDATE `imi_coupon_useage` SET 
+			$uCoponUseQ = 'UPDATE `th_coupon_useage` SET 
 							`coupon_use_end_date` = ?,
 							`is_refund` = ?
 							WHERE `idx` = ?';
@@ -1151,7 +1151,7 @@
 
 			$couponStatusName = '사용대기';
 			
-			$cCouponCodeQ = 'SELECT `idx`  FROM `imi_coupon_status_code` WHERE `coupon_status_name` = ?';
+			$cCouponCodeQ = 'SELECT `idx`  FROM `th_coupon_status_code` WHERE `coupon_status_name` = ?';
             
 			$cCouponCodeResult = $this->db->execute($cCouponCodeQ, $couponStatusName);
 			if ($cCouponCodeResult === false) {
@@ -1173,7 +1173,7 @@
 				'coupon_status'=> $couponStatusCode,
 				'idx'=> $couponMemberIdx
 			];
-			$uCouponMemberQ = 'UPDATE `imi_coupon_member` SET 
+			$uCouponMemberQ = 'UPDATE `th_coupon_member` SET 
 								`coupon_status` = ?
 								WHERE `idx` = ?';
 			

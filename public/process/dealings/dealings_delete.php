@@ -45,7 +45,7 @@
 		$db->startTrans();
 
 		// 현재 게시글의 거래타입 가져오기
-		$rDealingsQ = 'SELECT `dealings_type` FROM `imi_dealings` WHERE `idx` = ?';
+		$rDealingsQ = 'SELECT `dealings_type` FROM `th_dealings` WHERE `idx` = ?';
 
 		$rDealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
 		if ($rDealingsResult === false) {
@@ -79,7 +79,7 @@
 			'dealings_idx'=> $dealingsIdx
 		];
 
-		$uDealingsQ = 'UPDATE `imi_dealings` SET 
+		$uDealingsQ = 'UPDATE `th_dealings` SET 
 						`is_del` = ?,
 						`dealings_status` = ?
 						WHERE `idx` = ?';
@@ -95,7 +95,7 @@
 			'dealings_idx'=> $dealingsIdx
 		];
 
-		$uDealingsProcQ = 'INSERT INTO `imi_dealings_process` SET
+		$uDealingsProcQ = 'INSERT INTO `th_dealings_process` SET
 								`dealings_status_idx` = ?,
 								`dealings_idx` = ?,
 								`dealings_datetime` = now()';

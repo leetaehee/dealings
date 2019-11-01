@@ -2,8 +2,8 @@
  * 관리자
  */
 
-CREATE TABLE `imi_admin` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_members.pk',
+CREATE TABLE `th_admin` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_members.pk',
   `id` varchar(50) NOT NULL COMMENT '아이디',
   `password` varchar(100) NOT NULL COMMENT '패스워드',
   `email` varchar(70) NOT NULL COMMENT '이메일',
@@ -29,9 +29,9 @@ CREATE TABLE `imi_admin` (
   KEY `forcedEviction_date` (`forcedEviction_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='아이엠아이 관리자 테이블 ';
 
-CREATE TABLE `imi_admin_access_ip` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_access_ip.PK',
-  `admin_idx` int(11) unsigned NOT NULL COMMENT 'imi_member.idx PK',
+CREATE TABLE `th_admin_access_ip` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_access_ip.PK',
+  `admin_idx` int(11) unsigned NOT NULL COMMENT 'th_member.idx PK',
   `access_ip` varchar(70) NOT NULL COMMENT '아이피',
   `access_date` date NOT NULL COMMENT '접근일자',
   `access_datetime` datetime NOT NULL COMMENT '접근시각',

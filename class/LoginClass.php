@@ -52,8 +52,8 @@
                              `imi`.`join_date`,
 							 `imi`.`join_approval_date`,
 							 `imi`.`withdraw_date`
-						FROM `imi_members` `imi`
-							INNER JOIN `imi_member_grades` `img`
+						FROM `th_members` `imi`
+							INNER JOIN `th_member_grades` `img`
 								ON `imi`.`grade_code` = `img`.`grade_code`
 						WHERE `imi`.`id` = ?';
 
@@ -93,7 +93,7 @@
 							 `join_approval_date`,
 							 `withdraw_date`,
 							 `is_superadmin`
-						FROM `imi_admin`
+						FROM `th_admin`
 						WHERE `id` = ?';
 
 			if ($isUseForUpdate === true) {
@@ -138,7 +138,7 @@
          */
 		public function insertIP($param)
 		{
-			$query = ' insert into `imi_access_ip` set
+			$query = ' insert into `th_access_ip` set
 						`member_idx` = ?,
 						`access_ip` = ?,
 						`access_date` = CURDATE(),
@@ -165,7 +165,7 @@
          */
 		public function insertAdminIP($param)
 		{
-			$query = ' insert into `imi_admin_access_ip` set
+			$query = ' insert into `th_admin_access_ip` set
 						`admin_idx` = ?,
 						`access_ip` = ?,
 						`access_date` = CURDATE(),
@@ -192,7 +192,7 @@
          */
         public function checkPasswordByUser($param, $isUseForUpdate = false)
         {
-            $query = 'SELECT `password` FROM `imi_members` where `idx` = ?';
+            $query = 'SELECT `password` FROM `th_members` where `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -222,7 +222,7 @@
          */
 		public function checkPasswordByAdmin($param, $isUseForUpdate = false)
         {
-            $query = 'SELECT `password` FROM `imi_admin` where `idx` = ?';
+            $query = 'SELECT `password` FROM `th_admin` where `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -257,7 +257,7 @@
 							 `access_ip`,
 							 `access_date`,
 							 `access_datetime`
-					  FROM `imi_access_ip`
+					  FROM `th_access_ip`
 					  WHERE `member_idx` = ?
 					  AND `access_date` = ?';
 
@@ -289,7 +289,7 @@
 							 `access_ip`,
 							 `access_date`,
 							 `access_datetime`
-					  FROM `imi_admin_access_ip`
+					  FROM `th_admin_access_ip`
 					  WHERE `admin_idx` = ?
 					  AND `access_date` = ?';
 

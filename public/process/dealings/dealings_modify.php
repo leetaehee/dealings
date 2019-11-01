@@ -66,7 +66,7 @@
 			'dealins_idx'=> $postData['dealings_idx']
 		];
 
-		$uDealingsQ = 'UPDATE `imi_dealings` SET 
+		$uDealingsQ = 'UPDATE `th_dealings` SET 
 						`dealings_subject` = ?,
 						`dealings_content` = ?,
 						`memo` = ?,

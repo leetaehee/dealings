@@ -43,7 +43,7 @@
          */
 		public function isExistDealingsNo($dealingsIdx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `dealings_idx` FROM `imi_dealings_commission` WHERE `dealings_idx` = ?';
+			$query = 'SELECT `dealings_idx` FROM `th_dealings_commission` WHERE `dealings_idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -66,7 +66,7 @@
          */
 		public function insertDealingsCommission($param)
 		{
-			$query = 'INSERT INTO `imi_dealings_commission` SET
+			$query = 'INSERT INTO `th_dealings_commission` SET
 						`dealings_idx` = ?,
 						`commission` = ?,
 						`dealings_complete_date` = CURDATE(),

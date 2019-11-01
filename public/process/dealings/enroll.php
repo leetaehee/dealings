@@ -73,7 +73,7 @@
 		// 수수료 데이터 검증 
 		$itemIdx = $postData['item_no'];
 
-		$rCommissionQ = 'SELECT `commission` FROM `imi_sell_item` WHERE `idx` = ?';
+		$rCommissionQ = 'SELECT `commission` FROM `th_sell_item` WHERE `idx` = ?';
 
 		$rCommistionResult = $db->execute($rCommissionQ, $itemIdx);
 		if ($rCommistionResult === false) {

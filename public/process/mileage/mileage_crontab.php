@@ -36,7 +36,7 @@
 							 `idx`,
 							 `spare_cost`,
 							 `expiration_date`
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `mileage_idx` <> 5
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
@@ -76,7 +76,7 @@
 				'charge_idx'=> $expirationData[$i]['charge_idx']
 			];
 
-			$uChargesMileageQ = 'UPDATE `imi_mileage_charge` SET
+			$uChargesMileageQ = 'UPDATE `th_mileage_charge` SET
 								  `spare_cost` = `spare_cost` - ?,
 								  `use_cost` = `use_cost` + ?
 								  WHERE `idx` = ?';
@@ -91,7 +91,7 @@
 
 		// 마일리지 변동내역 추가
 		for ($i = 0; $i < count($expirationData); $i++) {
-			$cMileageChangeQ = 'INSERT INTO `imi_mileage_change` SET
+			$cMileageChangeQ = 'INSERT INTO `th_mileage_change` SET
 									`member_idx` = ?,
 									`mileage_idx` = ?,
 									`charge_account_no` = ?,
@@ -114,7 +114,7 @@
 		// 유효기간이 지난 모든 회원의 소멸금액 가져오기
 		$rAllMemberMileageQ = 'SELECT `member_idx`,
 									  ifnull(sum(`charge_cost`),0) charge_cost
-							   FROM `imi_mileage_charge`
+							   FROM `th_mileage_charge`
 							   WHERE `mileage_idx` <> 5
 							   AND `charge_status` = 3
 							   AND `expiration_date` < ?
@@ -133,7 +133,7 @@
 				'member_idx'=> $value['member_idx']
 			];
 
-			$uMileageQ = 'UPDATE `imi_members` SET
+			$uMileageQ = 'UPDATE `th_members` SET
 							`mileage` = `mileage` - ? 
 						   WHERE `idx` = ?';
 			
@@ -149,7 +149,7 @@
 		$rMileageTypeQ = 'SELECT `member_idx`,
 								 `mileage_idx`,
 								 ifnull(sum(`charge_cost`),0) charge_cost
-						  FROM `imi_mileage_charge`
+						  FROM `th_mileage_charge`
 						  WHERE `mileage_idx` <> 5
 						  AND `expiration_date` < ?
 						  AND `charge_status` = 3
@@ -167,7 +167,7 @@
             $memberIdx = $value['member_idx'];
 
 			$rTypeSumQ = 'SELECT `idx` 
-						  FROM `imi_mileage_type_sum` 
+						  FROM `th_mileage_type_sum` 
 						  WHERE `member_idx` = ?';
 
 			$rTypeSumResult = $db->execute($rTypeSumQ, $memberIdx);
@@ -186,7 +186,7 @@
 					'charge_cost'=> $chargeCost
 				];
 
-				$cTypeSumQ = "INSERT INTO `imi_mileage_type_sum` SET
+				$cTypeSumQ = "INSERT INTO `th_mileage_type_sum` SET
 								`member_idx` = ?,
 								`{$colName}` = `{$colName}` + ?";
 
@@ -202,7 +202,7 @@
 					'member_idx'=> $memberIdx
 				];
 
-				$uTypeSumQ = "UPDATE `imi_mileage_type_sum` SET
+				$uTypeSumQ = "UPDATE `th_mileage_type_sum` SET
 								`{$colName}` = `{$colName}` - ?
 								WHERE `member_idx` = ?";
 
@@ -222,7 +222,7 @@
 			'expiration_date'=> $today
 		];
 
-		$uExpirationQ = 'UPDATE `imi_mileage_charge` SET
+		$uExpirationQ = 'UPDATE `th_mileage_charge` SET
 								`is_expiration` = ?,
 								`charge_status` = ?
 							   WHERE `expiration_date` < ?

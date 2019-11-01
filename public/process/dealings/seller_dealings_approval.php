@@ -57,7 +57,7 @@
 							  `dealings_subject`,
 							  `item_no`,
 							  `idx`
-						FROM `imi_dealings`
+						FROM `th_dealings`
 						WHERE `idx` = ?
 						FOR UPDATE';
 		
@@ -70,7 +70,7 @@
 		$rDealingsUserQ = 'SELECT `dealings_date`,
 								  `dealings_writer_idx`,
 								  `dealings_member_idx` 
-							FROM `imi_dealings_user` 
+							FROM `th_dealings_user` 
 							WHERE `dealings_idx` = ?
 							FOR UPDATE';
 
@@ -114,7 +114,7 @@
 		$rUseageQ = 'SELECT `idx`,
 							`coupon_member_idx`,
 							`coupon_use_before_mileage`
-					 FROM `imi_coupon_useage`
+					 FROM `th_coupon_useage`
 					 WHERE `dealings_idx` = ?
 					 AND `member_idx` = ?
 					 AND `issue_type` = ?
@@ -141,7 +141,7 @@
 				'idx'=>$couponIdx
 			];
 
-			$uBuyerCouponUseageQ = 'UPDATE `imi_coupon_useage` SET 
+			$uBuyerCouponUseageQ = 'UPDATE `th_coupon_useage` SET 
 										`coupon_use_end_date` = ?,
 										`is_refund` = ?
 										WHERE `idx` = ?';
@@ -177,7 +177,7 @@
 		$rSellUseageQ = 'SELECT `idx`,
 								`coupon_idx`,
 								`coupon_use_mileage`
-						 FROM `imi_coupon_useage`
+						 FROM `th_coupon_useage`
 						 WHERE `dealings_idx` = ?
 						 AND `member_idx` = ?
 						 AND `issue_type` = ?
@@ -194,7 +194,7 @@
 		// 쿠폰 정보 가져오기
 		$rSellCouponQ = 'SELECT `discount_rate`,
 								ROUND((`item_money` * `discount_rate`)/100) `discount_money`
-						 FROM `imi_coupon`
+						 FROM `th_coupon`
 						 WHERE `idx` = ?';
 
 		$rSellCouponResult = $db->execute($rSellCouponQ, $sellCouponIdx);
@@ -219,7 +219,7 @@
 				'idx'=>$commisionCouponIdx
 			];
 
-			$uCouponUseageQ = 'UPDATE `imi_coupon_useage` SET 
+			$uCouponUseageQ = 'UPDATE `th_coupon_useage` SET 
 								`coupon_use_end_date` = ?,
 								`is_refund` = ?
 								WHERE `idx` = ?';
@@ -275,7 +275,7 @@
 			// 수수료 부과
 			if ($commission > 0) {
 				$rCommissionQ = 'SELECT `dealings_idx` 
-								   FROM `imi_dealings_commission`
+								   FROM `th_dealings_commission`
 								   WHERE `dealings_idx` = ?';
 
 				$rCommissionResult = $db->execute($rCommissionQ, $dealingsIdx);
@@ -294,7 +294,7 @@
 					'sell_item_idx'=> $itemNo
 				];
 
-				$cCommissionQ = 'INSERT INTO `imi_dealings_commission` SET
+				$cCommissionQ = 'INSERT INTO `th_dealings_commission` SET
 									`dealings_idx` = ?,
 									`commission` = ?,
 									`dealings_complete_date` = CURDATE(),

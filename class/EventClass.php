@@ -47,8 +47,8 @@
 							 `ieh`.`event_cost`,
 							 `ieh`.`event_type`,
                              `ieh`.`member_idx`
-					  FROM `imi_event_history` `ieh`
-						INNER JOIN `imi_members` `im`
+					  FROM `th_event_history` `ieh`
+						INNER JOIN `th_members` `im`
 							ON `ieh`.`member_idx` = `im`.`idx`
 					  WHERE `ieh`.`event_type` = ?
 					  ORDER BY `ieh`.`event_cost` DESC, `ieh`.`participate_count` DESC
@@ -94,7 +94,7 @@
 
 			$payback = 0;
 
-			$rJoinDateQ = 'SELECT `join_approval_date` FROM `imi_members` WHERE `idx` = ?';
+			$rJoinDateQ = 'SELECT `join_approval_date` FROM `th_members` WHERE `idx` = ?';
 			$rJoinDateResult = $this->db->execute($rJoinDateQ, $memberIdx);
 			if ($rJoinDateResult == false) {
 				return [
@@ -117,7 +117,7 @@
 					$event = $CONFIG_EVENT_ARRAY['구매'];
 			
 					if ($event['start_date'] <= $today && $event['end_date'] >= $today) {
-						$rSellItemQ = 'SELECT `payback` FROM `imi_sell_item` WHERE `idx` = ? ';
+						$rSellItemQ = 'SELECT `payback` FROM `th_sell_item` WHERE `idx` = ? ';
 
 						$rSellItemResult = $this->db->execute($rSellItemQ, $itemNo);
 						if ($rSellItemResult === false) {
@@ -171,7 +171,7 @@
 
 
 			$rEventHistoryQ = 'SELECT `idx` 
-							   FROM `imi_event_history`
+							   FROM `th_event_history`
 							   WHERE `member_idx` = ?
 							   AND `event_type` = ?
 							   FOR UPDATE';
@@ -192,7 +192,7 @@
 					'eventHistoryIdx'=> $historyBuyerIdx
 				];
 
-				$uEventHistoryQ = 'UPDATE `imi_event_history` SET 
+				$uEventHistoryQ = 'UPDATE `th_event_history` SET 
 									`event_cost` = `event_cost` + ?,
 									`participate_count` = `participate_count` + ?
 								   WHERE `idx` = ?';
@@ -214,7 +214,7 @@
 					'partcipate_count'=> 1
 				];
 
-				$cEventHistoryQ = 'INSERT INTO `imi_event_history` SET 
+				$cEventHistoryQ = 'INSERT INTO `th_event_history` SET 
 									`member_idx` = ?,
 									`participate_date` = CURDATE(),
 									`participate_datetime` = NOW(),

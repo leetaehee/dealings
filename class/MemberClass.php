@@ -127,7 +127,7 @@
             }
             
             $query = "SELECT COUNT(`id`)  cnt 
-                      FROM `imi_members`
+                      FROM `th_members`
                       WHERE `phone` = ? OR `email` = ? {$search}";
 			
 			if ($isUseForUpdate === true) {
@@ -151,7 +151,7 @@
 		 */
 		public function getIdOverlapCount($id)
 		{
-			$query = "SELECT count(id) cnt FROM `imi_members` WHERE `id` = ?";
+			$query = "SELECT count(id) cnt FROM `th_members` WHERE `id` = ?";
 
 			$result = $this->db->execute($query,$id);
 			if ($result === false) {
@@ -172,7 +172,7 @@
 		{
 			$phone = removeHyphen($phone);
 		
-			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `phone` = ?";
+			$query = "SELECT count(phone) cnt FROM `th_members` WHERE `phone` = ?";
 			
 			$result = $this->db->execute($query, setEncrypt($phone));
 			if ($result === false) {
@@ -191,7 +191,7 @@
 		 */
 		public function getEmailOverlapCount($email)
 		{
-			$query = "SELECT count(phone) cnt FROM `imi_members` WHERE `email` = ?";
+			$query = "SELECT count(phone) cnt FROM `th_members` WHERE `email` = ?";
 			
 			$result = $this->db->execute($query, setEncrypt($email));
 			if ($result === false) {
@@ -210,7 +210,7 @@
          */
 		public function insertMember($param)
 		{
-			$query = "INSERT INTO `imi_members` SET
+			$query = "INSERT INTO `th_members` SET
 						`id` = ?,
 						`grade_code` = 3,
 						`password` = ?,
@@ -241,7 +241,7 @@
          */
 		public function updateMember($param)
 		{
-			$query = 'UPDATE `imi_members` SET
+			$query = 'UPDATE `th_members` SET
 					   `password` = ?,
 					   `email` = ?,
 					   `phone` = ?,
@@ -272,7 +272,7 @@
 		public function getJoinApprovalMailDate($idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `join_approval_date` 
-					  FROM `imi_members` 
+					  FROM `th_members` 
 					  WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
@@ -296,7 +296,7 @@
          */
 		public function updateJoinApprovalMailDate($idx)
 		{
-			$query = 'UPDATE `imi_members` 
+			$query = 'UPDATE `th_members` 
 					   SET `join_approval_date` = CURDATE() 
 					   WHERE `idx` = ?';
 					   
@@ -337,8 +337,8 @@
 							 `imi`.`account_no`,
 							 `imi`.`account_bank`,
 							 `img`.`grade_name`
-                      FROM `imi_members` `imi`
-						INNER JOIN `imi_member_grades` `img` 
+                      FROM `th_members` `imi`
+						INNER JOIN `th_member_grades` `img` 
 							ON `imi`.`grade_code` = `img`.`grade_code`
                       WHERE `idx` = ?';
 
@@ -364,7 +364,7 @@
          */
         public function deleteMember($idx)
         { 
-            $query = 'UPDATE `imi_members` 
+            $query = 'UPDATE `th_members` 
                       SET `withdraw_date` = CURDATE(),
 					      `modify_date` = CURDATE()
 				      WHERE `idx` = ?';
@@ -392,7 +392,7 @@
 			$query = 'SELECT `idx`,
 							 `account_no`,
 							 `account_bank`
-					  FROM `imi_members`
+					  FROM `th_members`
 					  WHERE `idx` = ?';
 
 			$result = $this->db->execute($query, $idx);
@@ -417,7 +417,7 @@
          */
 		public function updateMyAccount($param)
 		{
-			$query = 'UPDATE `imi_members` SET
+			$query = 'UPDATE `th_members` SET
 					   `account_no` = ?,
 					   `account_bank` = ?
 					  WHERE `idx` = ?
@@ -441,7 +441,7 @@
          */
 		public function updateMileageCharge($param)
 		{
-			$query = 'UPDATE `imi_members` SET
+			$query = 'UPDATE `th_members` SET
 					   `mileage` = `mileage` + ? 
 					   WHERE `idx` = ?';
 
@@ -464,7 +464,7 @@
          */
 		public function updateMileageWithdrawal($param)
 		{
-			$query = 'UPDATE `imi_members` SET
+			$query = 'UPDATE `th_members` SET
 					   `mileage` = `mileage` - ? 
 					   WHERE `idx` = ?';
 
@@ -495,7 +495,7 @@
 							$value['member_idx']
 						];
 
-					$query = 'UPDATE `imi_members` SET
+					$query = 'UPDATE `th_members` SET
 							  `mileage` = `mileage` - ? 
 							   WHERE `idx` = ?';
 					
@@ -530,7 +530,7 @@
 							 `join_approval_date`,
 							 `mileage`,
 							 CASE WHEN `sex` = "M" then "남성" else "여성" end sex_name
-					  FROM `imi_members`
+					  FROM `th_members`
 					  WHERE `forcedEviction_date` IS NULL
 					  AND `withdraw_date` IS NULL
 					  AND `join_approval_date` IS NOT NULL';
@@ -566,7 +566,7 @@
 							 `join_approval_date`,
 							 `mileage`,
 							 CASE WHEN `sex` = "M" then "남성" else "여성" end sex_name
-					  FROM `imi_members`
+					  FROM `th_members`
 					  WHERE `forcedEviction_date` IS NULL
 					  AND `withdraw_date` IS NULL
 					  AND `join_approval_date` IS NOT NULL';
@@ -594,7 +594,7 @@
          */
 		public function getTotalMileage($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `mileage` FROM `imi_members` WHERE `idx` = ?';
+			$query = 'SELECT `mileage` FROM `th_members` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';

@@ -50,7 +50,7 @@
 
 		// 출금가능 금액 추출
 		$rTypeSumQ = 'SELECT `virtual_account_sum`
-					  FROM `imi_mileage_type_sum`
+					  FROM `th_mileage_type_sum`
 					  WHERE `member_idx` = ?
 					  FOR UPDATE';
 		
@@ -75,7 +75,7 @@
 								`charge_cost`,
 								`spare_cost`,
 								`mileage_idx`
-						 FROM `imi_mileage_charge`
+						 FROM `th_mileage_charge`
 						 WHERE `mileage_idx` = ?
 						 AND `member_idx` = ?
 						 AND `charge_status` = ?
@@ -90,7 +90,7 @@
 
 		$rAccountQ = 'SELECT `virtual_account_no`,
 							 `bank_name`
-					  FROM `imi_member_virtual_account`
+					  FROM `th_member_virtual_account`
 					  WHERE `member_idx` = ?';
 			
 		$rAccountResult = $db->execute($rAccountQ, $idx);

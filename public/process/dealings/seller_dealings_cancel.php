@@ -57,7 +57,7 @@
 							  `dealings_subject`,
 							  `item_no`,
 							  `idx`
-						FROM `imi_dealings`
+						FROM `th_dealings`
 						WHERE `idx` = ?
 						FOR UPDATE';
 	
@@ -70,7 +70,7 @@
 		$rDealingsUserQ = 'SELECT `dealings_date`,
 								  `dealings_writer_idx`,
 								  `dealings_member_idx` 
-							FROM `imi_dealings_user` 
+							FROM `th_dealings_user` 
 							WHERE `dealings_idx` = ?
 							FOR UPDATE';
 

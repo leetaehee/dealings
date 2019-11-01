@@ -45,7 +45,7 @@
 							`charge_status`,
 							`idx`,
 							`charge_cost`
-					 FROM `imi_mileage_charge`
+					 FROM `th_mileage_charge`
 					 WHERE `idx` = ?
 					 FOR UPDATE';
 			
@@ -59,7 +59,7 @@
 			throw new RollbackException('이미 충전 취소 되었습니다.');
 		}
 
-		$uChargeQ = 'UPDATE `imi_mileage_charge` SET
+		$uChargeQ = 'UPDATE `th_mileage_charge` SET
 					   `charge_status` = 1,
 					   `spare_cost` = 0,
 					   `use_cost` = 0
@@ -87,7 +87,7 @@
 			'charge_status'=> 1
 		];
 
-		$cChargeChangeQ = 'INSERT INTO `imi_mileage_change` SET 
+		$cChargeChangeQ = 'INSERT INTO `th_mileage_change` SET 
 							`member_idx` = ?,
 							`mileage_idx` = ?,
 							`charge_account_no` = ?,
@@ -111,7 +111,7 @@
 			'idx'=> $rChargeResult->fields['member_idx']
 		];
 
-		$uMileageQ = 'UPDATE `imi_members` SET
+		$uMileageQ = 'UPDATE `th_members` SET
 					   `mileage` = `mileage` - ? 
 					  WHERE `idx` = ?';
 
@@ -130,7 +130,7 @@
 			'idx'=> $rChargeResult->fields['member_idx']
 		];
 
-		$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET 
+		$uMileageSumQ = "UPDATE `th_mileage_type_sum` SET 
 						  `{$colName}` = `{$colName}` - ?
 						 WHERE `member_idx` = ?";
 

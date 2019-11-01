@@ -2,8 +2,8 @@
  * 회원
  */
 
-CREATE TABLE `imi_members` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_members.pk',
+CREATE TABLE `th_members` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_members.pk',
   `id` varchar(50) NOT NULL COMMENT '아이디',
   `grade_code` int(11) unsigned NOT NULL COMMENT '일반회원 등급',
   `password` varchar(255) NOT NULL COMMENT '패스워드',
@@ -34,8 +34,8 @@ CREATE TABLE `imi_members` (
   KEY `forcedEviction_date` (`forcedEviction_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='아이엠아이 회원 관리 테이블 ';
 
-CREATE TABLE `imi_member_grades` (
-  `grade_code` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_member_grades.PK',
+CREATE TABLE `th_member_grades` (
+  `grade_code` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_member_grades.PK',
   `grade_order` int(11) unsigned NOT NULL DEFAULT '1' COMMENT '등급순서(가장 낮은 회원은 1번이어함)',
   `grade_name` varchar(30) DEFAULT NULL COMMENT '등급명',
   `taget_point` int(11) DEFAULT '0' COMMENT '목표 포인트',
@@ -43,27 +43,27 @@ CREATE TABLE `imi_member_grades` (
   KEY `grade_name` (`grade_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='회원 등급 테이블';
 
-CREATE TABLE `imi_member_activity_history` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_member_activity_history.idx PK',
-  `member_idx` int(11) unsigned NOT NULL COMMENT 'imi_member.idx PK',
-  `grade_code` int(11) unsigned DEFAULT NULL COMMENT 'imi_member_grades.grade_code FK',
+CREATE TABLE `th_member_activity_history` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_member_activity_history.idx PK',
+  `member_idx` int(11) unsigned NOT NULL COMMENT 'th_member.idx PK',
+  `grade_code` int(11) unsigned DEFAULT NULL COMMENT 'th_member_grades.grade_code FK',
   `change_datetime` datetime DEFAULT NULL COMMENT '변동시각\n',
   `change_memo` text COMMENT '변동사유',
   PRIMARY KEY (`idx`),
   KEY `member_idx` (`member_idx`,`grade_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='회원 활동 이력 테이블';
 
-CREATE TABLE `imi_activity_point_type` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_activity_point_type.PK',
+CREATE TABLE `th_activity_point_type` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_activity_point_type.PK',
   `activity_type` varchar(30) NOT NULL COMMENT '활동유형',
   `point` int(11) NOT NULL COMMENT '부여되는 포인트',
   PRIMARY KEY (`idx`),
   KEY `activity_type` (`activity_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='활동 포인트 유형';
 
-CREATE TABLE `imi_access_ip` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'imi_access_ip.PK',
-  `member_idx` int(11) unsigned NOT NULL COMMENT 'imi_member.idx PK',
+CREATE TABLE `th_access_ip` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'th_access_ip.PK',
+  `member_idx` int(11) unsigned NOT NULL COMMENT 'th_member.idx PK',
   `access_ip` varchar(70) NOT NULL COMMENT '아이피',
   `access_date` date NOT NULL COMMENT '접근일자',
   `access_datetime` datetime NOT NULL COMMENT '접근시각',

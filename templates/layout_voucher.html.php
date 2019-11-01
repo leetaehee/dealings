@@ -86,6 +86,7 @@
 		<script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
 		<script>
 			var ajaxUrl = "<?=$ajaxUrl?>";
+			var domain = "<?=SITE_DOMAIN?>";
 		</script>
 		<script src="<?=COMMON_JS_URL;?>"></script>
 		<?php if(!empty($JsTemplateUrl)): ?>

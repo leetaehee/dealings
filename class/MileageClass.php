@@ -101,7 +101,7 @@
          */
 		public function getExpirationDay($mileageType, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `expiration_day`,`period` FROM `imi_mileage` WHERE `idx` = ?';
+			$query = 'SELECT `expiration_day`,`period` FROM `th_mileage` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -130,7 +130,7 @@
          */
 		public function insertMileageCharge($param)
 		{
-			$query = 'INSERT INTO `imi_mileage_charge` SET
+			$query = 'INSERT INTO `th_mileage_charge` SET
 						`member_idx` = ?,
 						`charge_infomation` = ?,
 						`charge_account_no` = ?,
@@ -168,7 +168,7 @@
 
 			if ($count > 0) {
 				for ($i = 0; $i < $count; $i++) {
-					$query = 'INSERT INTO `imi_mileage_change` SET
+					$query = 'INSERT INTO `th_mileage_change` SET
 								`member_idx` = ?,
 								`mileage_idx` = ?,
 								`charge_account_no` = ?,
@@ -207,7 +207,7 @@
 
 			if ($count > 0) {
 				for ($i = 0; $i < $count; $i++) {
-					$query = 'INSERT INTO `imi_dealings_mileage_change` SET
+					$query = 'INSERT INTO `th_dealings_mileage_change` SET
 								`dealings_idx` = ?,
 								`dealings_writer_idx` = ?,
 								`dealings_member_idx` = ?,
@@ -251,7 +251,7 @@
 							 `idx`,
 							 `spare_cost`,
 							 `expiration_date`
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `mileage_idx` <> 5
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
@@ -283,7 +283,7 @@
 			$query = 'SELECT `idx`,
 							 `charge_cost`,
 							 `spare_cost`
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `mileage_idx` = ?
 					  AND `member_idx` = ?
 					  AND `charge_status` = ?
@@ -317,8 +317,8 @@
 							 `imc`.`charge_cost`,
 							 `imc`.`spare_cost`,
 							 `imc`.`mileage_idx`
-					  FROM `imi_mileage_charge` `imc`
-						INNER JOIN `imi_mileage` `im`
+					  FROM `th_mileage_charge` `imc`
+						INNER JOIN `th_mileage` `im`
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` = ?
@@ -466,7 +466,7 @@
 			
 			if($count > 0){
 				for ($i = 0; $i < $count; $i++){
-					$query = 'UPDATE `imi_mileage_charge` SET
+					$query = 'UPDATE `th_mileage_charge` SET
 							   `spare_cost` = `spare_cost` - ?,
 							   `use_cost` = `use_cost` + ?
 							   WHERE `idx` = ?  
@@ -510,10 +510,10 @@
 							 `imc`.`charge_status`,
 							 `code`.`mileage_name`,
 							 `im`.`charge_taget_name`
-					  FROM `imi_mileage_charge` `imc`
-						INNER JOIN `imi_mileage_code` `code`
+					  FROM `th_mileage_charge` `imc`
+						INNER JOIN `th_mileage_code` `code`
 							ON `imc`.`charge_status` = `code`.`mileage_code`
-						INNER JOIN `imi_mileage` `im`
+						INNER JOIN `th_mileage` `im`
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` IN (1,3)
@@ -555,10 +555,10 @@
 							 `imc`.`charge_status`,
 							 `code`.`mileage_name`,
 							 `im`.`charge_taget_name`
-					  FROM `imi_mileage_change` `imc`
-						INNER JOIN `imi_mileage_code` `code`
+					  FROM `th_mileage_change` `imc`
+						INNER JOIN `th_mileage_code` `code`
 							ON `imc`.`charge_status` = `code`.`mileage_code`
-						INNER JOIN `imi_mileage` `im`
+						INNER JOIN `th_mileage` `im`
 							ON `imc`.`mileage_idx` = `im`.`idx`
 					  WHERE `imc`.`member_idx` = ?
 					  AND `imc`.`charge_status` IN (2,4,5)';
@@ -586,7 +586,7 @@
          */ 
 		public function getMemberMileageTypeIdx($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_mileage_type_sum` WHERE `member_idx` = ?';
+			$query = 'SELECT `idx` FROM `th_mileage_type_sum` WHERE `member_idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -613,7 +613,7 @@
 			// 마일리지 타입에 대해서 컬럼 지정
 			$colName = $this->getMileageTypeColumn($mileageType);
 	
-			$query = "UPDATE `imi_mileage_type_sum` SET
+			$query = "UPDATE `th_mileage_type_sum` SET
 						`{$colName}` = `{$colName}` - ?
 						WHERE `member_idx` = ?
 					";
@@ -648,7 +648,7 @@
 	
 					$colName = $this->getMileageTypeColumn($chargeData[$i]['mileage_idx']);
 
-					$query = "UPDATE `imi_mileage_type_sum` SET
+					$query = "UPDATE `th_mileage_type_sum` SET
 								`{$colName}` = `{$colName}` - ?
 								WHERE `member_idx` = ?
 							";
@@ -680,7 +680,7 @@
 			$memberIdx = $mileageTypeParam['idx'];
 
 			$query = "SELECT `{$colName}` `{$colName}`
-					  FROM `imi_mileage_type_sum`
+					  FROM `th_mileage_type_sum`
 					  WHERE `member_idx` = ?";
 			
 			if ($isUseForUpdate === true) {
@@ -720,10 +720,10 @@
 							 `im`.`id`,
 							 `imcd`.`idx` `charge_target_idx`,
 							 `imcd`.`charge_taget_name`
-					  FROM `imi_mileage_charge` `imc`
-						INNER JOIN `imi_members` `im`
+					  FROM `th_mileage_charge` `imc`
+						INNER JOIN `th_members` `im`
 							ON `imc`.`member_idx` = `im`.`idx`
-						INNER JOIN `imi_mileage` `imcd`
+						INNER JOIN `th_mileage` `imcd`
 							ON `imc`.`mileage_idx` = `imcd`.`idx`
 					  WHERE `imc`.`is_expiration` = ?
 					  AND `imc`.`charge_status` <> ?';
@@ -796,7 +796,7 @@
 					//`is_expiration` = ?, 마지막에..
 					//`charge_status` = 4 마지막에
 
-					$query = 'UPDATE `imi_mileage_charge` SET
+					$query = 'UPDATE `th_mileage_charge` SET
 							   `spare_cost` = `spare_cost` - ?,
 							   `use_cost` = `use_cost` + ?
 							  WHERE `idx` = ?';
@@ -824,7 +824,7 @@
          */
 		public function updateStatusByExpirationDate($param)
 		{
-			$query = 'UPDATE `imi_mileage_charge` SET
+			$query = 'UPDATE `th_mileage_charge` SET
 						`is_expiration` = ?,
 						`charge_status` = ?
 					  WHERE `expiration_date` < ?
@@ -849,7 +849,7 @@
          */
 		public function updateChargeStatus($param)
 		{
-			$query = 'UPDATE `imi_mileage_charge` SET
+			$query = 'UPDATE `th_mileage_charge` SET
 					   `charge_status` = ?,
 					   `spare_cost` = `spare_cost` - ?,
 					   `use_cost` = `use_cost` + ?
@@ -874,7 +874,7 @@
 		public function getCountChargeSpareCountZero($isUseForUpdate = false)
 		{
 			$query = 'SELECT COUNT(`spare_cost`) spare_cost
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `spare_cost` < 1
 					  AND `charge_status` <> 6';
 			
@@ -898,7 +898,7 @@
          */
 		public function updateChargeZeroStatus()
 		{
-			$query = 'UPDATE `imi_mileage_charge` SET
+			$query = 'UPDATE `th_mileage_charge` SET
 					   `charge_status` = 6
 					   WHERE `spare_cost` = 0';
 			
@@ -912,7 +912,7 @@
 		}
         
         /**
-         * imi_mileage_charge에 들어갈 내용 추출
+         * th_mileage_charge에 들어갈 내용 추출
          *
          * @param int $idx
 		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
@@ -929,7 +929,7 @@
 							 `charge_status`,
 							 `idx`,
 							 `charge_cost`
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `idx` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -960,7 +960,7 @@
 
 			$query = 'SELECT `member_idx`,
 							  ifnull(sum(`charge_cost`),0) charge_cost
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `mileage_idx` <> 5
 					  AND `charge_status` = 3
 					  AND `expiration_date` < ?
@@ -996,7 +996,7 @@
 			$query = 'SELECT `member_idx`,
 							 `mileage_idx`,
 							  ifnull(sum(`charge_cost`),0) charge_cost
-					  FROM `imi_mileage_charge`
+					  FROM `th_mileage_charge`
 					  WHERE `mileage_idx` <> 5
 					  AND `expiration_date` < ?
 					  AND `charge_status` = 3
@@ -1084,7 +1084,7 @@
 				];
 
 				// 충전된 마일리지에서 차감
-				$uChargeQ = 'UPDATE `imi_mileage_charge` SET
+				$uChargeQ = 'UPDATE `th_mileage_charge` SET
 									 `spare_cost` = `spare_cost` - ?,
 									 `use_cost` = `use_cost` + ?
 									WHERE `idx` = ?';
@@ -1109,7 +1109,7 @@
 					'member_idx'=> $memberIdx
 				];
 
-				$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET
+				$uMileageSumQ = "UPDATE `th_mileage_type_sum` SET
 								`{$colName}` = `{$colName}` - ?
 								WHERE `member_idx` = ?";
 
@@ -1126,7 +1126,7 @@
 
 			// 사용처리 한 금액에서 모두 사용하였지만 상태가 '사용완료'가 아닌 항목 카운트
 			$rUseChargeQ = 'SELECT COUNT(`spare_cost`) spare_cost
-							FROM `imi_mileage_charge`
+							FROM `th_mileage_charge`
 							WHERE `spare_cost` < 1
 							AND `charge_status` <> 6';
 			
@@ -1141,7 +1141,7 @@
 			// 사용된 금액이 0이면서 상태가 변경되지 않은 항목 카운트
 			$spareZeroCount = $rUseChargeResult->fields['spare_cost'];
 			if ($spareZeroCount > 0) {
-				$uChargeStatusQ = 'UPDATE `imi_mileage_charge` SET
+				$uChargeStatusQ = 'UPDATE `th_mileage_charge` SET
 									`charge_status` = 6
 									WHERE `spare_cost` = 0';
 			
@@ -1158,7 +1158,7 @@
 
 			// 거래 출금내역 생성
 			if ($type == 'dealings') {
-				// 거래 시 출금내역은 `imi_dealings_mileage_change` 삽입
+				// 거래 시 출금내역은 `th_dealings_mileage_change` 삽입
 
 				$dealingsStatsus = $param['dealings_status'];
 				$dealingsWriterIdx = $param['dealings_writer_idx'];
@@ -1166,7 +1166,7 @@
 				$dealingsIdx = $param['dealings_idx'];
 
 				for ($i = 0; $i<count($mileageChargeData); $i++) {
-					// imi_dealings_mileage_change 에 입력데이터 생성
+					// th_dealings_mileage_change 에 입력데이터 생성
 					$cChangeP[] = [
 						'use_cost'=> $mileageChargeData[$i]['use_cost'],
 						'idx'=> $mileageChargeData[$i]['idx'],
@@ -1179,7 +1179,7 @@
 
 				// 거래 마일리지 변동내역 생성
 				for ($i = 0; $i < count($cChangeP); $i++) {
-					$cChangeQ = 'INSERT INTO `imi_dealings_mileage_change` SET
+					$cChangeQ = 'INSERT INTO `th_dealings_mileage_change` SET
 									`dealings_money` = ?,
 									`charge_idx` = ?,
 									`dealings_idx` = ?,
@@ -1202,7 +1202,7 @@
 
 			// 마일리지 출금내역 생성
 			if ($type == 'withdrawal') {
-				// 마일리지 출금시 `imi_mileage_change`에서 빠져나감
+				// 마일리지 출금시 `th_mileage_change`에서 빠져나감
 	
 				$accountNo = $param['account_no'];
 				$accountBank = $param['account_bank'];
@@ -1210,7 +1210,7 @@
 				$chargeName = $param['charge_name'];
 
 				for ($i = 0; $i < count($mileageChargeData); $i++) {
-					// imi_mileage_change 에 입력데이터 생성
+					// th_mileage_change 에 입력데이터 생성
 					$cChangeP[] = [
 						'charge_idx'=> $mileageChargeData[$i]['idx'],
 						'mileage_idx'=> $mileageChargeData[$i]['mileage_idx'],
@@ -1225,7 +1225,7 @@
 
 				// 마일리지 변동내역 생성
 				for ($i = 0; $i < count($cChangeP); $i++) {
-					$cChangeQ = 'INSERT INTO `imi_mileage_change` SET 
+					$cChangeQ = 'INSERT INTO `th_mileage_change` SET 
 									`charge_idx` = ?,
 									`mileage_idx` = ?,
 									`member_idx` = ?,
@@ -1254,7 +1254,7 @@
 			];
 
 			// 회원별 마일리지 수정 
-			$uMbMileageQ = 'UPDATE `imi_members` SET
+			$uMbMileageQ = 'UPDATE `th_members` SET
 							`mileage` = `mileage` - ? 
 							WHERE `idx` = ?';
 
@@ -1301,7 +1301,7 @@
 			}
 
 			// 충전내역 추가
-			$cChargeQ = 'INSERT INTO `imi_mileage_charge` SET
+			$cChargeQ = 'INSERT INTO `th_mileage_charge` SET
 							`member_idx` = ?,
 							`charge_infomation` = ?,
 							`charge_account_no` = ?,
@@ -1318,7 +1318,7 @@
 				 */
 				$rMileageQ = 'SELECT `expiration_day`,
 									 `period` 
-							  FROM `imi_mileage` 
+							  FROM `th_mileage` 
 							  WHERE `idx` = ?
 							  FOR UPDATE';
 
@@ -1368,7 +1368,7 @@
 
 			if ($mileageParam['mileage'] > 0) {
 
-				$uMileageQ = 'UPDATE `imi_members` SET
+				$uMileageQ = 'UPDATE `th_members` SET
 							   `mileage` = `mileage` + ? 
 							   WHERE `idx` = ?';
 
@@ -1384,7 +1384,7 @@
 
 				// 마일리지 유형별 합계 테이블에 데이터 확인
 				$rTypeSumQ = 'SELECT `idx`
-							  FROM `imi_mileage_type_sum` 
+							  FROM `th_mileage_type_sum` 
 							  WHERE `member_idx` = ? 
 							  FOR UPDATE';
 
@@ -1407,7 +1407,7 @@
 	
 					$colName = $this->getMileageTypeColumn($mileageType);
 
-					$uMileageSumQ = "UPDATE `imi_mileage_type_sum` SET
+					$uMileageSumQ = "UPDATE `th_mileage_type_sum` SET
 										 `{$colName}` = `{$colName}` + ?
 										 WHERE `member_idx` = ?";
 
@@ -1427,7 +1427,7 @@
 						'mileage'=> $chargeCost
 					];
 
-					$cMileageSumQ = "INSERT INTO `imi_mileage_type_sum` SET
+					$cMileageSumQ = "INSERT INTO `th_mileage_type_sum` SET
 										`member_idx` = ?,
 										`{$colName}` = `{$colName}` + ?";
 
@@ -1445,7 +1445,7 @@
 				if (isset($param['mode']) != 'payback') {
 					// 거래 마일리지 키 가져오기
 					$rDealingsChangeQ = 'SELECT `idx`
-										 FROM `imi_dealings_mileage_change` 
+										 FROM `th_dealings_mileage_change` 
 										 WHERE `dealings_idx` = ?
 										 FOR UPDATE';
 
@@ -1464,7 +1464,7 @@
 							'dealings_idx'=> $dealingsIdx
 						];
 
-						$uDealingsChangeQ = 'UPDATE `imi_dealings_mileage_change` SET 
+						$uDealingsChangeQ = 'UPDATE `th_dealings_mileage_change` SET 
 											  `dealings_status_code` = ? 
 											  WHERE `dealings_idx` = ?';
 				

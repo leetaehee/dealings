@@ -35,7 +35,7 @@
 
 		$rDeleteQ = 'SELECT `idx`,
 							`dealings_status`
-					 FROM `imi_dealings`
+					 FROM `th_dealings`
 					 WHERE `is_del` = ?
 					 AND `expiration_date` < ?
 					 AND `dealings_status` IN (1,2)
@@ -66,7 +66,7 @@
 				'dealings_idx'=> $delData[$i]['idx']
 			];
 
-			$uDealingsQ = 'UPDATE `imi_dealings` SET 
+			$uDealingsQ = 'UPDATE `th_dealings` SET 
 							`is_del` = ?,
 							`dealings_status` = ?
 						   WHERE `idx` = ?';
@@ -80,7 +80,7 @@
 
 			$dealingsIdx = $delData[$i]['idx'];
 
-			$rDeliangUserQ = 'SELECT COUNT(`idx`) cnt FROM `imi_dealings_user` WHERE `dealings_idx` = ?';
+			$rDeliangUserQ = 'SELECT COUNT(`idx`) cnt FROM `th_dealings_user` WHERE `dealings_idx` = ?';
 
 			$rDealingsUserResult = $db->execute($rDeliangUserQ, $dealingsIdx);
 			if ($rDealingsUserResult === false) {
@@ -94,7 +94,7 @@
 					'idx'=> $dealingsIdx
 				];
 
-				$uDealingsUserQ = 'UPDATE `imi_dealings_user` SET 
+				$uDealingsUserQ = 'UPDATE `th_dealings_user` SET 
 									`dealings_status` = ?,
 									`dealings_date` = curdate()
 								  WHERE `dealings_idx` = ?';
@@ -112,7 +112,7 @@
 				'dealings_status'=> 6
 			];
 
-			$cProcessQ = 'INSERT INTO `imi_dealings_process` SET
+			$cProcessQ = 'INSERT INTO `th_dealings_process` SET
 							`dealings_idx` = ?,
 							`dealings_status_idx` = ?,
 							`dealings_datetime` = now()';

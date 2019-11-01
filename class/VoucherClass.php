@@ -46,7 +46,7 @@
 				'item_name'=> $voucherName
 			];
 
-			$query = 'SELECT `idx` FROM `imi_sell_item` WHERE `item_name` = ?';
+			$query = 'SELECT `idx` FROM `th_sell_item` WHERE `item_name` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';

@@ -82,7 +82,7 @@
 			$rCoponMbQ = 'SELECT `coupon_idx`,
 								 `member_idx`,
 								 `coupon_status`
-						  FROM `imi_coupon_member`
+						  FROM `th_coupon_member`
 						  WHERE `idx` = ?
 						  FOR UPDATE';
             
@@ -111,7 +111,7 @@
 									 `discount_mileage`,
 									 `discount_rate`,
 									 `item_money`
-							  FROM `imi_coupon`
+							  FROM `th_coupon`
 							  WHERE `idx` = ?
 							  AND `is_del` = ?
 							  FOR UPDATE';
@@ -135,7 +135,7 @@
 		// 수수료 데이터 검증
 		$itemIdx = $postData['item_no'];
 
-		$rCommissionQ = 'SELECT `commission` FROM `imi_sell_item` WHERE `idx` = ?';
+		$rCommissionQ = 'SELECT `commission` FROM `th_sell_item` WHERE `idx` = ?';
 
 		$rCommistionResult = $db->execute($rCommissionQ, $itemIdx);
 		if ($rCommistionResult === false) {

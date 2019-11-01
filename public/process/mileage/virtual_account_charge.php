@@ -57,7 +57,7 @@
 		];
 
 		$rAccountQ = 'SELECT `virtual_account_no`
-					  FROM `imi_member_virtual_account`
+					  FROM `th_member_virtual_account`
 					  WHERE `member_idx` = ?
 					  AND `bank_name` = ?
 					  FOR UPDATE';

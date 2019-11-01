@@ -90,7 +90,7 @@
 			];
 
 			$query = 'SELECT `idx`, `item_name`, `commission` 
-					  FROM `imi_sell_item` 
+					  FROM `th_sell_item` 
 					  WHERE `is_sell` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -115,7 +115,7 @@
          */
 		public function getDealingsStatus($param, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `idx` FROM `imi_dealings_status_code` WHERE `dealings_status_name` = ?';
+			$query = 'SELECT `idx` FROM `th_dealings_status_code` WHERE `dealings_status_name` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -138,7 +138,7 @@
          */
 		public function insertDealings($param)
 		{
-			$query = 'INSERT INTO `imi_dealings` SET
+			$query = 'INSERT INTO `th_dealings` SET
 						`expiration_date` = ?,
 						`register_date` = ?,
 						`dealings_type` = ?,
@@ -172,7 +172,7 @@
          */
 		public function updateDealings($param)
 		{
-			$query = 'UPDATE `imi_dealings` SET
+			$query = 'UPDATE `th_dealings` SET
 					   `dealings_subject` = ?,
 					   `dealings_content` = ?,
 					   `memo` = ?,
@@ -198,7 +198,7 @@
          */
 		public function insertDealingsProcess($param)
 		{
-			$query = 'INSERT INTO `imi_dealings_process` SET
+			$query = 'INSERT INTO `th_dealings_process` SET
 						`dealings_idx` = ?,
 						`dealings_status_idx` = ?,
 						`dealings_datetime` = now()';
@@ -230,8 +230,8 @@
 							 `id`.`item_money`,
 							 `id`.`dealings_mileage`,
 							 `isi`.`item_name`
-					  FROM `imi_dealings` `id`
-						INNER JOIN `imi_sell_item` `isi`
+					  FROM `th_dealings` `id`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
 					  WHERE `id`.`dealings_type` = ?
 					  AND `id`.`dealings_status` = ?
@@ -278,14 +278,14 @@
 							 `isi`.`item_name`,
 							 `idsc`.`dealings_status_name`,
 							 `idu`.`dealings_member_idx`
-					  FROM `imi_dealings` `id`
-						INNER JOIN `imi_members` `im`
+					  FROM `th_dealings` `id`
+						INNER JOIN `th_members` `im`
 							ON `id`.`writer_idx` = `im`.`idx`
-						INNER JOIN `imi_sell_item` `isi`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
-						INNER JOIN `imi_dealings_status_code` `idsc`
+						INNER JOIN `th_dealings_status_code` `idsc`
 							ON `id`.`dealings_status` = `idsc`.`idx`
-						LEFT JOIN `imi_dealings_user` `idu`
+						LEFT JOIN `th_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
 					  WHERE `id`.`idx` = ?
 					  ORDER BY `register_Date` DESC';
@@ -328,10 +328,10 @@
 							 `id`.`memo`,
 							 `isi`.`item_name`,
 							 `idu`.`dealings_member_idx`
-					  FROM `imi_dealings` `id`
-						INNER JOIN `imi_sell_item` `isi`
+					  FROM `th_dealings` `id`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
-						LEFT JOIN `imi_dealings_user` `idu`
+						LEFT JOIN `th_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
 					  WHERE `id`.`idx` = ?';
 			
@@ -358,7 +358,7 @@
 		public function isDealingsDataExist($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT count(`idx`) cnt 
-					  FROM `imi_dealings`
+					  FROM `th_dealings`
 					  WHERE `idx` = ? 
 					  AND `is_del` = ?
 					  AND `dealings_status` = ?';
@@ -386,7 +386,7 @@
 		public function getNextDealingsStatus($param, $isUseForUpdate = false)
 		{
 			$query = 'SELECT MIN(idx) next_idx
-					  FROM `imi_dealings_status_code`
+					  FROM `th_dealings_status_code`
 					  WHERE `idx` > ?';
 
 			if ($isUseForUpdate === true) {
@@ -410,7 +410,7 @@
          */
 		public function insertDealingsUser($param)
 		{
-			$query = 'INSERT INTO `imi_dealings_user` SET
+			$query = 'INSERT INTO `th_dealings_user` SET
 						`dealings_idx` = ?,
 						`dealings_writer_idx` = ?,
 						`dealings_member_idx` = ?,
@@ -436,7 +436,7 @@
          */
 		public function updateDealingsUser($param)
 		{
-			$query = 'UPDATE `imi_dealings_user` SET 
+			$query = 'UPDATE `th_dealings_user` SET 
 					  `dealings_status` = ?,
 					  `dealings_date` = curdate()
 					  WHERE `dealings_idx` = ?';
@@ -460,7 +460,7 @@
          */
 		public function updateDealingsStatus($param)
 		{
-			$query = 'UPDATE `imi_dealings` SET 
+			$query = 'UPDATE `th_dealings` SET 
 					  `dealings_status` = ?
 					  WHERE `idx` = ?';
 
@@ -482,7 +482,7 @@
          */
 		public function updateDealingsDeleteStatus($param)
 		{
-			$query = 'UPDATE `imi_dealings` SET 
+			$query = 'UPDATE `th_dealings` SET 
 					  `is_del` = ?,
 					  `dealings_status` = ?
 					  WHERE `idx` = ?';
@@ -505,7 +505,7 @@
          */
 		public function updateDealingsChange($param)
 		{
-			$query = 'UPDATE `imi_dealings_mileage_change` SET
+			$query = 'UPDATE `th_dealings_mileage_change` SET
 						`dealings_status_code` = ?
 						WHERE `dealings_idx` = ?';
 			
@@ -537,12 +537,12 @@
 							 `id`.`dealings_mileage`,
 							 `isi`.`item_name`,
 							 `idc`.`dealings_status_name`
-					  FROM `imi_dealings_user` `idu`
-						INNER JOIN `imi_dealings` `id`
+					  FROM `th_dealings_user` `idu`
+						INNER JOIN `th_dealings` `id`
 							ON `idu`.`dealings_idx` = `id`.`idx`
-						INNER JOIN `imi_sell_item` `isi`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
-						INNER JOIN `imi_dealings_status_code` `idc`
+						INNER JOIN `th_dealings_status_code` `idc`
 							ON `idu`.`dealings_status` = `idc`.`idx`
 					  WHERE `idu`.`dealings_member_idx` = ?
 					  AND `idu`.`dealings_type` = ?
@@ -584,14 +584,14 @@
 							 `idc`.`dealings_status_name`,
 							 `im`.`name`,
 							 `im`.`id`
-					  FROM `imi_dealings_user` `idu`
-						INNER JOIN `imi_dealings` `id`
+					  FROM `th_dealings_user` `idu`
+						INNER JOIN `th_dealings` `id`
 							ON `idu`.`dealings_idx` = `id`.`idx`
-						INNER JOIN `imi_sell_item` `isi`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
-						INNER JOIN `imi_dealings_status_code` `idc`
+						INNER JOIN `th_dealings_status_code` `idc`
 							ON `idu`.`dealings_status` = `idc`.`idx`
-						INNER JOIN `imi_members` `im`
+						INNER JOIN `th_members` `im`
 							ON `id`.`writer_idx` = `im`.`idx`
 					  WHERE `idu`.`dealings_status` IN (3,4,5)
 					  ORDER BY `idu`.`dealings_date` DESC, `id`.`dealings_subject` ASC';
@@ -629,12 +629,12 @@
 							 `id`.`item_no`,
 							 `isi`.`item_name`,
 							 `idc`.`dealings_status_name`
-					  FROM `imi_dealings` `id`
-						LEFT JOIN `imi_dealings_user` `idu`
+					  FROM `th_dealings` `id`
+						LEFT JOIN `th_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
-						INNER JOIN `imi_sell_item` `isi`
+						INNER JOIN `th_sell_item` `isi`
 							ON `id`.`item_no` = `isi`.`idx`
-						INNER JOIN `imi_dealings_status_code` `idc`
+						INNER JOIN `th_dealings_status_code` `idc`
 							ON `id`.`dealings_status` = `idc`.`idx`
 					  WHERE `id`.`dealings_type` = ?
 					  AND `id`.`is_del` = ?
@@ -664,7 +664,7 @@
 		public function isExistDealingsIdx($dealings_idx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT COUNT(`idx`) cnt 
-					  FROM `imi_dealings_user` 
+					  FROM `th_dealings_user` 
 					  WHERE `dealings_idx` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -699,10 +699,10 @@
 							 `id`.`idx`,
 							 `idu`.`dealings_member_idx`,
 							 `idu`.`dealings_writer_idx`
-					  FROM `imi_dealings` `id`
-						INNER JOIN `imi_dealings_user` `idu`
+					  FROM `th_dealings` `id`
+						INNER JOIN `th_dealings_user` `idu`
 							ON `id`.`idx` = `idu`.`dealings_idx`
-						INNER JOIN `imi_dealings_status_code` `ids`
+						INNER JOIN `th_dealings_status_code` `ids`
 							ON `id`.`dealings_status` = `ids`.`idx`
 					  WHERE `id`.`idx` = ?';
 
@@ -734,7 +734,7 @@
 
 			$query = 'SELECT `idx`,
 							 `dealings_status`
-					  FROM `imi_dealings`
+					  FROM `th_dealings`
 					  WHERE `is_del` = ?
 					  AND `expiration_date` < ?
 					  AND `dealings_status` IN (1,2)';
@@ -786,7 +786,7 @@
 		public function getMileageChangeIdx($dealingsIdx, $isUseForUpdate = false)
 		{
 			$query = 'SELECT `idx` 
-					  FROM `imi_dealings_mileage_change` 
+					  FROM `th_dealings_mileage_change` 
 					  WHERE `dealings_idx` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -811,7 +811,7 @@
          */
 		public function getCommission($dealingsIdx, $isUseForUpdate = false)
 		{	
-			$query = 'SELECT `dealings_commission` FROM `imi_dealings` WHERE `idx` = ?';
+			$query = 'SELECT `dealings_commission` FROM `th_dealings` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -835,7 +835,7 @@
          */
 		public function getDealingsType($dealingsIdx, $isUseForUpdate = false)
 		{	
-			$query = 'SELECT `dealings_type` FROM `imi_dealings` WHERE `idx` = ?';
+			$query = 'SELECT `dealings_type` FROM `th_dealings` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -863,7 +863,7 @@
 		public function dealingsInsertProcess($param)
 		{
 			// 거래생성
-			$cDealingsQ = 'INSERT INTO `imi_dealings` SET
+			$cDealingsQ = 'INSERT INTO `th_dealings` SET
 							`expiration_date` = ?,
 							`register_date` = ?,
 							`dealings_type` = ?,
@@ -894,7 +894,7 @@
 				'dealings_status_idx'=> 1
 			];
 
-			$cDealingsProcessQ = 'INSERT INTO `imi_dealings_process` SET
+			$cDealingsProcessQ = 'INSERT INTO `th_dealings_process` SET
 									`dealings_idx` = ?,
 									`dealings_status_idx` = ?,
 									`dealings_datetime` = now()';
@@ -932,7 +932,7 @@
 
 			// 거래 유저 테이블에 데이터 있는지 확인
 			$rUserCountQ = 'SELECT COUNT(`idx`) cnt 
-							FROM `imi_dealings_user` 
+							FROM `th_dealings_user` 
 							WHERE `dealings_idx` = ?';
 			
 			$rUserCountResult = $this->db->execute($rUserCountQ, $dealingsIdx);
@@ -946,7 +946,7 @@
 			$dealingsUserCnt = $rUserCountResult->fields['cnt'];
 
 			$rDealingsStatusQ = 'SELECT dealings_status 
-								 FROM `imi_dealings_user` 
+								 FROM `th_dealings_user` 
 								 WHERE `dealings_idx` = ?';
 			
 			$rDealingsStatusResult = $this->db->execute($rDealingsStatusQ, $dealingsIdx);
@@ -973,7 +973,7 @@
 				'dealings_idx'=> $dealingsIdx
 			];
 
-			$uDealingsQ = 'UPDATE `imi_dealings` SET 
+			$uDealingsQ = 'UPDATE `th_dealings` SET 
 							`dealings_status` = ? 
 							WHERE `idx` = ?';
 
@@ -992,7 +992,7 @@
 								  `dealings_status`,
 								  `writer_idx`,
 								  `idx`
-							FROM `imi_dealings`
+							FROM `th_dealings`
 							WHERE `idx` = ?
 							FOR UPDATE';
 			
@@ -1014,7 +1014,7 @@
 					'dealings_type'=> $rDealingsResult->fields['dealings_type']
 				];
 
-				$cDealingsUserQ = 'INSERT INTO `imi_dealings_user` SET
+				$cDealingsUserQ = 'INSERT INTO `th_dealings_user` SET
 									`dealings_idx` = ?,
 									`dealings_writer_idx` = ?,
 									`dealings_member_idx` = ?,
@@ -1038,7 +1038,7 @@
 					'dealings_idx'=> $rDealingsResult->fields['idx']
 				];
 
-				$uDealingsUserQ = 'UPDATE `imi_dealings_user` SET 
+				$uDealingsUserQ = 'UPDATE `th_dealings_user` SET 
 									`dealings_status` = ?,
 									`dealings_date` = curdate()
 									WHERE `dealings_idx` = ?';
@@ -1059,7 +1059,7 @@
 				'dealings_idx' => $dealingsIdx
 			];
 
-			$cDealingsPsQ = 'INSERT INTO `imi_dealings_process` SET
+			$cDealingsPsQ = 'INSERT INTO `th_dealings_process` SET
 								`dealings_status_idx` = ?,
 								`dealings_idx` = ?,
 								`dealings_datetime` = now()';

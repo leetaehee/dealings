@@ -63,7 +63,7 @@
 			$rCoponMbQ = 'SELECT `coupon_idx`,
 								 `member_idx`,
 								 `coupon_status`
-						  FROM `imi_coupon_member`
+						  FROM `th_coupon_member`
 						  WHERE `idx` = ?
 						  FOR UPDATE';
             
@@ -93,7 +93,7 @@
 									 `discount_mileage`,
 									 `discount_rate`,
 									 `item_money`
-							  FROM `imi_coupon`
+							  FROM `th_coupon`
 							  WHERE `idx` = ?
 							  AND `is_del` = ?
 							  FOR UPDATE';
@@ -127,7 +127,7 @@
 		}
 
 		// 거래금액 체크 
-		$rDealingsMileageQ = 'SELECT `dealings_mileage` FROM `imi_dealings` WHERE `idx` = ?';
+		$rDealingsMileageQ = 'SELECT `dealings_mileage` FROM `th_dealings` WHERE `idx` = ?';
 
 		$rDealingsMileageResult = $db->execute($rDealingsMileageQ, $dealingsIdx);
 		if ($rDealingsMileageResult === false) {
@@ -140,7 +140,7 @@
 		}
 
 		// 회원 마일리지 조회 후 비교 
-		$rMileageQ = 'SELECT `mileage` FROM `imi_members` WHERE `idx` = ? FOR UPDATE';
+		$rMileageQ = 'SELECT `mileage` FROM `th_members` WHERE `idx` = ? FOR UPDATE';
 
 		$rMileageResult = $db->execute($rMileageQ, $memberIdx);
 		if ($rMileageResult === false) {
@@ -168,8 +168,8 @@
 								`imc`.`charge_cost`,
 								`imc`.`spare_cost`,
 								`imc`.`mileage_idx`
-						 FROM `imi_mileage_charge` `imc`
-							INNER JOIN `imi_mileage` `im`
+						 FROM `th_mileage_charge` `imc`
+							INNER JOIN `th_mileage` `im`
 								ON `imc`.`mileage_idx` = `im`.`idx`
 						 WHERE `imc`.`member_idx` = ?
 						 AND `imc`.`charge_status` = ?

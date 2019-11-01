@@ -107,7 +107,7 @@
             }
             
             $query = "SELECT COUNT(`id`)  cnt 
-                      FROM `imi_admin`
+                      FROM `th_admin`
                       WHERE `phone` = ? OR `email` = ? {$search}";
 
 			if ($isUseForUpdate === true) {
@@ -132,7 +132,7 @@
 		 */
 		public function getIdOverlapCount($id)
 		{
-			$query = "SELECT count(id) cnt FROM `imi_admin` WHERE `id` = ?";
+			$query = "SELECT count(id) cnt FROM `th_admin` WHERE `id` = ?";
 			$result = $this->db->execute($query,$id);
 			if ($result == false) {
 				return false;
@@ -151,7 +151,7 @@
 		public function getPhoneOverlapCount($phone)
 		{	
 			$phone = removeHyphen($phone);
-			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `phone` = ?";
+			$query = "SELECT count(phone) cnt FROM `th_admin` WHERE `phone` = ?";
 			$result = $this->db->execute($query, setEncrypt($phone));
 			if ($result == false) {
 				return false;
@@ -168,7 +168,7 @@
 		 */
 		public function getEmailOverlapCount($email)
 		{	
-			$query = "SELECT count(phone) cnt FROM `imi_admin` WHERE `email` = ?";
+			$query = "SELECT count(phone) cnt FROM `th_admin` WHERE `email` = ?";
 			$result = $this->db->execute($query, setEncrypt($email));
 			if ($result == false) {
 				return false;
@@ -195,7 +195,7 @@
 				setEncrypt($postData['birth'])
 			];
 
-			$query = "INSERT INTO `imi_admin` SET
+			$query = "INSERT INTO `th_admin` SET
 						`id` = ?,
 						`password` = ?,
 						`email` = ?,
@@ -235,7 +235,7 @@
 				$postData['idx']
 			];
 
-			$query = 'UPDATE `imi_admin` SET
+			$query = 'UPDATE `th_admin` SET
 					   `password` = ?,
 					   `email` = ?,
 					   `phone` = ?,
@@ -265,7 +265,7 @@
 		 */
 		public function getJoinApprovalMailDate($idx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `join_approval_date` FROM `imi_admin` WHERE `idx` = ?';
+			$query = 'SELECT `join_approval_date` FROM `th_admin` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -288,7 +288,7 @@
 		 */
 		public function updateJoinApprovalMailDate($idx)
 		{
-			$query = 'UPDATE `imi_admin` SET `join_approval_date` = CURDATE() WHERE `idx` = ?';
+			$query = 'UPDATE `th_admin` SET `join_approval_date` = CURDATE() WHERE `idx` = ?';
 
 			$result = $this->db->execute($query, $idx);
 			$affected_row = $this->db->affected_rows();
@@ -322,7 +322,7 @@
                              `join_date`,
                              `join_approval_date`,
 							 `is_superadmin`
-                      FROM `imi_admin` 
+                      FROM `th_admin` 
                       WHERE `idx` = ?';
 			
 			if ($isUseForUpdate === true) {
@@ -346,7 +346,7 @@
 		 */
 		public function deleteAdmin($idx)
         {
-            $query = 'UPDATE `imi_admin` 
+            $query = 'UPDATE `th_admin` 
                       SET `withdraw_date` = CURDATE(),
 					      `modify_date` = CURDATE()
 				      WHERE `idx` = ?';

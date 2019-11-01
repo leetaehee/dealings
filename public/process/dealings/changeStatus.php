@@ -55,7 +55,7 @@
 		];
 
 		$rDealingsExistQ = 'SELECT count(`idx`) cnt 
-							FROM `imi_dealings`
+							FROM `th_dealings`
 							WHERE `idx` = ? 
 							AND `is_del` = ?
 							AND `dealings_status` = ?';

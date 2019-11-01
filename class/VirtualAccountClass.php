@@ -59,7 +59,7 @@
 		public function getVirtualAccount($param, $isUseForUpdate = false)
 		{			
 			$query = 'SELECT `virtual_account_no`
-					  FROM `imi_member_virtual_account`
+					  FROM `th_member_virtual_account`
 					  WHERE `member_idx` = ?
 					  AND `bank_name` = ?';
 			
@@ -87,7 +87,7 @@
 			// 가상계좌번호 임시생성(오늘날짜 시분초 회원PK)
 			$param['account_no'] = setEncrypt(date('YmdHis').''.$param['idx']);
 			
-			$query = 'INSERT INTO `imi_member_virtual_account` SET
+			$query = 'INSERT INTO `th_member_virtual_account` SET
 						`member_idx` = ?,
 						`bank_name` = ?,
 						`virtual_account_no` = ?
@@ -115,7 +115,7 @@
 		{			
 			$query = 'SELECT `virtual_account_no`,
 							 `bank_name`
-					  FROM `imi_member_virtual_account`
+					  FROM `th_member_virtual_account`
 					  WHERE `member_idx` = ?';
 			
 			if ($isUseForUpdate === true) {

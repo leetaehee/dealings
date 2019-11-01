@@ -42,7 +42,7 @@
          */
 		public function getCheckSellItemValue($itemIdx, $isUseForUpdate = false)
 		{
-			$query = 'SELECT `commission` FROM `imi_sell_item` WHERE `idx` = ?';
+			$query = 'SELECT `commission` FROM `th_sell_item` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';
@@ -66,7 +66,7 @@
          */
 		public function getSellItemData($itemNo, $isUseForUpdate = false)
 		{
-			$query = 'SELECT * FROM `imi_sell_item` WHERE `idx` = ?';
+			$query = 'SELECT * FROM `th_sell_item` WHERE `idx` = ?';
 
 			if ($isUseForUpdate === true) {
 				$query .= ' FOR UPDATE';

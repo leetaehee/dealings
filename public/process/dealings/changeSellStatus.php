@@ -60,7 +60,7 @@
 			$rCoponMbQ = 'SELECT `coupon_idx`,
 								 `member_idx`,
 								 `coupon_status`
-						  FROM `imi_coupon_member`
+						  FROM `th_coupon_member`
 						  WHERE `idx` = ?
 						  FOR UPDATE';
             
@@ -89,7 +89,7 @@
 									 `discount_mileage`,
 									 `discount_rate`,
 									 `item_money`
-							  FROM `imi_coupon`
+							  FROM `th_coupon`
 							  WHERE `idx` = ?
 							  AND `is_del` = ?
 							  FOR UPDATE';
@@ -107,7 +107,7 @@
 			$discountRate = $rCouponCheckResult->fields['discount_rate'];
 
 			$rCommissionQ = 'SELECT `dealings_commission` 
-							 FROM `imi_dealings` 
+							 FROM `th_dealings` 
 							 WHERE `idx` = ?
 							 FOR UPDATE';
 
@@ -131,7 +131,7 @@
 		];
 
 		$rDealingsExistQ = 'SELECT count(`idx`) cnt 
-							FROM `imi_dealings`
+							FROM `th_dealings`
 							WHERE `idx` = ?
 							AND `dealings_status` = ?';
 			
