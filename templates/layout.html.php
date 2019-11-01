@@ -49,7 +49,7 @@
 				<ul class="ul-nav">
 					<?php if(isset($_SESSION['idx'])): ?>
 						<li>
-						<a href="<?=SITE_DOMAIN?>/imi.php">Home|</a>
+						<a href="<?=SITE_DOMAIN?>/dealings.php">Home|</a>
 					</li>
 						<li>
 							<a href="<?=SITE_DOMAIN?>/logout.php">로그아웃|</a>

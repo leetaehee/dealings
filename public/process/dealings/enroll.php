@@ -107,7 +107,6 @@
 		if ($dealingsInsertProcess['result'] === false) {
 			throw new RollbackException($dealingsInsertProcess['resultMessage']);
 		}
-		$dealingsInsertId = $dealingsInsertProcess['insertId'];
 
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '정상적으로 거래글이 등록되었습니다.';

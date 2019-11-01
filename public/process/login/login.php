@@ -69,7 +69,7 @@
 			throw new RollbackException('비밀번호를 화인하세요');
 		}
 
-		$returnUrl = SITE_DOMAIN.'/imi.php'; // 로그인 성공 시 이동 링크
+		$returnUrl = SITE_DOMAIN.'/dealings.php'; // 로그인 성공 시 이동 링크
 
 		$param = [
 			'idx'=> $loginData->fields['idx'], 

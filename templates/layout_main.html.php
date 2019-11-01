@@ -37,7 +37,7 @@
 			<nav>
 				<ul class="ul-nav">
 					<li>
-						<a href="<?=SITE_DOMAIN?>/imi.php">Home|</a>
+						<a href="<?=SITE_DOMAIN?>/dealings.php">Home|</a>
 					</li>
 					<?php if(isset($_SESSION['idx'])): ?>
 						<li>
