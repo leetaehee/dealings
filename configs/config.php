@@ -1,6 +1,7 @@
 <?php
 	/*
-	 * 환경설정(DB,Session,Cookies, 에러메세지 처리) 
+	 * 환경설정(DB,Session,Cookies, 에러메세지 처리)
+	 * 테스트
 	 */
 
 	// 세션 활성화
