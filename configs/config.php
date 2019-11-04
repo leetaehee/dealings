@@ -29,6 +29,8 @@
     define('SITE_DOMAIN', ENV_SITE_DOMAIN);
     define('SITE_ADMIN_DOMAIN', ENV_ADMIN_DOMAIN);
 
+    echo "테스트";
+
     // front-end(회원)
     define('COMMON_JS_URL', SITE_DOMAIN . '/js/common.js'); // 공통 자바스크립트
     define('JS_URL', SITE_DOMAIN . '/js'); // 자바스크립트 파일 위치
