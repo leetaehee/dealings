@@ -45,7 +45,7 @@
 	define('ENCRYPT_TYPE', 'aes-256-cbc');
 	define('ENCRYPT_KEY', 'imi_key');
 
-	// ENV 경로 구하기(경로)
+	// ENV 경로 구하기(DB정보)
     $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../.env.json';
     $ENV = json_decode(file_get_contents($ENV_PATH), true);
 

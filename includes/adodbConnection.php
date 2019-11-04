@@ -3,6 +3,8 @@
 	 * ado db 커넥션 생성 
 	 */
 
+	//test
+
 	$driver = 'mysqli';
 
 	$db = newADOConnection('mysqli');
