@@ -49,8 +49,6 @@
     $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../.env.json';
     $ENV = json_decode(file_get_contents($ENV_PATH), true);
 
-    // 응?
-
 
     // DB 커넥션정보
     define('DB_HOST', $ENV['db_host']);
