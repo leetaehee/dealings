@@ -28,7 +28,7 @@
 	define('JS_ADMIN_URL', SITE_DOMAIN . '/js/admin'); // 자바스크립트 파일 위치
 	define('CSS_ADMIN_URL', SITE_DOMAIN . '/css/admin'); // CSS 파일 위치
 	define('NOMALIZE_CSS_ADMIN_URL', SITE_DOMAIN . '/css/adminnomalize.css'); // nomalize.css
-	
+
     // process(회원)
 	define('MEMBER_PROCESS_ACTION', SITE_DOMAIN . '/process/member'); // 로그인
 	define('MILEAGE_PROCESS_ACTION', SITE_DOMAIN . '/process/mileage'); // 마일리지
@@ -46,7 +46,7 @@
 	define('ENCRYPT_KEY', 'imi_key');
 
 	// ENV 경로 구하기
-    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../env.json';
+    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../.env.json';
     $ENV = json_decode(file_get_contents($ENV_PATH), true);
 
     // DB 커넥션정보
@@ -62,7 +62,6 @@
 	$JsTemplateUrl = '';
 	$templateFileName = '404.html.php';
 	$today = date('Y-m-d');
-	//$isUseForUpdate = true;
 
 	/**
 	 * 배열
