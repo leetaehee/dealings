@@ -3,8 +3,8 @@
 	 * 환경설정(DB,Session,Cookies, 에러메세지 처리) 
 	 */
 
-	// 세션 활성화 
-	session_start();
+	// 세션 활성화
+    session_start();
 
 	/**
 	 * 상수
@@ -46,7 +46,7 @@
 	define('ENCRYPT_KEY', 'imi_key');
 
 	// ENV 경로 구하기
-    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../.env.json';
+    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../env.json';
     $ENV = json_decode(file_get_contents($ENV_PATH), true);
 
 
