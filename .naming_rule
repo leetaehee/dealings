@@ -1,0 +1,57 @@
+# 네이밍 규칙
+1. PSR 따를 것
+
+# 변수네이밍
+1. 변수는 카멜케이스로 할 것
+$couponIdx
+$couponMemberIdx
+
+2. 배열의 키는 _으로 구분 할 것
+$coupon['coupon_idx']
+$coupon['coupon_member_idx']
+
+# 파일명 네이밍
+1. 클래스 처럼 PSR 규칙에 의한 것 제외하면 _으로 단어 구분 할 것
+2. 클래스는 PSR 규칙 따를 것
+- CouponClass (o)
+- Coupon_Class (x)
+- couponclass (x)
+
+# 쿼리 변수 네이밍
+1. CRUD 여부
+- 변수 앞에 c/r/u/d 를 붙일 것
+2. 테이블명
+3. 쿼리/결과/파라미터 종류에 따라 맨 마지막에 아래와 같이 붙일 것
+- 쿼리 Q
+- 결과 ...Result
+- 파라미터 ..P
+4. insertId, affected_row 여부
+- ..insertId
+- ..affectedRow
+5. 예시 참조
+
+# 쿼리 실행 방법
+1. 파라미터가 여러개 일 경우 배열에 담을 것
+- 파라미터가 여러개 일 때
+$rCouponUseageP = [
+    'idx'=> $idx,
+    'coupon_name'=> $coupon_name
+]
+
+setCoupon($rCouponUseageP);
+
+- 파라미터가 한개 일 때
+$idx = 1;
+setCoupon($idx);
+
+2. 쿼리
+$rCouponUseageQ = 'SELECT * FROM `th_dealings_useage`';
+
+3. 쿼리 실행
+$rCouponUseageResult = $this->db->execute($rCouponUseageQ, $rCouponUseageP);
+
+4. insert
+$couponUseageInsertId = $this->db->insert_id();
+
+5. update
+$couponUseageAffectedRow = $this->db->affected_rows();

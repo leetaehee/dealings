@@ -10,20 +10,14 @@
 	 * 상수
 	 */
 
-	// DB 커넥션정보
-	define('DB_HOST', 'localhost'); 
-	define('DB_USER', 'dealings');
-	define('DB_NAME', 'dealings');
-	define('DB_PASSWORD', 'dealings190819A@');
-
-	// 메세지 상수(DB)
-	define('DB_CONNECTION_ERROR_MESSAGE', '데이터베이스 서버에 접속 할 수 없습니다: ');
-
-	// 사이트 도메인 
+    // 사이트 도메인
 	define('SITE_DOMAIN', 'http://dealings.study');
 	define('SITE_ADMIN_DOMAIN', 'http://dealings.study/admin');
 
-	// front-end(회원)
+	// 루트 경로
+    define('SITE_DOCUMENT_ROOT', $_SERVER['DOCUMENT_ROOT']);
+
+    // front-end(회원)
 	define('COMMON_JS_URL', SITE_DOMAIN . '/js/common.js'); // 공통 자바스크립트
 	define('JS_URL', SITE_DOMAIN . '/js'); // 자바스크립트 파일 위치
 	define('CSS_URL', SITE_DOMAIN . '/css'); // CSS 파일 위치
@@ -51,6 +45,16 @@
 	define('ENCRYPT_TYPE', 'aes-256-cbc');
 	define('ENCRYPT_KEY', 'imi_key');
 
+	// ENV 경로 구하기
+    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../env.json';
+    $ENV = json_decode(file_get_contents($ENV_PATH), true);
+
+    // DB 커넥션정보
+    define('DB_HOST', $ENV['db_host']);
+    define('DB_USER', $ENV['db_user']);
+    define('DB_NAME', $ENV['db_name']);
+    define('DB_PASSWORD', $ENV['db_password']);
+
 	/**
 	 * 전역변수
 	 */ 
@@ -58,7 +62,7 @@
 	$JsTemplateUrl = '';
 	$templateFileName = '404.html.php';
 	$today = date('Y-m-d');
-	//$isUseForUpdate = true; 
+	//$isUseForUpdate = true;
 
 	/**
 	 * 배열
