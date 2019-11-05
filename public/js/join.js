@@ -31,7 +31,7 @@ function getOverlapAjax($this)
 	if($id.prop("id")=="userPhone"){
 		if(oldUserPhone==$id.val()){
 			isExcute = false;
-		}  
+		}
 	}
 
 	$.ajax({
@@ -43,6 +43,12 @@ function getOverlapAjax($this)
 		},
 		dataType: "json",
 		success: function(data, status, xhr) {
+			if (data.errorMessage) {
+				// 오류 체크 (php try-catch 메세지 출력)s
+				alert(data.errorMessage);
+				return false;
+			}
+
 			if (data.result==1) {
 				switch(data.detail_mode){
 					case "getUserId":

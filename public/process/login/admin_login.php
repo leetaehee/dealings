@@ -63,7 +63,7 @@
 			throw new RollbackException('비밀번호를 확인 하세요');
 		}
 
-		$returnUrl = SITE_DOMAIN.'/admin/dealings.php'; // 로그인 성공 시 이동 링크
+		$returnUrl = SITE_ADMIN_DOMAIN; // 로그인 성공 시 이동 링크
 
 		$param = [
 			$loginData->fields['idx'], 

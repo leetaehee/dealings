@@ -7,7 +7,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -60,37 +59,54 @@
 			$isNewData = true;  // 핸드폰번호를 변경하는 경우
 		}
 
-		$accountData = [
-			'phone'=>setEncrypt($postData['phone']),
-			'email'=>setEncrypt($postData['email'])
-		];
-		
-		if ($isNewData === true) {
-			$accountOverlapCount = $memberClass->getAccountOverlapCount($accountData, $isUseForUpdate);
-			
-			if ($accountOverlapCount === false) {
-				throw new RollbackException('계정중복확인 오류 발생! 관리자에게 문의하세요');
-			}
-			
-			if ($accountOverlapCount > 0) {
-				throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
-			}
-		}
+		if ($isNewData == true) {
+            // 기존에 등록된 계정정보는 중복검사 하지말 것.
+            $rMemberP = [
+                'phone' => setEncrypt($postData['phone']),
+                'email' => setEncrypt($postData['email'])
+            ];
 
-		$updateData = [
-			'password'=> password_hash($postData['password'], PASSWORD_DEFAULT),
-			'email'=> setEncrypt($postData['email']),
-			'phone'=> setEncrypt($postData['phone']),
-			'name'=> setEncrypt($postData['name']),
-			'sex'=> $postData['sex'],
-			'birth'=> setEncrypt($postData['birth']),
-			'member_idx'=> $idx
-		];
+            $rMemberQ = 'SELECT COUNT(`id`)  cnt 
+                         FROM `th_members`
+                         WHERE `phone` = ? OR `email` = ?';
 
-		$updateResult = $memberClass->updateMember($updateData);
-		if ($updateResult < 1) {
-			throw new RollbackException('회원 정보 수정 실패하였습니다.');
-		}
+            $rMemberChkResult = $db->execute($rMemberQ, $rMemberP);
+            if ($rMemberChkResult === false) {
+                throw new RollbackException('계정 중복 검사를 하면서 오류가 발생했습니다.');
+            }
+
+            $accountOverlapCount = $rMemberChkResult->fields['cnt'];
+            if ($accountOverlapCount > 0) {
+                throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+            }
+        }
+
+        $uMemberP = [
+            'password'=> password_hash($postData['password'], PASSWORD_DEFAULT),
+            'email'=> setEncrypt($postData['email']),
+            'phone'=> setEncrypt($postData['phone']),
+            'name'=> setEncrypt($postData['name']),
+            'sex'=> $postData['sex'],
+            'birth'=> setEncrypt($postData['birth']),
+            'member_idx'=> $idx
+        ];
+
+        $uMemberQ = 'UPDATE `th_members` SET
+					  `password` = ?,
+					   `email` = ?,
+					   `phone` = ?,
+					   `name` = ?,
+					   `sex` = ?,
+					   `birth` = ?,
+					   `modify_date` = CURDATE()
+		 			 WHERE idx = ?';
+
+        $uMemberResult = $db->execute($uMemberQ, $uMemberP);
+
+        $memberAffectedRow = $db->affected_rows();
+        if ($memberAffectedRow < 1) {
+            throw new RollbackException('회원정보를 수정하면서 오류가 발생했습니다.');
+        }
 
 		// 수정 성공 시 마이페이지로 이동
 		$returnUrl = SITE_DOMAIN.'/mypage.php';
@@ -99,13 +115,11 @@
 
 		$db->completeTrans();
 	} catch (RollbackException $e) {
-		// 트랜잭션 문제가 발생했을 때
 		$alertMessage = $e->getMessage();
 		
 		$db->failTrans();
 		$db->completeTrans();
 	} catch (Exception $e) {
-		// 트랜잭션을 사용하지 않을 때
 		$alertMessage = $e->getMessage();	
     } finally {
         if  ($connection === true) {

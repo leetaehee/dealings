@@ -21,10 +21,7 @@
 
 	try {
 		$isNewData = false;
-
 		$alertMessage = '';
-		$isUseForUpdate = true;
-
 		$returnUrl = SITE_ADMIN_DOMAIN;
 
 		$adminClass = new AdminClass($db);
@@ -56,39 +53,70 @@
 		
 		$db->startTrans();
 
-		$accountData = [
-			'phone'=> setEncrypt($postData['phone']),
-			'email'=> setEncrypt($postData['email'])
-		];
-			
-		if ($postData['isOverlapEmail'] > 0) {
-			$isNewData = true; // 이메일 주소를 변경하는 경우
-		}
-		
-		if ($postData['isOverlapPhone'] > 0) {
-			$isNewData = true;  // 핸드폰번호를 변경하는 경우
-		}
-		if ($isNewData === true) {
-			$accountOverlapCount = $adminClass->getAccountOverlapCount($accountData, $isUseForUpdate);
-			
-			if ($accountOverlapCount === false) {
-				throw new RollbackException('계정중복확인 오류 발생! 관리자에게 문의하세요');
-			} 
-			
-			if ($accountOverlapCount > 0) {
-				throw new RollbackException('이메일/핸드폰 번호는 중복 될 수 없습니다.');
-			}
-		}
+        if ($postData['isOverlapEmail'] > 0) {
+            // 이메일이 변경 된 경우
+            $isNewData = true;
+        }
 
-		$updateResult = $adminClass->updateAdmin($postData);
-		if ($updateResult < 1) {
-			throw new RollbackException('회원정보 수정이 실패하였습니다! 관리자에게 문의하세요.');
-		}
-		
-		$alertMessage = '회원정보가 수정 되었습니다!';
+        if ($postData['isOverlapPhone'] > 0) {
+            // 핸드폰번호가 변경된 경우
+            $isNewData = true;
+        }
 
-		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 수정 성공 시 마이페이지로 이동
-		
+        // 이메일과 핸드폰이 바뀐 경우에만 중복검사
+        if ($isNewData == true) {
+            $rAdminP = [
+                'phone'=> setEncrypt($postData['phone']),
+                'email'=> setEncrypt($postData['email'])
+            ];
+
+            $rAdminQ = 'SELECT COUNT(`id`)  cnt 
+                        FROM `th_admin`
+                        WHERE `phone` = ? OR `email` = ?';
+
+            $rAdminChkResult = $cb->execute($rAdminQ, $rAdminP);
+            if ($rAdminChkResult === false) {
+                throw new RollbackException('계정 중복 검사를 하면서 오류가 발생했습니다.');
+            }
+
+            $accountOverlapCount = $rAdminChkResult->fields['cnt'];
+            if ($accountOverlapCount > 0) {
+                throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+            }
+        }
+
+        $uAdminP = [
+            'password'=> password_hash($postData['password'], PASSWORD_DEFAULT),
+            'email'=> setEncrypt($postData['email']),
+            'phone'=> setEncrypt($postData['phone']),
+            'name'=> setEncrypt($postData['name']),
+            'sex'=> $postData['sex'],
+            'birth'=> setEncrypt($postData['birth']),
+            'idx'=> $postData['idx']
+        ];
+
+        $uAdminQ = 'UPDATE `th_admin` SET 
+					 `password` = ?,
+					 `email` = ?,
+					 `phone` = ?,
+					 `name` = ?,
+					 `sex` = ?,
+					 `birth` = ?,
+					 `modify_date` = CURDATE()
+					WHERE idx = ?';
+
+        $uAdminResult = $db->execute($uAdminQ, $uAdminP);
+
+        $adminAffectedRow = $db->affected_rows();
+        if ($adminAffectedRow < 1) {
+            throw new RollbackException('관리자 정보를 수정하면서 오류가 발생했습니다.');
+        }
+
+        // 수정 성공 시 마이페이지로 이동
+		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php';
+
+        $alertMessage = '관리자 정보가 수정 되었습니다!';
+
 		$db->completeTrans();
     } catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

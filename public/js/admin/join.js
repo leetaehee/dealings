@@ -44,6 +44,12 @@ function getAjax($this)
 		},
 		dataType: "json",
 		success: function(data, status, xhr) {
+			if (data.errorMessage) {
+				// 오류 체크 (php try-catch 메세지 출력)s
+				alert(data.errorMessage);
+				return false;
+			}
+
 			if (data.result==1) {
 				switch(data.detail_mode){
 					case "getUserId":

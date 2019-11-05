@@ -21,7 +21,6 @@
 
 	try {
         $alertMessage = ''; // 메세지
-		$isUseForUpdate = true;
 
 		$memberClass = new MemberClass($db);
         
@@ -52,22 +51,28 @@
 
 		$db->startTrans();
 
-		$accountData = [
+		$rMemberP = [
 			'phone'=> setEncrypt($postData['phone']),
 			'email'=> setEncrypt($postData['email']),
 			'id'=> $postData['id']
 		];
+
+        // 계정 중복확인
+        $rMemberQ = 'SELECT COUNT(`id`) cnt 
+                          FROM `th_members`
+                          WHERE `phone` = ? OR `email` = ? OR `id` = ?';
+
+        $rMemberChkResult = $db->execute($rMemberQ, $rMemberP);
+        if ($rMemberChkResult === false) {
+            throw new RollbackException('계정 중복 검사를 하면서 오류가 발생했습니다.');
+        }
+
+        $accountOverlapCount = $rMemberChkResult->fields['cnt'];
+        if ($accountOverlapCount > 0) {
+            throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+        }
 		
-		$accountOverlapCount = $memberClass->getAccountOverlapCount($accountData, $isUseForUpdate);                
-		if ($accountOverlapCount === false) {
-			throw new RollbackException('계정정보를 가져오지 못했습니다.');
-		}
-		
-		if ($accountOverlapCount > 0) {
-			throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
-		}
-		
-		$insertData = [
+		$cMemberP = [
 			'id'=> $postData['id'],
 			'password'=> password_hash($postData['password'], PASSWORD_DEFAULT),
 			'email'=> setEncrypt($postData['email']),
@@ -77,16 +82,31 @@
 			'birth'=> setEncrypt($postData['birth'])
 		];
 
-		$insertResult = $memberClass->insertMember($insertData);
-		if ($insertResult < 1) {
-			throw new RollbackException('회원 가입 실패하였습니다.');
-		}
+        // 계정 추가
+        $cMemberQ = 'INSERT INTO `th_members` SET
+					  `id` = ?,
+					  `grade_code` = 3,
+					  `password` = ?,
+					  `email` = ?,
+					  `name` = ?,
+					  `phone` = ?,
+					  `sex` = ?,
+					  `birth` = ?,
+					  `join_date` = CURDATE()
+					';
 
-		$returnUrl = SITE_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
+        $cMemberResult = $db->execute($cMemberQ, $cMemberP);
 
-		$_SESSION['tmp_idx'] = 't_'.$insertResult; // 임시세션
+        $memberInsertId = $db->insert_id();
+        if ($memberInsertId < 1) {
+            throw new RollbackException('회원가입을 하면서 오류가 발생하였습니다.');
+        }
 
-		$approvalUrl = SITE_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
+		$returnUrl = SITE_DOMAIN . '/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
+
+		$_SESSION['tmp_idx'] = 't_' . $memberInsertId; // 임시세션
+
+		$approvalUrl = SITE_DOMAIN.'/join_approval.php?idx=' . $memberInsertId;
 		$content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
 
 		//메일발송

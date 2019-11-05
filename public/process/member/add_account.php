@@ -7,7 +7,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../configs/config.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/mailer.lib.php';
 
 	// adodb
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
@@ -40,24 +39,32 @@
 			throw new Exception($resultAccountValidCheck['errorMessage']);
         }
 
-		$returnUrl = SITE_DOMAIN.'/mypage.php'; // 마이페이지로 이동
-
-		$param = [
-			'accountNo'=>setEncrypt($postData['account_no']),
-			'accountBank'=>$postData['account_bank'],
-			'idx'=>$_SESSION['idx']
-		];
 
 		// 트랜잭션 시작
 		$db->startTrans();
 
-		$updateResult = $memberClass->updateMyAccount($param);
-		if ($updateResult < 1) {
-			throw new RollbackException('계좌정보가 입력이 실패했습니다.');
-		}
-		
+        $returnUrl = SITE_DOMAIN.'/mypage.php'; // 마이페이지로 이동
+
+        $uMyAccountP = [
+            'accountNo'=> setEncrypt($postData['account_no']),
+            'accountBank'=> $postData['account_bank'],
+            'idx'=> $_SESSION['idx']
+        ];
+
+        $uMyAccountQ = 'UPDATE `th_members` SET
+					      `account_no` = ?,
+					      `account_bank` = ?
+					    WHERE `idx` = ?';
+
+        $uMyAccountResult = $db->execute($uMyAccountQ, $uMyAccountP);
+
+        $myAccountAffectedRow = $db->affected_rows();
+        if ($myAccountAffectedRow < 1) {
+            throw new RollbackException('계좌를 설정하면서 오류가 발생하였습니다.');
+        }
+
 		$alertMessage = '계좌정보가 설정되었습니다!';
-		
+
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

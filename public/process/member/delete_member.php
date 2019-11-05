@@ -13,16 +13,11 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-    // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
-
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
         $alertMessage = ''; // 메세지
-		$isUseForUpdate = true;
         
         if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -37,34 +32,41 @@
 		$idx = $_SESSION['idx'];
 		
 		// 유효성검증 실패시, 리턴
-		$returnUrl = SITE_DOMAIN.'/member_delete.php?idx='.$idx; 
-
-		$memberClass = new MemberClass($db);
-		$loginClass = new LoginClass($db);
-
-		$param = [
-			'idx'=> $idx,
-			'password'=> $password
-		];
+		$returnUrl = SITE_DOMAIN.'/member_delete.php?idx='.$idx;
 
 		// 트랜잭션 시작
 		$db->startTrans();
 
-		$checkLoginData = $loginClass->checkPasswordByUser($param, $isUseForUpdate);
-        if ($checkLoginData === false) {
-            throw new RollbackException('패스워드 체크 오류! 관리자에게 문의하세요.');
-        }
-		
-		if ($checkLoginData === null) {
-            throw new RollbackException('패스워드를 확인하세요!');
+        $rCheckPasswordQ = 'SELECT `password` 
+                            FROM `th_members` 
+                            where `idx` = ? 
+                            FOR UPDATE';
+
+        $rCheckPasswordResult = $db->execute($rCheckPasswordQ, $idx);
+        if ($rCheckPasswordResult === false) {
+            throw new RollbackException('회원 패스워드를 조회하면서 오류가 발생했습니다.');
         }
 
-		$updateResult = $memberClass->deleteMember($idx);
-		if ($updateResult < 1) {
-			throw new RollbackException('회원 탈퇴 오류! 관리자에게 문의하세요!');
-		}
-         
-		$returnUrl = SITE_DOMAIN;
+        // 비밀번호 확인하는지 체크
+        $dbPassword = $rCheckPasswordResult->fields['password'];
+        if (password_verify($password, $dbPassword) == false) {
+            throw new RollbackException('비밀번호를 확인하세요!');
+        }
+
+        // 회원탈퇴
+        $uMemberDeleteQ = 'UPDATE `th_members` 
+                           SET `withdraw_date` = CURDATE(),
+					           `modify_date` = CURDATE()
+				           WHERE `idx` = ?';
+
+        $uMemberDeleteResult = $db->execute($uMemberDeleteQ, $idx);
+
+        $memberDeleteAffectedRow = $db->affected_rows();
+        if ($memberDeleteAffectedRow < 1) {
+            throw new RollbackException('회원탈퇴를 하면서 오류가 발생하였습니다.');
+        }
+
+        $returnUrl = SITE_DOMAIN;
 	
 		$alertMessage = '정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.';
 		session_destroy();

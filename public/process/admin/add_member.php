@@ -22,7 +22,6 @@
 	try {
 		$alertMessage = '';
 		$returnUrl = SITE_ADMIN_DOMAIN;
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -52,32 +51,61 @@
 		}
 
 		$db->startTrans();
-		
-		$accountData = [
-			'phone'=> setEncrypt($postData['phone']),
-			'email'=> setEncrypt($postData['email']),
-			'id'=> $postData['id']
-		];
-		
-		$accountOverlapCount = $adminClass->getAccountOverlapCount($accountData, $isUseForUpdate);                
-		if ($accountOverlapCount === false) {
-			throw new RollbackException('계정중복확인 오류 발생! 관리자에게 문의하세요');
-		}
-		
-		if ($accountOverlapCount > 0) {
-			throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
-		}
 
-		$insertResult = $adminClass->insertMember($postData);
-		if ($insertResult < 1) {
-			throw new RollbackException('관리자 회원가입이 실패하였습니다!');
-		}
+        $rAdminP = [
+            'phone'=> setEncrypt($postData['phone']),
+            'email'=> setEncrypt($postData['email']),
+            'id'=> $postData['id']
+        ];
 
-		$returnUrl = SITE_ADMIN_DOMAIN.'/join_complete.php'; // 회원가입 화면 URL 지정(가입완료화면)
+        // 계정 중복 확인
+        $rAdminQ = 'SELECT COUNT(`id`)  cnt 
+                    FROM `th_admin`
+                    WHERE `phone` = ? OR `email` = ? OR `id` = ?';
 
-		$_SESSION['tmp_idx'] = 't_'.$insertResult; // 임시세션
+        $rAdminResult = $db->execute($rAdminQ, $rAdminP);
+        if ($rAdminResult === false) {
+            throw new RollbackException('계정 중복 검사를 하면서 오류가 발생했습니다.');
+        }
 
-		$approvalUrl = SITE_ADMIN_DOMAIN.'/join_approval.php?idx='.$insertResult; // 승인링크 추가
+        $accountOverlapCount = $rAdminResult->fields['cnt'];
+        if ($accountOverlapCount > 0) {
+            throw new RollbackException('아이디/이메일/핸드폰 번호는 중복 될 수 없습니다.');
+        }
+
+        // 관리자 추가
+        $cAdminP = [
+            'id'=> $postData['id'],
+            'password'=> password_hash($postData['password'], PASSWORD_DEFAULT),
+            'email'=> setEncrypt($postData['email']),
+            'name'=> setEncrypt($postData['name']),
+            'phone'=> setEncrypt($postData['phone']),
+            'sex'=> $postData['sex'],
+            'birth'=> setEncrypt($postData['birth'])
+        ];
+
+        $cAdminQ = 'INSERT INTO `th_admin` SET
+					  `id` = ?,
+					  `password` = ?,
+					  `email` = ?,
+					  `name` = ?,
+					  `phone` = ?,
+					  `sex` = ?,
+					  `birth` = ?,
+					  `join_date` = CURDATE()';
+
+        $cAdminResult = $db->execute($cAdminQ, $cAdminP);
+
+        $adminInsertId = $db->insert_id();
+        if ($adminInsertId < 1) {
+            throw new RollbackException('관리자 회원가입을 하면서 오류가 발생했습니다.');
+        }
+
+		$returnUrl = SITE_ADMIN_DOMAIN . '/join_complete.php';
+
+		$_SESSION['tmp_idx'] = 't_' . $adminInsertId;
+
+		$approvalUrl = SITE_ADMIN_DOMAIN . '/join_approval.php?idx=' . $adminInsertId;
 		$content = '<a href='.$approvalUrl.'>메일승인하러가기</a>';
 
 		$alertMessage ='관리자 회원가입이 완료되었습니다! 이메일을 확인하세요!';

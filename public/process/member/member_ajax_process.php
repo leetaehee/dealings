@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * ajax 통신 (계정중복확인)
+	 * 계정중복확인(ajax)
 	 */
 
 	header("Content-Type: application/json"); 
@@ -14,11 +14,7 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-
 	try {
-
 		$param = htmlspecialchars($_POST['val']);
 	
 		if (isset($_POST['detail_mode'])) {
@@ -27,30 +23,48 @@
 			$detailMode = htmlspecialchars($_GET['detail_mode']);
 		}
 
-		$memberClass = new MemberClass($db);
 		$resultOverlap = 0;
 
+		$rMemberQ = '';
 		if ($detailMode == 'getUserId') {
-			$resultOverlap = $memberClass->getIdOverlapCount($param);
-		} else if ($detailMode == 'getUserEmail') {
-			$resultOverlap = $memberClass->getEmailOverlapCount($param);
+		    // 아이디 중복 체크
+            $rMemberQ = 'SELECT count(`id`) cnt FROM `th_members` WHERE `id` = ?';
+        } else if ($detailMode == 'getUserEmail') {
+		    // 암호화
+            $param = setEncrypt($param);
+
+		    // 이메일 중복체크
+            $rMemberQ = 'SELECT count(`email`) cnt FROM `th_members` WHERE `email` = ?';
 		} else if ($detailMode == 'getUserPhone') {
-			$resultOverlap = $memberClass->getPhoneOverlapCount($param);
+            // 암호화
+            $param = setEncrypt($param);
+
+            // 핸드폰 중복체크
+            $rMemberQ = 'SELECT count(`phone`) cnt FROM `th_members` WHERE `phone` = ?';
 		}
 
-		if ($resultOverlap > 0) {
-			throw new Exception('아이디/이메일/핸드폰은 중복 될 수 없습니다.');
+        $rMemberChkResult = $db->execute($rMemberQ, $param);
+        if ($rMemberChkResult === false) {
+            throw new Exception('계정 정보를 조회 하면서 오류가 발생하였습니다.');
+        }
+
+        $resultOverlap = $rMemberChkResult->fields['cnt'];
+        if ($resultOverlap > 0) {
+            $result = [
+              'result'=> 1,
+              'detail_mode'=> $detailMode
+            ];
 		} else {
 			$result = [
-				'result'=>0,
-				'detail_mode'=>$detailMode
+				'result'=> 0,
+				'detail_mode'=> $detailMode
 			];
 		}
 	} catch (Exception $e) {
 		$result = [
-			'result'=>1,
-			'detail_mode'=>$detailMode,
-			'errorMessage'=>$e->getMessage()
+			'result'=> 1,
+			'detail_mode'=> $detailMode,
+			'errorMessage'=> $e->getMessage()
 		];
 	} finally {
 		if  ($connection === true) {
