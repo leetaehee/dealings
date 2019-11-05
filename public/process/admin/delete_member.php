@@ -45,7 +45,7 @@
 
         $rCheckPasswordResult = $db->execute($rCheckPasswordQ, $idx);
         if ($rCheckPasswordResult === false) {
-            throw new RollbackException('관리 패스워드를 조회하면서 오류가 발생했습니다.');
+            throw new RollbackException('관리자 패스워드를 조회하면서 오류가 발생했습니다.');
         }
 
         // 비밀번호 확인하는지 체크

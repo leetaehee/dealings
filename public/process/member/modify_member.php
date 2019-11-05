@@ -108,10 +108,11 @@
             throw new RollbackException('회원정보를 수정하면서 오류가 발생했습니다.');
         }
 
-		// 수정 성공 시 마이페이지로 이동
-		$returnUrl = SITE_DOMAIN.'/mypage.php';
+		// 수정 성공 시 메인화면으로 이동
+		$returnUrl = SITE_DOMAIN;
+        session_destroy();
 		
-		$alertMessage = '회원정보가 수정 되었습니다.'; 
+		$alertMessage = '회원정보가 수정 되었습니다. 다시 로그인하세요.';
 
 		$db->completeTrans();
 	} catch (RollbackException $e) {

@@ -112,10 +112,11 @@
             throw new RollbackException('관리자 정보를 수정하면서 오류가 발생했습니다.');
         }
 
-        // 수정 성공 시 마이페이지로 이동
-		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php';
+        // 수정 성공 시 메인화면으로 이동
+		$returnUrl = SITE_ADMIN_DOMAIN;
+        session_destroy();
 
-        $alertMessage = '관리자 정보가 수정 되었습니다!';
+        $alertMessage = '관리자 정보가 수정 되었습니다. 다시 로그인하세요.';
 
 		$db->completeTrans();
     } catch (RollbackException $e) {

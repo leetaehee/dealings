@@ -134,7 +134,7 @@
          *
          * @param array $param
          *
-         * @param int/bool
+         * @return int/bool
          */
 		public function insertIP($param)
 		{
