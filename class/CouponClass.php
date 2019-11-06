@@ -882,7 +882,7 @@
          * @param int $idx
 		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
          *
-         * @rturn string/bool
+         * @return string/bool
          */
 		public function getCheckCouponMemeberDelete($idx, $isUseForUpdate = false)
 		{

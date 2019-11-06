@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * 상품권 거래 취소 (판매/구매)
+	 * 관리자가 쿠폰을 발행.
 	 */
 	
 	// 공통
@@ -14,22 +14,19 @@
 
     // Class 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/VoucherClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
-		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN;
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
 		$couponClass = new CouponClass($db);
-		$voucherClass = new VoucherClass($db);
 
 		// injection, xss 방지코드
 		$_POST['coupon_subject'] = htmlspecialchars($_POST['coupon_subject']);
@@ -60,46 +57,71 @@
 		];
 
 		$resultVoucherData = $couponClass->checkVoucherValidate($voucherData);
-		if ($resultVoucherData['isValid'] == false) {
-			// 유효성 오류
+		if ($resultVoucherData['isValid'] === false) {
 			throw new Exception($resultVoucherData['errorMessage']);
 		}
 
 		$db->startTrans();
 
-		$voucherName = $postData['voucher_name']; 
+		// 판매 물품 고유 키 가져오기
+        $voucher_name = $postData['voucher_name'];
 
-		$itemIdx = $voucherClass->getVoucherItemIdx($voucherName, $isUseForUpdate);
-		if ($itemIdx === false) {
-			throw new RollbackException("상품권 고유번호를 가져오면서 문제가 발생했습니다.");
-		}
+        $rSellItemQ = 'SELECT `idx` 
+                       FROM `th_sell_item` 
+                       WHERE `item_name` = ?
+                       FOR UPDATE';
 
-		if(empty($itemIdx)) {
-			throw new RollbackException("상품권 고유번호가 존재하지 않습니다.");
-		}
+        $rSellItemResult = $db->execute($rSellItemQ, $voucher_name);
+        if ($rSellItemResult === false) {
+            throw new RollbackException('판매 물품 고유 정보를 조회하면서 오류가 발생했습니다.');
+        }
 
-		if ($postData['voucher_price'] > 0) {
-			$discountMileage = round(($postData['voucher_price']*$postData['discount_rate'])/100);
-		} else {
-			$discountMileage = 0;
-		}
+        $sellItemIdx = $rSellItemResult->fields['idx'];
+        if (empty($sellItemIdx)) {
+            throw new RollbackException('판매 물품 고유 번호가 존재하지 않습니다.');
+        }
 
-		$insertData = [
-			'issue_type'=> $postData['coupon_issue_type'],
-			'sell_item_idx'=> $itemIdx,
-			'subject'=> $postData['coupon_subject'],
-			'item_monmey'=> $postData['voucher_price'],
-			'discount_rate'=> $postData['discount_rate'],
-			'discount_mileage'=> $discountMileage,
-			'start_date'=> $postData['start_date'],
-			'expiration_date'=> $postData['expiration_date']
-		];
+        // 판매 물품에 할인된 금액 구하기
+        if ($postData['voucher_price'] > 0) {
+            $discountMileage = round(($postData['voucher_price']*$postData['discount_rate'])/100);
+        } else {
+            $discountMileage = 0;
+        }
 
-		$insertResult = $couponClass->insertCupon($insertData);
-		if($insertResult < 1){
-			throw new RollbackException('쿠폰 생성중에 문제가 발생하였습니다.');
-		}
-		$alertMessage = '정상적으로 등록되었습니다.';
+        // 쿠폰 발행하기
+        $cCouponP = [
+            'issue_type'=> $postData['coupon_issue_type'],
+            'sell_item_idx'=> $sellItemIdx,
+            'subject'=> $postData['coupon_subject'],
+            'item_monmey'=> $postData['voucher_price'],
+            'discount_rate'=> $postData['discount_rate'],
+            'discount_mileage'=> $discountMileage,
+            'start_date'=> $postData['start_date'],
+            'expiration_date'=> $postData['expiration_date']
+        ];
+
+        $cCouponQ = 'INSERT INTO `th_coupon` SET 
+					  `issue_type` = ?,
+					  `sell_item_idx` = ?,
+					  `subject` = ?,
+					  `item_money` = ?,
+					  `discount_rate` = ?,
+					  `discount_mileage` = ?,
+					  `start_date` = ?,
+					  `expiration_date` = ?,
+					  `issue_date` = CURDATE()';
+
+        $cCouponResult = $db->execute($cCouponQ, $cCouponP);
+
+        $couponInsertId = $db->insert_id();
+        if ($couponInsertId < 1) {
+            exit;
+            throw new RollbackException('쿠폰을 발행하는 중에 오류가 발생했습니다.');
+        }
+
+		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_issue_list.php';
+
+		$alertMessage = '정상적으로 쿠폰이 발행되었습니다.';
 
 		$db->completeTrans();
 	} catch (RollbackException $e) {

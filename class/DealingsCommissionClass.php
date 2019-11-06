@@ -60,7 +60,6 @@
          * 수수료 데이터 삽입
          *
          * @param array $param
-		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
          *
          * @return int/bool
          */

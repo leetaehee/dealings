@@ -43,64 +43,85 @@
 
 		$db->startTrans();
 
-		$couponIdx = $getData['coupon_idx'];
+        $couponIdx = $getData['coupon_idx'];
 
-		$isCouponValid = $couponClass->getValidCouponIdx($couponIdx, $isUseForUpdate);
-		if ($isCouponValid === false) {
-			throw new RollbackException('쿠폰 키 값을 검사하는 중에 오류가 발생했습니다.');
-		}
+        // 쿠폰 정보 조회
+        $rCouponQ = 'SELECT `idx`,
+                            `issue_type`,
+                            `subject`,
+                            `item_money`,
+                            `discount_rate`,
+                            `discount_mileage`,
+                            `sell_item_idx`,
+                            `is_del`
+                      FROM `th_coupon`
+                      WHERE `idx` = ?
+                      FOR UPDATE';
 
-		$couponData = $couponClass->getMemberCouponData($couponIdx, $isUseForUpdate);
-		if ($couponData === false) {
-			throw new Exception('쿠폰 정보를 가져오는 중에 오류가 발생했습니다.');
-		}
+        $rCouponResult = $db->execute($rCouponQ, $couponIdx);
+        if ($rCouponResult === false) {
+            throw new RollbackException('쿠폰 정보를 조회하면서 오류가 발생하였습니다.');
+        }
 
-		$couponOverlapParam = [
-			'coupon_idx'=> $couponIdx,
-			'member_idx'=> $getData['member_idx'],
-			'issue_type'=> $couponData->fields['issue_type'],
-			'is_coupon_del'=> 'N',
-			'is_del'=> 'N'
-		];
+        // 쿠폰이 이미 지급이 되었는지 체크
+        $rCouponOverlapP = [
+            'coupon_idx'=> $couponIdx,
+            'member_idx'=> $getData['member_idx'],
+            'issue_type'=> $rCouponResult->fields['issue_type'],
+            'is_coupon_del'=> 'N',
+            'is_del'=> 'N'
+        ];
 
-		$overlapCount = $couponClass->getCheckCouponOverlapData($couponOverlapParam, $isUseForUpdate);
-		if ($overlapCount === false) {
-			throw new RollbackException('쿠폰 발행 중복검사 중에 오류가 발생했습니다.');
-		}
+        $rCouponOverlapQ = 'SELECT COUNT(`idx`) `cnt`
+					        FROM `th_coupon_member`
+					        WHERE `coupon_idx` = ?
+					        AND `member_idx` = ?
+					        AND `issue_type` = ?
+					        AND `is_coupon_del` = ?
+					        AND `is_del` = ?';
 
-		if ($overlapCount > 0) {
-			throw new RollbackException('쿠폰이 이미 발행되어서 등록 할 수 없습니다.');
-		}
-		
-		$couponStatusName = '사용대기';
+        $rCouponOverlapResult = $db->execute($rCouponOverlapQ, $rCouponOverlapP);
+        if ($rCouponOverlapResult === false) {
+            throw new RollbackException('쿠폰 중복 지급을 체크하면서 오류가 발생했습니다.');
+        }
 
-		$couponStatusCode = $couponClass->getCouponStatusCode($couponStatusName, $isUseForUpdate);
-		if ($couponStatusCode === false) {
-			throw new RollbackException('쿠폰 상태 코드를 가져오면서 오류가 발생했습니다.');
-		}
+        $couponOverlapCnt = $rCouponOverlapResult->fields['cnt'];
+        if ($couponOverlapCnt > 0) {
+            throw new RollbackException('이미 쿠폰이 지급되었습니다.');
+        }
 
-		if (empty($couponStatusCode)) {
-			throw new RollbackException('쿠폰 상태 코드를 찾을 수 없습니다.');
-		}
+        // 쿠폰을 지급
+        $cCouponMemberP = [
+            'issue_type'=> $rCouponResult->fields['issue_type'],
+            'coupon_idx'=> $rCouponResult->fields['idx'],
+            'sell_item_idx'=> $rCouponResult->fields['sell_item_idx'],
+            'member_idx'=> $getData['member_idx'],
+            'subject'=> $rCouponResult->fields['subject'],
+            'discount_rate'=> $rCouponResult->fields['discount_rate'],
+            'item_money'=> $rCouponResult->fields['item_money'],
+            'coupon_status'=> 1
+        ];
 
-		$insertMemberData = [
-			'issue_type'=> $couponData->fields['issue_type'],
-			'coupon_idx'=> $couponData->fields['idx'],
-			'sell_item_idx'=> $couponData->fields['sell_item_idx'],
-			'member_idx'=> $getData['member_idx'],
-			'subject'=> $couponData->fields['subject'],
-			'discount_rate'=> $couponData->fields['discount_rate'],
-			'item_money'=> $couponData->fields['item_money'],
-			'coupon_status'=> $couponStatusCode
-		];
-		
-		$insetMemberResult = $couponClass->insertCouponMember($insertMemberData);
-		if ($insetMemberResult < 1){
-			throw new RollbackException('회원 쿠폰정보에 데이터를 삽입중에 오류가 발생했습니다.');
-		}
+        $cCouponMemberQ = 'INSERT INTO `th_coupon_member` SET 
+                            `issue_type` = ?,
+                            `coupon_idx` = ?,
+                            `sell_item_idx` = ?,
+                            `member_idx` = ?,
+                            `subject` = ?,
+                            `discount_rate` = ?,
+                            `item_money` = ?,
+                            `coupon_status` = ?';
 
-		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_member_status.php';
-		$alertMessage = '정상적으로 지급이 되었습니다.';
+        $cCouponMemberResult = $db->execute($cCouponMemberQ, $cCouponMemberP);
+
+        $cCouponMemberInsertId = $db->insert_id();
+        if ($cCouponMemberInsertId < 1) {
+           throw new RollbackException('쿠폰을 지급하는 중에 오류가 발생했습니다.');
+        }
+
+        $returnUrl = SITE_ADMIN_DOMAIN . '/coupon_member_status.php';
+
+		$alertMessage = '정상적으로 쿠폰이 지급이 되었습니다.';
 
 		$db->completeTrans();
 	} catch (RollbackException $e) {

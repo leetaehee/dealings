@@ -12,22 +12,16 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-    // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
-
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
-		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN;
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
-
-		$couponClass = new CouponClass($db);
 
 		// injection, xss 방지코드
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
@@ -44,55 +38,63 @@
 
 		$db->startTrans();
 
-		$isDelete = $couponClass->getCheckCouponMemeberDelete($getData['idx'], $isUseForUpdate);
-		if ($isDelete === false) {
-			throw new RollbackException('지급 된 쿠폰의 삭제 여부를 가져오다가 오류가 발생했습니다.');
-		}
+        // 쿠폰을 수정하기 위해 사용자가 선택한 쿠폰 체크 (삭제가 되었는지 사용중인지 체크)
+        $rCouponMbQ = 'SELECT `idx`,
+                              `is_del`,
+                              `is_coupon_del`,
+                              `coupon_status`
+					   FROM `th_coupon_member` 
+					   WHERE `idx` = ?
+					   FOR UPDATE';
 
-		$memberParam = [
-			'idx'=> $getData['idx'],
-			'is_del'=> 'N'
-		];
+        $rCouponMbResult = $db->execute($rCouponMbQ, $getData['idx']);
+        if ($rCouponMbResult === false) {
+            throw new RollbackException('지급된 쿠폰 상태를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam, $isUseForUpdate);
-		if ($couponMemberIdx === false) {
-			throw new RollbackException('지급된 쿠폰의 고유키를 가져오면서 오류가 발생했습니다.'); 
-		}
+        // 지급된 쿠폰의 유효성 체크
+        $couponMbIdx = $rCouponMbResult->fields['idx'];
+        if (empty($couponMbIdx)) {
+            throw new RollbackException('지급된 쿠폰의 정보가 올바르지 않습니다.');
+        }
 
-		if ($isDelete == 'Y') {
-			throw new RollbackException('지급 된 쿠폰은 이미 삭제 되었습니다.');
-		}
+        // 지급된 쿠폰 삭제 유무
+        $isDel = $rCouponMbResult->fields['is_del'];
+        if ($isDel == 'Y') {
+            throw new RollbackException('선택하신 쿠폰은 삭제가 되었습니다.');
+        }
 
-		if ($couponMemberIdx == ''){
-			throw new RollbackException('지급 된 쿠폰의 회원 고유키를 찾지 못했습니다.');
-		}
+        // 쿠폰 삭제 유무
+        $isCouponDel = $rCouponMbResult->fields['is_coupon_del'];
+        if ($isCouponDel == 'Y') {
+            throw new RollbackException('발행 된 쿠폰이 삭제가 되었습니다.');
+        }
 
-		$couponUseParam = [
-			'coupon_member_idx'=> $getData['idx'],
-			'coupon_idx'=> $getData['coupon_idx'],
-			'is_refund'=> 'N'
-		];
+        // 쿠폰의 상태
+        $couponStatus = $rCouponMbResult->fields['coupon_status'];
+        if ($couponStatus != 1) {
+            throw new RollbackException('쿠폰은 이미 사용 중입니다.');
+        }
 
-		$memberCouponIdx = $couponClass->getCheckIsUseCouponByMember($couponUseParam, $isUseForUpdate);
-		if ($memberCouponIdx === false) {
-			throw new RollbackException('지급된 쿠폰의 사용내역을 가져오면서 오류가 발생했습니다.');
-		}
+        // 지급된 쿠폰을 삭제
+        $uCouponDeleteP = [
+            'is_del'=> 'Y',
+            'idx'=> $getData['idx']
+        ];
 
-		if(!empty($memberCouponIdx)) {
-			throw new RollbackException('쿠폰 사용내역이 존재하여 삭제 할 수 없습니다.');
-		}
+        $uCouponDeleteQ = 'UPDATE `th_coupon_member` SET 
+						      `is_del` = ?
+					        WHERE `idx` = ?';
 
-		$deleteParam = [
-			'is_del'=> 'Y',
-			'idx'=> $getData['idx']
-		];
+        $uCouponDeleteResult = $db->execute($uCouponDeleteQ, $uCouponDeleteP);
 
-		$deleteCouponResult = $couponClass->deleteCouponMember($deleteParam);
-		if ($deleteCouponResult < 1) {
-			throw new RollbackException('지급된 쿠폰을 삭제하다가 오류가 발생하였습니다.');
-		}
+        $couponDeleteAffectedRow = $db->affected_rows();
+        if ($couponDeleteAffectedRow < 1) {
+            throw new RollbackException('쿠폰을 삭제하면서 오류가 발생하였습니다.');
+        }
 
 		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_member_status.php';
+
 		$alertMessage = '지급된 쿠폰이 정상적으로 삭제되었습니다.';
 
 		$db->completeTrans();
