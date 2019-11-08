@@ -1018,8 +1018,110 @@
 		 * 함수 정리 ---
 		 */
 
+        /**
+         * 쿠폰을 지급(발급)
+         *
+         * @param array $param 쿠폰 지급(발급)시 필요한 정보를 배열로 전달
+         *
+         * @return array
+         */
+        public function couponProvideProcess($param)
+        {
+            // 쿠폰 고유번호
+            $couponIdx = $param['coupon_idx'];
+
+            // 쿠폰 정보 조회
+            $rCouponQ = 'SELECT `idx`,
+                                `issue_type`,
+                                `subject`,
+                                `item_money`,
+                                `discount_rate`,
+                                `discount_mileage`,
+                                `sell_item_idx`,
+                                `is_del`
+                          FROM `th_coupon`
+                          WHERE `idx` = ?
+                          FOR UPDATE';
+
+            $rCouponResult = $this->db->execute($rCouponQ, $couponIdx);
+            if ($rCouponResult === false) {
+                return [
+                    'result'=> false,
+                    'resultMessage'=> '쿠폰 정보를 조회하면서 오류가 발생하였습니다.'
+                ];
+            }
+
+            // 쿠폰이 이미 지급 되어있는지 확인
+            $rCouponOverlapP = [
+                'coupon_idx'=> $couponIdx,
+                'member_idx'=> $param['member_idx'],
+                'is_coupon_del'=> $param['is_coupon_del'],
+                'is_del'=> $param['is_del']
+            ];
+
+            $rCouponOverlapQ = 'SELECT COUNT(`idx`) `cnt`
+					            FROM `th_coupon_member`
+					            WHERE `coupon_idx` = ?
+					            AND `member_idx` = ?
+					            AND `is_coupon_del` = ?
+					            AND `is_del` = ?';
+
+            $rCouponOverlapResult = $this->db->execute($rCouponOverlapQ, $rCouponOverlapP);
+            if ($rCouponOverlapResult === false) {
+                return [
+                    'result'=> false,
+                    'resultMessage'=> '쿠폰 중복 지급을 체크하면서 오류가 발생했습니다.'
+                ];
+            }
+
+            $couponOverlapCnt = $rCouponOverlapResult->fields['cnt'];
+            if ($couponOverlapCnt > 0) {
+                return [
+                    'result'=> false,
+                    'resultMessage'=> '이미 쿠폰이 지급되었습니다.'
+                ];
+            }
+
+            // 쿠폰을 지급
+            $cCouponMemberP = [
+                'issue_type'=> $rCouponResult->fields['issue_type'],
+                'coupon_idx'=> $rCouponResult->fields['idx'],
+                'sell_item_idx'=> $rCouponResult->fields['sell_item_idx'],
+                'member_idx'=> $param['member_idx'],
+                'subject'=> $rCouponResult->fields['subject'],
+                'discount_rate'=> $rCouponResult->fields['discount_rate'],
+                'item_money'=> $rCouponResult->fields['item_money'],
+                'coupon_status'=> $param['coupon_status']
+            ];
+
+            $cCouponMemberQ = 'INSERT INTO `th_coupon_member` SET 
+                                `issue_type` = ?,
+                                `coupon_idx` = ?,
+                                `sell_item_idx` = ?,
+                                `member_idx` = ?,
+                                `subject` = ?,
+                                `discount_rate` = ?,
+                                `item_money` = ?,
+                                `coupon_status` = ?';
+
+            $this->db->execute($cCouponMemberQ, $cCouponMemberP);
+
+            $cCouponMemberInsertId = $this->db->insert_id();
+            if ($cCouponMemberInsertId < 1) {
+                return [
+                    'result'=> false,
+                    'resultMessage'=> '쿠폰을 지급하는 중에 오류가 발생했습니다.'
+                ];
+            }
+
+            return [
+                'result'=> true,
+                'resultMessage'=> ''
+            ];
+        }
+
 		/**
-		 * 거래 생성 시 쿠폰 상태 변경
+		 * 거래 시 쿠폰을 적용하여 상태 변경
 		 *
 		 * @param array $param  쿠폰 상태 변경시 필요한 정보를 배열로 전달
 		 *
@@ -1027,9 +1129,9 @@
 		 */
 		public function couponStatusProcess($param)
 		{
-			$cUseageP = $param['useageP'];
+			$cUseP = $param['useageP'];
 
-			$cUseageQ = 'INSERT INTO `th_coupon_useage` SET 
+			$cUseQ = 'INSERT INTO `th_coupon_useage` SET 
 							`issue_type` = ?,
 							`dealings_idx` = ?,
 							`coupon_idx` = ?,
@@ -1039,10 +1141,10 @@
 							`coupon_use_start_date` = CURDATE(),
 							`coupon_member_idx` = ?';
 			
-			$cUseageResult = $this->db->execute($cUseageQ, $cUseageP);
+			$this->db->execute($cUseQ, $cUseP);
 			
-			$useageInserId = $this->db->insert_id();
-			if ($useageInserId < 1) {
+			$useInsertId = $this->db->insert_id();
+			if ($useInsertId < 1) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰사용내역을 입력하는 중에 오류가 발생했습니다.'
@@ -1058,7 +1160,7 @@
 							`coupon_status` = ?
 							WHERE `idx` = ?';
 			
-			$uCouponMbResult = $this->db->execute($uCouponMbQ, $couponMbStParam);
+			$this->db->execute($uCouponMbQ, $couponMbStParam);
 
 			$couponMbAffectedRow = $this->db->affected_rows();
 			if ($couponMbAffectedRow < 1) {
@@ -1092,26 +1194,26 @@
 			];
 
 			// 쿠폰 사용내역 및 쿠폰정보 가져오기
-			$rUseageQ = 'SELECT * 
-						 FROM `th_coupon_useage`
-						 WHERE `dealings_idx` = ?
-						 AND `member_idx` = ?
-						 AND `issue_type` = ?
-						 AND `is_refund` = ?
-						 FOR UPDATE';
+			$rCouponUseQ = 'SELECT * 
+                            FROM `th_coupon_useage`
+                            WHERE `dealings_idx` = ?
+                            AND `member_idx` = ?
+                            AND `issue_type` = ?
+                            AND `is_refund` = ?
+                            FOR UPDATE';
 
-			$rUseageResult = $this->db->execute($rUseageQ, $couponUseP);
-			if ($rUseageResult === false) {
+			$rCouponUseResult = $this->db->execute($rCouponUseQ, $couponUseP);
+			if ($rCouponUseResult === false) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰 사용내역을 조회 하면서 오류가 발생하였습니다.'
 				];
 			}
 
-			$couponIdx = $rUseageResult->fields['idx'];
-			$couponMemberIdx = $rUseageResult->fields['coupon_member_idx'];
-			$couponisRefund = $rUseageResult->fields['is_refund'];
-			$couponUseMileage = $rUseageResult->fields['coupon_use_mileage'];
+			$couponIdx = $rCouponUseResult->fields['idx'];
+			$couponMemberIdx = $rCouponUseResult->fields['coupon_member_idx'];
+			$couponIsRefund = $rCouponUseResult->fields['is_refund'];
+			$couponUseMileage = $rCouponUseResult->fields['coupon_use_mileage'];
 
 			if (empty($couponIdx)) {
 				// 쿠폰 사용내역이 없으면 진행하지 않음
@@ -1121,7 +1223,7 @@
 				];
 			}
 
-			if ($couponisRefund == 'Y') {
+			if ($couponIsRefund == 'Y') {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰이 이미 환불 되었습니다.'
@@ -1134,12 +1236,12 @@
 				'idx'=> $couponIdx
 			];
 
-			$uCoponUseQ = 'UPDATE `th_coupon_useage` SET 
+			$uCouponUseQ = 'UPDATE `th_coupon_useage` SET 
 							`coupon_use_end_date` = ?,
 							`is_refund` = ?
 							WHERE `idx` = ?';
 			
-			$couponUseResult = $this->db->execute($uCoponUseQ, $uCouponUseP);
+			$this->db->execute($uCouponUseQ, $uCouponUseP);
 
 			$couponUseAffectedRow = $this->db->affected_rows();
 			if ($couponUseAffectedRow < 1) {
@@ -1177,7 +1279,7 @@
 								`coupon_status` = ?
 								WHERE `idx` = ?';
 			
-			$uCouponMemberResult = $this->db->execute($uCouponMemberQ, $uCouponMemberP);
+			$this->db->execute($uCouponMemberQ, $uCouponMemberP);
 			
 			$uCouponMemberAffectedRow = $this->db->affected_rows();
 			if ($uCouponMemberAffectedRow < 1) {

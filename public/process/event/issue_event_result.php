@@ -13,17 +13,14 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
     // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/EventClass.php';
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 
 	// Exception 파일 
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
 	try {
-		$returnUrl = SITE_ADMIN_DOMAIN . '/admin_event.php'; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN . '/admin_event.php';
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -32,88 +29,81 @@
         $_POST['idx'] = htmlspecialchars($_POST['idx']);
         $postData = $_POST;
 
-		$eventClass = new EventClass($db);
         $mileageClass = new MileageClass($db);
-        $memberClass= new MemberClass($db);
 
 		$db->startTrans();
-        
-		$eventData = $CONFIG_EVENT_ARRAY['판매'];
 
-		if($eventData['idx'] != $postData['idx']){
-			throw new RollbackException('이벤트를 조회 할 수 없습니다.');
-		}
+        $eventData = $CONFIG_EVENT_ARRAY['판매'];
 
-		$historyParam = [
-			'event_type'=> '판매',
-			'limit'=> 10,
-		];
-        
-        $eventHistoryList = $eventClass->getEventHistoryList($historyParam, $isUseForUpdate);
-		if ($eventHistoryList === false) {
-			throw new Exception('이벤트 결과를 가져오면서 오류가 발생했습니다.');
-		}
-        
-        $chargeTitle = $eventName.'_판매환급!!';
-        
-        foreach ($eventHistoryList as $key => $value) {
-           $eventCost = $value['event_cost'];
-           $memberIdx = $value['member_idx'];
-           $mileageType = 8;
-            
-			if ($eventCost > 0) {
-				$chargeParam = [
-                    'idx'=> $memberIdx,
-                    'account_bank'=> '아이엠아이',
-                    'account_no'=> setEncrypt($chargeTitle),
-                    'charge_cost'=> $eventCost,
-                    'spare_cost'=> $eventCost,
-                    'charge_name'=>'관리자',
+        // 이벤트 정보가 올바른지 체크.
+        if ($eventData['idx'] != $postData['idx']) {
+            throw new RollbackException('이벤트 정보가 올바르지 않습니다.');
+        }
+
+        // 이벤트 순위를 출력함 (1-10등)
+        $rEventHistoryP = [
+            'event_type'=> '판매',
+            'limit'=> 10,
+        ];
+
+        $rEventHistoryQ = 'SELECT `participate_count`,
+                                  `event_cost`,
+                                  `event_type`,
+                                  `member_idx`
+                           FROM `th_event_history`
+                           WHERE `event_type` = ?
+                           ORDER BY `event_cost` DESC, `participate_count` DESC
+                           LIMIT ?
+                           FOR UPDATE';
+
+        $rEventHistoryResult = $db->execute($rEventHistoryQ, $rEventHistoryP);
+
+        if ($rEventHistoryResult === false) {
+            throw new RollbackException('이벤트 순위를 조회하면서 오류가 발생했습니다.');
+        }
+
+        foreach ($rEventHistoryResult as $key => $value) {
+            $eventCost = $value['event_cost'];
+
+            // 이벤트 참여 시 금액이 0보다 큰 경우
+            if ($eventCost > 0) {
+                // 이벤트 환급시 보여지는 제목
+                $chargeTitle = '이벤트 판매환급!!';
+
+                $memberIdx = $value['member_idx'];
+                $mileageType = 8;
+
+                $eventReturnFee = ($eventCost*$CONFIG_EVENT_SELL_RETRUN_FEE[$key+1])/100;
+
+                // 수수료 환급
+                $chargeParamGroup = [
+                    'charge_param' => [
+                        'member_idx'=> $memberIdx,
+                        'charge_infomation'=> '아이엠아이',
+                        'charge_account_no'=> setEncrypt($chargeTitle),
+                        'charge_cost'=> $eventReturnFee,
+                        'spare_cost'=> $eventReturnFee,
+                        'charge_name'=> '관리자',
+                        'mileage_idx'=> $mileageType,
+                        'charge_date'=> $today,
+                        'charge_status'=> 3
+                    ],
+                    'dealings_idx'=> 0,
+                    'dealings_status'=> 4,
                     'mileageType'=> $mileageType,
-                    'dealings_date'=> date('Y-m-d'),
-                    'charge_status'=> 3
+                    'mode'=> 'event'
                 ];
-               
-				// 충전정보 추가
-				$insertPaybackChargeResult = $mileageClass->insertMileageCharge($chargeParam);
-				if ($insertPaybackChargeResult < 1) {
-                   throw new RollbackException('판매 환급으로 마일리지 충전 실패하였습니다.');
-				}
 
-				$chageParamMileageParam = [
-                   'charge_cost'=> $eventCost,
-                   'idx'=> $memberIdx
-				];
-				$updatePaybackResult = $memberClass->updateMileageCharge($chageParamMileageParam); // 마일리지변경
-				if ($updatePaybackResult < 1) {
-                   throw new RollbackException('회원 마일리지 정보 수정 실패하였습니다.');
-				}
-
-				$memberPaybackMileageType = $mileageClass->getMemberMileageTypeIdx($memberIdx, $isUseForUpdate);
-				if ($memberPaybackMileageType == false) {
-					$chageMileageTypeParam = [
-						'memberIdx'=> $memberIdx, 
-						'eventCost'=> $eventCost
-					];
-                  
-					$mileagePayTypeInsert = $mileageClass->mileageTypeInsert($mileageType, $chageMileageTypeParam);
-					if ($mileagePayTypeInsert < 1) {
-						throw new RollbackException('마일리지 유형별 합계 삽입 실패 하였습니다.');
-					} 
-				} else {
-					$chageMileageTypeParam = [
-						'eventCost'=> $eventCost,
-						'memberIdx'=> $memberIdx
-					];
-					$mileagePayTypeUpdate = $mileageClass->mileageTypeChargeUpdate($mileageType, $chageMileageTypeParam);
-					if ($mileagePayTypeUpdate < 1) {
-						throw new RollbackException('마일리지 유형별 합계 정보 수정 실패 하였습니다.');
-					}
-				}
-			}
+                // 판매 이벤트 수수료 환급(충전)
+                $chargeResult = $mileageClass->chargeMileageProcess($chargeParamGroup);
+                if ($chargeResult['result'] === false) {
+                    throw new RollbackException($chargeResult['resultMessage']);
+                }
+            }
         }
 
         $returnUrl = SITE_ADMIN_DOMAIN . '/event_list.php';
+
 		$alertMessage = '이벤트가 정상적으로 종료가 되었습니다.';
 
 		$db->completeTrans();

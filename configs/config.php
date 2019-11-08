@@ -116,17 +116,17 @@
 			'seq'=> 1,
 			'idx'=> 1,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-31',
+			'end_date'=> '2019-11-07',
 			'is_end'=> 'Y',
 			'event_type'=> '구매',
 			'event_name'=> '구매이벤트'
 		],
 		'판매'=> [
 			'seq'=> 2,
-			'idx'=> 1,
+			'idx'=> 2,
 			'start_date'=> '2019-10-07',
-			'end_date'=> '2019-10-31',
-			'is_end'=> 'Y',
+			'end_date'=> '2019-11-07',
+			'is_end'=> 'N',
 			'event_type'=> '판매',
 			'event_name'=> '판매이벤트'
 		]

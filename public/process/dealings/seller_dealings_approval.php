@@ -345,7 +345,7 @@
 			$paybackGroup['charge_param']['charge_account_no'] = $paybackTitle;
 			$paybackGroup['charge_param']['member_idx'] = $buyerMemberIdx;
 
-			$paybackGroup['mode'] = 'payback';
+			$paybackGroup['mode'] = 'event';
 
 			$payBackGpResult = $mileageClass->chargeMileageProcess($paybackGroup);
 			if ($payBackGpResult['result'] === false) {

@@ -1089,9 +1089,9 @@
 									 `use_cost` = `use_cost` + ?
 									WHERE `idx` = ?';
 					
-				$uChargeResult = $this->db->execute($uChargeQ, $uChargeP);
-				$chargeAffectedRow = $this->db->affected_rows();
+				$this->db->execute($uChargeQ, $uChargeP);
 
+				$chargeAffectedRow = $this->db->affected_rows();
 				if ($chargeAffectedRow < 1) {
 					return [
 						'result'=> false,
@@ -1113,7 +1113,7 @@
 								`{$colName}` = `{$colName}` - ?
 								WHERE `member_idx` = ?";
 
-				$uMileageSumResult = $this->db->execute($uMileageSumQ, $uMileageSumP);
+				$this->db->execute($uMileageSumQ, $uMileageSumP);
 	
 				$mileageSumAffectedRow = $this->db->affected_rows();
 				if ($mileageSumAffectedRow < 1) {
@@ -1145,7 +1145,7 @@
 									`charge_status` = 6
 									WHERE `spare_cost` = 0';
 			
-				$uChargeStatusQ = $this->db->execute($uChargeStatusQ);
+				$this->db->execute($uChargeStatusQ);
 				
 				$chargeStatusAffectedRow = $this->db->affected_rows();
 				if ($chargeStatusAffectedRow < 1) {
@@ -1188,7 +1188,7 @@
 									`dealings_status_code` = ?,
 									`dealings_date` = CURDATE()';
 
-					$cChangeResult = $this->db->execute($cChangeQ, $cChangeP[$i]);
+					$this->db->execute($cChangeQ, $cChangeP[$i]);
 					
 					$changeInsertId = $this->db->insert_id(); // 추가
 					if ($changeInsertId < 1) {
@@ -1236,7 +1236,7 @@
 									`charge_cost` = ?,
 									`process_date` = CURDATE()';
 					
-					$cChangeResult = $this->db->execute($cChangeQ, $cChangeP[$i]);
+					$this->db->execute($cChangeQ, $cChangeP[$i]);
 					
 					$changeInsertId = $this->db->insert_id(); // 추가
 					if ($changeInsertId < 1) {
@@ -1258,7 +1258,7 @@
 							`mileage` = `mileage` - ? 
 							WHERE `idx` = ?';
 
-			$uMbMileageResult = $this->db->execute($uMbMileageQ, $uMbMileageP);
+			$this->db->execute($uMbMileageQ, $uMbMileageP);
 
 			$mbMileageAffectedRow = $this->db->affected_rows();
 			if ($mbMileageAffectedRow < 1) {
@@ -1350,9 +1350,9 @@
 				$param['charge_param']['expiration_date'] = $expirationDate;
 			}
 
-			$cChargeResult = $this->db->execute($cChargeQ, $param['charge_param']);
-			$chargeInsertId = $this->db->insert_id(); // 추가
+			$this->db->execute($cChargeQ, $param['charge_param']);
 
+			$chargeInsertId = $this->db->insert_id(); // 추가
 			if ($chargeInsertId < 1) {
 				return [
 					'result'=> false,
@@ -1372,7 +1372,7 @@
 							   `mileage` = `mileage` + ? 
 							   WHERE `idx` = ?';
 
-				$uMileageResult = $this->db->execute($uMileageQ, $mileageParam);
+				$this->db->execute($uMileageQ, $mileageParam);
 
 				$mileageAffectedRow = $this->db->affected_rows();
 				if ($mileageAffectedRow < 1) {
@@ -1389,8 +1389,6 @@
 							  FOR UPDATE';
 
 				$rTypeSumResult = $this->db->execute($rTypeSumQ, $memberIdx);
-				$typeSumIdx = $rTypeSumResult->fields['idx'];
-
 				if ($rTypeSumResult == false) {
 					return [
 						'result'=> false,
@@ -1398,20 +1396,21 @@
 					];
 				}
 
+                $colName = $this->getMileageTypeColumn($mileageType);
+
+                $typeSumIdx = $rTypeSumResult->fields['idx'];
 				if (!empty($typeSumIdx)){
 					// 마일리지 유형별 합계 업데이트
 					$mileageTypeParam = [
 						'mileage'=> $chargeCost,
 						'member_idx'=> $memberIdx
 					];
-	
-					$colName = $this->getMileageTypeColumn($mileageType);
 
 					$uMileageSumQ = "UPDATE `th_mileage_type_sum` SET
 										 `{$colName}` = `{$colName}` + ?
 										 WHERE `member_idx` = ?";
 
-					$uMileageSumResult = $this->db->execute($uMileageSumQ, $mileageTypeParam);
+					$this->db->execute($uMileageSumQ, $mileageTypeParam);
 					
 					$mileageSumAffectedRows = $this->db->affected_rows();
 					if ($mileageSumAffectedRows < 1) {
@@ -1431,7 +1430,8 @@
 										`member_idx` = ?,
 										`{$colName}` = `{$colName}` + ?";
 
-					$cMileageSumResult = $this->db->execute($cMileageSumQ, $cMileageSumP);
+					$this->db->execute($cMileageSumQ, $cMileageSumP);
+
 					$mileageSumInsertId = $this->db->insert_id();
 
 					if ($mileageSumInsertId < 1) {
@@ -1442,7 +1442,7 @@
 					}
 				}
 
-				if (isset($param['mode']) != 'payback') {
+				if (isset($param['mode']) != 'event') {
 					// 거래 마일리지 키 가져오기
 					$rDealingsChangeQ = 'SELECT `idx`
 										 FROM `th_dealings_mileage_change` 
@@ -1468,7 +1468,7 @@
 											  `dealings_status_code` = ? 
 											  WHERE `dealings_idx` = ?';
 				
-						$uDealingsChangeResult = $this->db->execute($uDealingsChangeQ, $changeData);
+						$this->db->execute($uDealingsChangeQ, $changeData);
 
 						$affected_row = $this->db->affected_rows();
 						if ($affected_row < 1) {
