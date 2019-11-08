@@ -138,7 +138,7 @@
 			$cpBuyerStParam = [
 				'coupon_use_end_date'=> date('Y-m-d'),
 				'is_refund'=> 'N',
-				'idx'=>$couponIdx
+				'idx'=> $couponIdx
 			];
 
 			$uBuyerCouponUseageQ = 'UPDATE `th_coupon_useage` SET 
@@ -147,8 +147,8 @@
 										WHERE `idx` = ?';
 				
 			$uCouponUseageResult = $db->execute($uBuyerCouponUseageQ, $cpBuyerStParam);
-			$uCpBuyerUseAffectRows = $db->affected_rows();
 
+			$uCpBuyerUseAffectRows = $db->affected_rows();
 			if ($uCpBuyerUseAffectRows < 1) {
 				throw new RollbackException('구매자 쿠폰 완료하는 과정에서 오류가 발생했습니다.');
 			}

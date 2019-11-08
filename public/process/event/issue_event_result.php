@@ -73,7 +73,8 @@
                 $memberIdx = $value['member_idx'];
                 $mileageType = 8;
 
-                $eventReturnFee = ($eventCost*$CONFIG_EVENT_SELL_RETRUN_FEE[$key+1])/100;
+                // 환급금액 계산
+                $eventReturnFee = round(($eventCost*$CONFIG_EVENT_SELL_RETRUN_FEE[$key+1])/100);
 
                 // 수수료 환급
                 $chargeParamGroup = [

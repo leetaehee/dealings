@@ -878,9 +878,9 @@
 							`memo` = ?,
 							`writer_idx` = ?';
 			
-			$cDealingsResult = $this->db->execute($cDealingsQ, $param);
-			$dealingsInsertId = $this->db->insert_id();
+			$this->db->execute($cDealingsQ, $param);
 
+			$dealingsInsertId = $this->db->insert_id();
 			if ($dealingsInsertId < 1) {
 				return [
 					'result'=> false,
@@ -899,9 +899,9 @@
 									`dealings_status_idx` = ?,
 									`dealings_datetime` = now()';
 				
-			$cDealingsProcessResult = $this->db->execute($cDealingsProcessQ, $cProcessP);
-			$dealingsProcessId = $this->db->insert_id();
+			$this->db->execute($cDealingsProcessQ, $cProcessP);
 
+			$dealingsProcessId = $this->db->insert_id();
 			if ($dealingsProcessId < 1) {
 				return [
 					'result'=> false,
@@ -977,7 +977,7 @@
 							`dealings_status` = ? 
 							WHERE `idx` = ?';
 
-			$uDealingsResult = $this->db->execute($uDealingsQ, $uDealingsP);
+			$this->db->execute($uDealingsQ, $uDealingsP);
 
 			$dealingsAffectRow = $this->db->affected_rows();
 			if ($dealingsAffectRow < 1) {
@@ -1007,7 +1007,7 @@
 			$dealingsNewIdx = $rDealingsResult->fields['idx'];
 			if ($dealingsUserCnt == 0) {
 				$cDealingsUserP = [
-					'dealings_idx'=> $rDealingsResult->fields['idx'],
+					'dealings_idx'=> $dealingsNewIdx,
 					'dealings_writer_idx'=> $rDealingsResult->fields['writer_idx'],
 					'dealings_member_idx'=> $memberIdx,
 					'dealings_status'=> $dealingsStatus,
@@ -1022,9 +1022,9 @@
 									`dealings_type` = ?,
 									`dealings_date` = curdate()';
 			
-				$cDealingsUserResult = $this->db->execute($cDealingsUserQ, $cDealingsUserP);
-				$cDealingsUserInserId = $this->db->insert_id();
+				$this->db->execute($cDealingsUserQ, $cDealingsUserP);
 
+				$cDealingsUserInserId = $this->db->insert_id();
 				if ($cDealingsUserInserId < 1) {
 					return [
 						'result'=> false,
@@ -1043,7 +1043,7 @@
 									`dealings_date` = curdate()
 									WHERE `dealings_idx` = ?';
 
-				$uDealingsUserResult = $this->db->execute($uDealingsUserQ, $uDealingsUserP);
+				$this->db->execute($uDealingsUserQ, $uDealingsUserP);
 
 				$uDealingsUsersAffectedRow = $this->db->affected_rows();
 				if ($uDealingsUsersAffectedRow < 1) {
@@ -1063,11 +1063,11 @@
 								`dealings_status_idx` = ?,
 								`dealings_idx` = ?,
 								`dealings_datetime` = now()';
-			
-			$result = $this->db->execute($cDealingsPsQ, $cDealingsPsP);
-			$inserId = $this->db->insert_id();
 
-			if ($inserId < 1) {
+			$this->db->execute($cDealingsPsQ, $cDealingsPsP);
+
+			$dealingsInsertId = $this->db->insert_id();
+			if ($dealingsInsertId < 1) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '거래 프로세스 테이블 추가 하면서 오류가 발생했습니다.'

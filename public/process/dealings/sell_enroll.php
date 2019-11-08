@@ -142,7 +142,7 @@
 			throw new RollbackException('수수료 정보를 조회 하면서 오류가 발생했습니다.');
 		}
 
-		$commission = $rCommistionResult->fields['commission'];
+		$commission = round($rCommistionResult->fields['commission']);
 		if (empty($commission)) {
 			throw new RollbackException('수수료 데이터를 조회 할 수 없습니다.');
 		}
