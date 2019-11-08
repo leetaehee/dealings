@@ -126,7 +126,7 @@
 			'idx'=> 2,
 			'start_date'=> '2019-10-07',
 			'end_date'=> '2019-11-07',
-			'is_end'=> 'N',
+			'is_end'=> 'Y',
 			'event_type'=> '판매',
 			'event_name'=> '판매이벤트'
 		]
