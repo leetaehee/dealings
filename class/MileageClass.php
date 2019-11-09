@@ -1285,16 +1285,21 @@
 		{
 			// 충전자 고유번호
 			$memberIdx = $param['charge_param']['member_idx'];
-			// 마일리지 고유번호
-			$mileageIdx = $param['charge_param']['mileage_idx'];
+
 			// 마일리지 금액
 			$chargeCost = $param['charge_param']['charge_cost'];
+
 			// 거래 고유번호
-			$dealingsIdx = $param['dealings_idx'] ?? '';
+			if (isset($param['dealings_idx'])) {
+                $dealingsIdx = $param['dealings_idx'] ?? '';
+            }
+
 			// 거래 상태번호
-			$dealignsStatus = $param['dealings_status'] ?? '';
+			$dealingsStatus = $param['dealings_status'] ?? '';
+
 			// 마일리지 타입
 			$mileageType = $param['mileageType'];
+
 			// 만료일자 설정 여부
 			if (isset($param['is_set_expiration'])) {
 				$isSetExpiration = $param['is_set_expiration'];
@@ -1460,7 +1465,7 @@
 					$mileageChangeIdx  = $rDealingsChangeResult->fields['idx'];
 					if(!empty($mileageChangeIdx)){
 						$changeData = [
-							'dealings_status'=> $dealignsStatus,
+							'dealings_status'=> $dealingsStatus,
 							'dealings_idx'=> $dealingsIdx
 						];
 

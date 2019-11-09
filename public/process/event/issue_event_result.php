@@ -76,7 +76,7 @@
                 // 환급금액 계산
                 $eventReturnFee = round(($eventCost*$CONFIG_EVENT_SELL_RETRUN_FEE[$key+1])/100);
 
-                // 수수료 환급
+                // 수수료 환급하기
                 $chargeParamGroup = [
                     'charge_param' => [
                         'member_idx'=> $memberIdx,
