@@ -1,5 +1,5 @@
 <?php
-	/*
+	/**
 	 * 회원가입 메일 승인 화면 
 	 */
 
@@ -12,9 +12,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
 
@@ -22,8 +19,8 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_JOIN_APPROVAL . ' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
+
 		$returnUrl = SITE_DOMAIN;
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -31,32 +28,35 @@
 
 		// xss, injection 방지코드
 		if (isset($_GET['idx'])) {
-			$idx = htmlspecialchars($_GET['idx']);
+			$memberIdx = htmlspecialchars($_GET['idx']);
 		} else {
-			$idx = htmlspecialchars($_POST['idx']);
+			$memberIdx = htmlspecialchars($_POST['idx']);
 		}
 
-		if (!empty($idx)) {
-			$db->startTrans();
+		if (empty($memberIdx)) {
+            throw new Exception('잘못된 접근입니다!');
+        }
 
-			$memberClass = new MemberClass($db);
+        $db->startTrans();
 
-			$join_approval_date = $memberClass->getJoinApprovalMailDate($idx, $isUseForUpdate);
-			if ($join_approval_date !== null) {
-				throw new RollbackException('이미 가입승인 메일을 통해 승인 하였습니다!');
-			}	
-			
-			$updateApprovalResult = $memberClass->updateJoinApprovalMailDate($idx);
-			if ($updateApprovalResult < 1) {
-				throw new RollbackException('가입 승인 수정 중에 오류가 발생했습니다.');
-			}
-			
-			$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
-			
-			$db->completeTrans();
-		} else {
-			throw new Exception('잘못된 접근입니다!');
-		}
+		// 가입승인여부 확인
+        $rJoinApprovalQ = 'SELECT `join_approval_date` 
+				           FROM `th_members`
+				           WHERE `idx` = ?
+				           FOR UPDATE';
+
+        $rJoinApprovalResult = $db->execute($rJoinApprovalQ, $memberIdx);
+        if ($rJoinApprovalResult === false) {
+            throw new RollbackException('가입승인일자를 조회하면서 오류가 발생했습니다.');
+        }
+
+        // 가입승인 처리
+        $joinApprovalDate = $rJoinApprovalResult->fields['join_approval_date'];
+        if (!empty($joinApprovalDate)) {
+            throw new RollbackException('이미 승인 된 회원입니다.');
+        }
+
+        $db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
 		$alertMessage = $e->getMessage();

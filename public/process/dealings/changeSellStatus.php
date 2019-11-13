@@ -148,11 +148,12 @@
 		// 거래 상태 파라미터
 		$dealingsStPcParam = [
 			'dealings_status'=> $_SESSION['dealings_status'],
-			'dealings_idx'=> $dealingsIdx
+			'dealings_idx'=> $dealingsIdx,
+            'member_idx'=> $memberIdx
 		];
 
 		// 거래상태 관련
-		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam, $memberIdx);
+		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam);
 		if ($dealingsProcessResult['result'] === false) {
 			throw new RollbackException($dealingsProcessResult['resultMessage']);
 		}

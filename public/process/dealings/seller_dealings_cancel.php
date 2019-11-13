@@ -158,7 +158,7 @@
 			$chargeParamGroup = [
 				'charge_param' => [
 					'member_idx'=> $buyerMemberIdx,
-					'charge_infomation'=> '아이엠아이',
+					'charge_infomation'=> SITE_MILEAGE_DEPARTMENT,
 					'charge_account_no'=> setEncrypt($dealingsResult->fields['dealings_subject']),
 					'charge_cost'=> $dealingsMileage,
 					'spare_cost'=> $dealingsMileage,

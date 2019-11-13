@@ -239,7 +239,7 @@
 		$_SESSION['dealings_writer_idx'] = '';
 		$_SESSION['dealings_member_idx'] = '';
 		$_SESSION['dealings_idx'] = '';
-		$_SESSION['dealigng_status'] = '';
+		$_SESSION['dealings_status'] = '';
 		$_SESSION['purchaser_idx'] = '';
 		$_SESSION['purchaser_mileage'] = '';
 		

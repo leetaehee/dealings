@@ -13,11 +13,7 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_SELL_DETAIL_VIEW . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN.'/voucher_purchase_list.php'; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
@@ -36,20 +32,86 @@
 		$_GET['type'] = htmlspecialchars($_GET['type']);
 		$getData = $_GET;
 
-		// 디비에서 거래상태받아오기, 거래타입과 키값 보내기
-		$dealingsClass = new DealingsClass($db);
+        // 거래테이블 고유키
+        $dealingsIdx = $getData['idx'];
 
-		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
-		if ($dealingsData === false) {
-			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
-		}
+        // 거래정보 가져오기
+        $rDealingsQ = 'SELECT `idx`,
+							  `dealings_type`,
+							  `register_date`,
+							  `expiration_date`,
+							  `dealings_subject`,
+							  `dealings_content`,
+							  `item_money`,
+							  `item_no`,
+							  `item_object_no`,
+							  `dealings_mileage`,
+							  `dealings_commission`,
+							  `dealings_status`,
+							  `writer_idx`,
+							  `memo`
+					    FROM `th_dealings`
+					    WHERE `idx` = ?';
 
-		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
-		$_SESSION['dealings_idx'] = $getData['idx'];
-		$_SESSION['dealings_status'] = $getData['type'];
+        $rDealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
+        if ($rDealingsResult === false) {
+            throw new RollbackException('거래 데이터를 조회하면서 오류가 발생했습니다.');
+        }
 
-		// 거래상태 변경
-		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['type'];
+        $writerIdx = $rDealingsResult->fields['writer_idx'];
+        $itemNo = $rDealingsResult->fields['item_no'];
+        $dealingsStatus = $rDealingsResult->fields['dealings_status'];
+        $registerDate = $rDealingsResult->fields['register_date'];
+        $expirationDate = $rDealingsResult->fields['expiration_date'];
+        $dealingsSubject = $rDealingsResult->fields['dealings_subject'];
+        $dealingsContent = $rDealingsResult->fields['dealings_content'];
+        $itemMoney = $rDealingsResult->fields['item_money'];
+        $itemObjectNo = $rDealingsResult->fields['item_object_no'];
+        $dealingsMileage = $rDealingsResult->fields['dealings_mileage'];
+        $dealingsCommission = $rDealingsResult->fields['dealings_commission'];
+        $memo = $rDealingsResult->fields['memo'];
+
+        // 구매자 정보 가져오기
+        $rPurchaserQ = 'SELECT `name`,
+							   `id`
+						FROM `th_members`
+						WHERE `idx` = ?';
+
+        $rPurchaserResult = $db->execute($rPurchaserQ, $writerIdx);
+        if ($rPurchaserResult === false) {
+            throw new RollbackException('구매자 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $name = $rPurchaserResult->fields['name'];
+        $id = $rPurchaserResult->fields['id'];
+
+        // 상품권명 가져오기
+        $rSellItemQ = 'SELECT `item_name`
+                       FROM `th_sell_item`
+                       WHERE `idx` = ?';
+
+        $rSellItemResult = $db->execute($rSellItemQ, $itemNo);
+        if ($rSellItemResult === false) {
+            throw new RollbackException('상품권명을 조회하면서 오류가 발생했습니다.');
+        }
+
+        $itemName = $rSellItemResult->fields['item_name'];
+
+        // 거래 상태명 가져오기
+        $rDealingsStatusQ = 'SELECT `dealings_status_name`
+                             FROM `th_dealings_status_code`
+                             WHERE `idx` = ?';
+
+        $rDealingsStatusResult = $db->execute($rDealingsStatusQ, $dealingsStatus);
+        if ($rDealingsStatusResult === false) {
+            throw new RollbackException('거래 상태이름을 조회하면서 오류가 발생했습니다.');
+        }
+
+        $dealingsStatusName = $rDealingsStatusResult->fields['dealings_status_name'];
+
+        $_SESSION['dealings_writer_idx'] = $writerIdx;
+        $_SESSION['dealings_idx'] = $dealingsIdx;
+        $_SESSION['dealings_status'] = $getData['type'];
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/dealings_sell_detail_view.html.php';
 	} catch (Exception $e) {

@@ -8,7 +8,6 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_HOME_MENU .' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
 

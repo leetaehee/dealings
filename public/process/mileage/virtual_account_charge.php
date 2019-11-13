@@ -51,7 +51,7 @@
 		$db->startTrans();
 
 		// 가상 계좌 체크하기
-		$rAccoimtP = [
+		$rAccountP = [
 			'member_idx'=> $_SESSION['idx'],
 			'account_bank'=> $postData['account_bank']
 		];
@@ -62,7 +62,7 @@
 					  AND `bank_name` = ?
 					  FOR UPDATE';
 			
-		$rAccountResult = $db->execute($rAccountQ, $rAccoimtP);
+		$rAccountResult = $db->execute($rAccountQ, $rAccountP);
 		if ($rAccountResult === false) {
 			throw new RollbackException('가상 계좌를 조회 하면서 오류가 발생했습니다.');
 		}

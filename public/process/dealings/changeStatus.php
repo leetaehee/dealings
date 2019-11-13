@@ -21,7 +21,6 @@
 	try {
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
         $alertMessage = '';
-		$isUseForUpdate = true;
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
@@ -51,7 +50,7 @@
 		$rDealingsExistP = [
 			'idx'=> $_SESSION['dealings_idx'],
 			'is_del'=> 'N',
-			'dealinges_status'=> $_SESSION['dealings_status'],
+			'dealings_status'=> $_SESSION['dealings_status'],
 		];
 
 		$rDealingsExistQ = 'SELECT count(`idx`) cnt 
@@ -71,20 +70,21 @@
 		}
 
 		// 거래 상태 파라미터
-		$dealingsStPcParam = [
+		$dealingsStPcP = [
 			'dealings_status'=> $_SESSION['dealings_status'],
-			'dealings_idx'=> $_SESSION['dealings_idx']
+			'dealings_idx'=> $_SESSION['dealings_idx'],
+            'member_idx'=> $memberIdx
 		];
 
 		// 거래상태 관련
-		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcParam, $memberIdx);
+		$dealingsProcessResult = $dealingsClass->dealignsStatusProcess($dealingsStPcP, $memberIdx);
 		if ($dealingsProcessResult['result'] === false) {
 			throw new RollbackException($dealingsProcessResult['resultMessage']);
 		}
 
 		$_SESSION['dealings_writer_idx'] = '';
 		$_SESSION['dealings_idx'] = '';
-		$_SESSION['dealigng_status'] = '';
+		$_SESSION['dealings_status'] = '';
 
 		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '정상적으로 거래 상태가 변경되었습니다.';

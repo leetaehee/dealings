@@ -6,19 +6,6 @@
 	{
 		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-        
-        /**
-		 * 객체 체크 
-		 *
-		 * @return bool
-		 */
-		private function checkConnection()
-		{
-			if(!is_object($this->db)) {
-				return false;
-			}
-			return true;
-		}
 		
 		/**
          * 마일리지 타입별 합계 테이블의 컬럼명 리턴

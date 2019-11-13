@@ -10,11 +10,12 @@
 	 * 상수
 	 */
 
+
     // 루트 경로
-    define('SITE_DOCUMENT_ROOT', $_SERVER['DOCUMENT_ROOT']);
+    define('SITE_DOCUMENT_ROOT', __DIR__ . '/../');
 
 	// ENV 경로 구하기
-    $ENV_PATH =  SITE_DOCUMENT_ROOT . '/../env.json';
+    $ENV_PATH =  SITE_DOCUMENT_ROOT . 'env.json';
     $ENV = json_decode(file_get_contents($ENV_PATH), true);
 
     // DB 커넥션정보
@@ -56,6 +57,9 @@
     // 암호화 및 복호화 상수
     define('ENCRYPT_TYPE', 'aes-256-cbc');
     define('ENCRYPT_KEY', 'imi_key');
+
+    // 사이트 마일리지 처리 담당자 이름
+    define('SITE_MILEAGE_DEPARTMENT', '마일리지담당자');
 
 	/**
 	 * 전역변수

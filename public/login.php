@@ -10,6 +10,7 @@
 	try {
 		$title = TITLE_LOGIN_MENU . ' | ' . TITLE_SITE_NAME; // 템플릿에서 <title>에 보여줄 메세지 설정
 		$alertMessage = '';
+
 		$actionUrl = LOGIN_PROCESS_ACTION . '/login.php'; // form 전송시 전달되는 URL.
 		$JsTemplateUrl = JS_URL . '/login.js';
 

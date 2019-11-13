@@ -25,13 +25,13 @@
 		// 유효기간이 만료된 쿠폰이 존재하는지 확인
         $rCouponExpirationP = [
             'today'=> $today,
-            'is_del'=>'Y'
+            'is_del'=> 'N'
         ];
 
         $rCouponExpirationCntQ = 'SELECT COUNT(`idx`) `cnt` 
                                   FROM `th_coupon` 
                                   WHERE `expiration_date` < ?  
-                                  AND `is_del` <> ?';
+                                  AND `is_del` = ?';
 
         $rCouponExpirationCntResult = $db->execute($rCouponExpirationCntQ, $rCouponExpirationP);
         if ($rCouponExpirationCntResult === false) {

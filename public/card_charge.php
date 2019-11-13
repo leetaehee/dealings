@@ -1,5 +1,5 @@
 <?php
-	/*
+	/**
 	 * 신용카드 충전
 	 */
 	
@@ -22,7 +22,7 @@
 		$alertMessage = $e->getMessage();
 	} finally {
 		if (!empty($alertMessage)) {
-			alertMsg(SITE_DOMAIN,1,$alertMessage);
+			alertMsg(SITE_DOMAIN,1, $alertMessage);
 		}
 	}
 

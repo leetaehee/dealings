@@ -16,8 +16,8 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($loginAccessList as $key => $value): ?>
+		<?php if($loginAccessCount > 0): ?>
+			<?php foreach($rLoginAccessResult as $key => $value): ?>
 				<tr>
 					<td><?=$key+1?></td>
 					<td><?=setDecrypt($value['access_ip'])?></td>

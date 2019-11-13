@@ -8,19 +8,6 @@
 		private $db = null;
 
 		/**
-		 * 객체 체크 
-		 *
-		 * @return bool
-		 */
-		private function checkConnection()
-		{
-			if(!is_object($this->db)) {
-				return false;
-			}
-			return true;
-		}
-		
-		/**
 		 * 데이터베이스 커넥션을 생성하는 함수 
 		 *
 		 * @param object $db 데이터베이스 커넥션 

@@ -31,10 +31,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($memberUseCouponListCount > 0): ?>
-			<?php foreach($memberUseCouponList as $key => $value): ?>
+		<?php if($myCouponCount > 0): ?>
+			<?php foreach($myCouponData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['issue_type']?></td>
 					<td><?=$value['subject']?></td>
 					<td><?=$value['item_name']?></td>

@@ -13,6 +13,7 @@
 		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_MYPAGE_DEL_MENU . ' | ' . TITLE_SITE_NAME;
 		$alertMessage = '';
+
 		$actionUrl = MEMBER_PROCESS_ACTION . '/delete_member.php'; // form action url
 		$JsTemplateUrl = JS_URL . '/member_delete.js';
 

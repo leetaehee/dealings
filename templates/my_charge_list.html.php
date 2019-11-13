@@ -23,8 +23,8 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($chargeList as $key => $value): ?>
+		<?php if($chargeCount > 0): ?>
+			<?php foreach($chargeData as $key => $value): ?>
 				<tr>
 					<td><?=$key+1?></td>
 					<td><?=$value['charge_date']?></td>

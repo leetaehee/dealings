@@ -6,19 +6,6 @@
 	{
 		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-        
-        /**
-		 * 객체 체크 
-		 *
-		 * @return bool
-		 */
-		private function checkConnection()
-		{
-			if(!is_object($this->db)) {
-				return false;
-			}
-			return true;
-		}
 		
 		/**
 		 * 데이터베이스 커넥션을 생성하는 함수 
@@ -252,7 +239,7 @@
         /**
          * 거래 상세 데이터 가져오기 
          *
-         * @param int $dealingsIdx
+         * @param int $idx
 		 * @param bool $isUseForUpdate 트랜잭션 FOR UPDATE 사용여부
          *
          * @return array/bool
@@ -923,10 +910,14 @@
 		 *
 		 * @return array
 		 */
-		public function dealignsStatusProcess($param, $memberIdx = '')
+		public function dealignsStatusProcess($param)
 		{
 			$dealingsIdx = $param['dealings_idx'];
 			$dealingsStatus = $param['dealings_status'];
+
+			if (isset($param['member_idx'])) {
+                $memberIdx = $param['member_idx'];
+            }
 
 			$cDealingsUserInserId = '';
 
@@ -1024,8 +1015,8 @@
 			
 				$this->db->execute($cDealingsUserQ, $cDealingsUserP);
 
-				$cDealingsUserInserId = $this->db->insert_id();
-				if ($cDealingsUserInserId < 1) {
+				$cDealingsUserInsertId = $this->db->insert_id();
+				if ($cDealingsUserInsertId < 1) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '거래 유저를 추가하면서 오류가 발생하였습니다.'

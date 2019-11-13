@@ -6,19 +6,6 @@
 	{
 		/** @var string|null $db 는 데이터베이션 커넥션 객체를 할당하기 전에 초기화 함*/
 		private $db = null;
-        
-        /**
-		 * 객체 체크 
-		 *
-		 * @return bool
-		 */
-		private function checkConnection()
-		{
-			if(!is_object($this->db)) {
-				return false;
-			}
-			return true;
-		}
 		
 		/**
 		 * 데이터베이스 커넥션을 생성하는 함수 

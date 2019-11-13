@@ -12,34 +12,39 @@
 	// adodb
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
-	
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_LOGIN_LIST . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_DOMAIN;
+
 		$alertMessage = '';
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
-		
-		$param = [
-			'idx'=> $_SESSION['idx'],
-			'today'=> date('Y-m-d')
-		];
 
-		$loginClass = new LoginClass($db);
+        $rLoginAccessP = [
+            'idx'=> $_SESSION['idx'],
+            'today'=> date('Y-m-d')
+        ];
 
-		$loginAccessList = $loginClass->getLoginAccessList($param);
-		if ($loginAccessList === false) {
-			throw new Exception('로그인 접속내역 조회 오류가 발생했습니다.');
-		}
-		$rocordCount = $loginAccessList->recordCount();
-		
-		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/login_access_list.html.php';
+        $rLoginAccessQ = 'SELECT `idx`,
+                                 `member_idx`,
+                                 `access_ip`,
+                                 `access_date`,
+                                 `access_datetime`
+                          FROM `th_access_ip`
+                          WHERE `member_idx` = ?
+                          AND `access_date` = ?';
+
+        $rLoginAccessResult = $db->execute($rLoginAccessQ, $rLoginAccessP);
+        if ($rLoginAccessResult === false) {
+            throw new Exception('회원 로그인 접속내역을 조회하면서 오류가 발생했습니다.');
+        }
+
+        $loginAccessCount = $rLoginAccessResult->recordCount();
+
+        $templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/login_access_list.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();
 	} finally {
