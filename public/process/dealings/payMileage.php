@@ -57,17 +57,18 @@
 		// 쿠폰을 사용 한 경우 유효성 체크
 		if (!empty($postData['coupon_name'])) {
 
-			$couponMemberIdx = $postData['coupon_name'];
+			$couponName = $postData['coupon_name'];
 
 			// 해당 쿠폰이 실제 있는 쿠폰인지 체크
 			$rCoponMbQ = 'SELECT `coupon_idx`,
 								 `member_idx`,
-								 `coupon_status`
+								 `coupon_status`,
+								 `idx`
 						  FROM `th_coupon_member`
 						  WHERE `idx` = ?
 						  FOR UPDATE';
             
-			$rCouponMbResult = $db->execute($rCoponMbQ, $couponMemberIdx);
+			$rCouponMbResult = $db->execute($rCoponMbQ, $couponName);
 			if ($rCouponMbResult === false) {
 				throw new RollbackException('쿠폰의 고객 정보를 조회하면서 오류가 발생했습니다.');
 			}
@@ -75,6 +76,7 @@
 			$couponIdx = $rCouponMbResult->fields['coupon_idx'];
 			$couponStatus = $rCouponMbResult->fields['coupon_status'];
 			$couponMemberIdx = $rCouponMbResult->fields['member_idx'];
+			$couponName = $rCouponMbResult->fields['idx'];
 
 			if ($memberIdx != $couponMemberIdx) {
 				throw new RollbackException('쿠폰 지급대상자가 아닙니다.');
@@ -127,7 +129,10 @@
 		}
 
 		// 거래금액 체크 
-		$rDealingsMileageQ = 'SELECT `dealings_mileage` FROM `th_dealings` WHERE `idx` = ?';
+		$rDealingsMileageQ = 'SELECT `dealings_mileage`
+                              FROM `th_dealings`
+                              WHERE `idx` = ?
+                              FOR UPDATE';
 
 		$rDealingsMileageResult = $db->execute($rDealingsMileageQ, $dealingsIdx);
 		if ($rDealingsMileageResult === false) {
@@ -224,7 +229,7 @@
 					'member_idx'=> $_SESSION['idx'],
 					'coupon_use_before_mileage'=> $_POST['dealings_mileage'],
 					'coupon_use_mileage'=> $dealingsMileage,
-					'coupon_member_idx'=> $couponMemberIdx
+					'coupon_member_idx'=> $couponName
 				],
 				'coupon_status_code'=> 2
 			];

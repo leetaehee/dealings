@@ -1146,7 +1146,6 @@
 			$uCouponMbQ = 'UPDATE `th_coupon_member` SET 
 							`coupon_status` = ?
 							WHERE `idx` = ?';
-			
 			$this->db->execute($uCouponMbQ, $couponMbStParam);
 
 			$couponMbAffectedRow = $this->db->affected_rows();
