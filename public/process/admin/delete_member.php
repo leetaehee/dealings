@@ -63,7 +63,7 @@
         $uAdminDeleteResult = $db->execute($uAdminDeleteQ, $idx);
 
         $adminDeleteAffectedRow = $db->affected_rows();
-        if ($adminDeleteAffectedRow < 1) {
+        if ($adminDeleteAffectedRow < 0) {
             throw new RollbackException('관리자 탈퇴하면서 오류가 발생하였습니다.');
         }
 

@@ -63,7 +63,7 @@
 			'dealings_content'=> $postData['dealings_content'],
 			'memo'=> $postData['memo'],
 			'itemObjectNo'=> $itemObjectNo,
-			'dealins_idx'=> $postData['dealings_idx']
+			'dealings_idx'=> $postData['dealings_idx']
 		];
 
 		$uDealingsQ = 'UPDATE `th_dealings` SET 
@@ -76,7 +76,7 @@
 		$uDealingsResult = $db->execute($uDealingsQ, $uDealingsP);
 
 		$uDealingsAffectedRow = $db->affected_rows();
-		if ($uDealingsAffectedRow < 1) {
+		if ($uDealingsAffectedRow < 0) {
 			throw new RollbackException('거래글 수정하면서 오류가 발생하였습니다.');
 		}
 

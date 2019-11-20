@@ -45,6 +45,8 @@
             throw new Exception('지급된 쿠폰내역을 조회하면서 오류가 발생했습니다.');
         }
 
+        $myCouponData = [];
+
         foreach ($rMyCouponResult as $key => $value) {
             // 판매물품 고유정보
             $sellItemIdx = $value['sell_item_idx'];
@@ -104,7 +106,7 @@
             ];
         }
 
-        $myCouponCount = count($myCouponData);
+        $myCouponDataCount = count($myCouponData);
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_coupon_list.html.php';
 	} catch (Exception $e) {

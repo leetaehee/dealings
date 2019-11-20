@@ -74,15 +74,15 @@
 			$uDealingsResult = $db->execute($uDealingsQ, $dealingsStatusP);
 
 			$dealingsResultAffectedRow = $db->affected_rows();
-			if ($dealingsResultAffectedRow < 1) {
+			if ($dealingsResultAffectedRow < 0) {
 				throw new RollbackException('거래 삭제하는 중에 오류가 발생했습니다.');
 			}
 
 			$dealingsIdx = $delData[$i]['idx'];
 
-			$rDeliangUserQ = 'SELECT COUNT(`idx`) cnt FROM `th_dealings_user` WHERE `dealings_idx` = ?';
+			$rDealingsUserQ = 'SELECT COUNT(`idx`) cnt FROM `th_dealings_user` WHERE `dealings_idx` = ?';
 
-			$rDealingsUserResult = $db->execute($rDeliangUserQ, $dealingsIdx);
+			$rDealingsUserResult = $db->execute($rDealingsUserQ, $dealingsIdx);
 			if ($rDealingsUserResult === false) {
 				throw new RollbackException('거래 유저 테이블을 조회 하면서 오류가 발생했습니다.');
 			}
@@ -102,7 +102,7 @@
 				$uDealingsUserResult = $db->execute($uDealingsUserQ, $uDealingsUserP);
 
 				$dealingsUserAffectedRow = $db->affected_rows();
-				if ($dealingsUserAffectedRow < 1) {
+				if ($dealingsUserAffectedRow < 0) {
 					throw new RollbackException('거래 유저 상태를 변경하는 중에 오류가 발생했습니다.');
 				}
 			}

@@ -62,7 +62,7 @@
         $uMemberDeleteResult = $db->execute($uMemberDeleteQ, $idx);
 
         $memberDeleteAffectedRow = $db->affected_rows();
-        if ($memberDeleteAffectedRow < 1) {
+        if ($memberDeleteAffectedRow < 0) {
             throw new RollbackException('회원탈퇴를 하면서 오류가 발생하였습니다.');
         }
 

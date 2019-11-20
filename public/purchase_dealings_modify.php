@@ -13,13 +13,10 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_PURCHASE_MODIFY . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
+
 		$alertMessage = '';
 
 		$actionUrl = DEALINGS_PROCESS_ACCTION . '/dealings_modify.php';
@@ -31,22 +28,41 @@
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$dealingsClass = new DealingsClass($db);
+		// 상품권 리스트
+        $isSell = 'Y';
 
-		$voucherList = $dealingsClass->getVoucherList();
-		if ($voucherList == false) {
-			throw new Exception('상품권 정보를 가져오다가 오류 발생! 관리자에게 문의하세요.');
-		} else {
-			$vourcherListCount = $voucherList->recordCount();
-		}
+        $rSellItemQ = 'SELECT `idx`,
+                              `item_name`,
+                              `commission`
+                       FROM `th_sell_item`
+                       WHERE `is_sell` = ?';
 
-		$dealingsData = $dealingsClass->getDealingsData($dealingsIdx);
-		if ($dealingsData === false) {
-			throw new Exception('회원 구매 거래정보를 가져 올 수 없습니다.');
-		}
+        $rSellItemResult = $db->execute($rSellItemQ, $isSell);
+        if ($rSellItemResult === false) {
+            throw new Exception('상품권 종류를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$itemNo = $dealingsData->fields['item_no'];
-		$itemMoney = $dealingsData->fields['item_money'];
+        $voucherCount = $rSellItemResult->recordCount();
+
+        // 거래정보 조회
+        $rDealingsQ = 'SELECT `dealings_subject`,
+							  `dealings_content`,
+							  `memo`,
+							  `item_no`,
+							  `item_money`
+                       FROM `th_dealings`
+                       WHERE `idx` = ?';
+
+        $rDealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
+        if ($rDealingsResult === false) {
+            throw new Exception('거래 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $dealingsSubject = $rDealingsResult->fields['dealings_subject'];
+        $dealingsContent = $rDealingsResult->fields['dealings_content'];
+        $dealingsMemo = $rDealingsResult->fields['memo'];
+        $itemMoney = $rDealingsResult->fields['item_money'];
+        $itemNo = $rDealingsResult->fields['item_no'];
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/purchase_dealings_modify.html.php';
 	} catch (Exception $e) {

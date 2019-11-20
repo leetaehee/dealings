@@ -68,7 +68,7 @@
         $writerIdx = $rDealingsResult->fields['writer_idx'];
         $dealingsMemo = $rDealingsResult->fields['memo'];
 
-        // 구매자 조회
+        // 구매자 상세정보 조회
         $rPurchaserQ = 'SELECT `id`,
                                `name`
                         FROM `th_members`
@@ -101,7 +101,7 @@
 
         $rDealingsStatusResult = $db->execute($rDealingsStatusQ, $dealingsStatus);
         if ($rDealingsStatusResult === false) {
-            throw new Exception('거래 상태를 조회하면서 오류가 발생했습ㄴ디.');
+            throw new Exception('거래 상태를 조회하면서 오류가 발생했습니다.');
         }
 
         $dealingsStatusName = $rDealingsStatusResult->fields['dealings_status_name'];
@@ -182,7 +182,7 @@
         $couponData = $rAvailableCouponResult;
         $couponDataCount = $couponData->recordCount();
 
-        // 사용한 쿠폰정보 가져오기
+        // 사용한 쿠폰정보 조회
         $rUseCouponP = [
             'dealings_idx'=> $dealingsIdx,
             'member_idx'=> $memberIdx,
@@ -239,13 +239,13 @@
         $_SESSION['dealings_idx'] = $dealingsIdx;
         $_SESSION['dealings_status'] = $dealingsStatus;
 
-        // 구매거래수정
+        // 구매 거래 수정 링크
         $dealingsModifyUrl = SITE_DOMAIN . '/purchase_dealings_modify.php';
-        $dealingsModifyUrl .= '?idx=' . $getData['idx'];
+        $dealingsModifyUrl .= '?idx=' . $dealingsIdx;
 
-        // 거래삭제
+        // 구매 거래 삭제 링크
         $dealingsDeleteUrl = DEALINGS_PROCESS_ACCTION . '/dealings_delete.php';
-        $dealingsDeleteUrl .= '?idx=' . $getData['idx'];
+        $dealingsDeleteUrl .= '?idx=' . $dealingsIdx;
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_purchase_dealings_status.html.php';
 	} catch (Exception $e) {

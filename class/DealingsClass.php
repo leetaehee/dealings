@@ -919,7 +919,7 @@
                 $memberIdx = $param['member_idx'];
             }
 
-			$cDealingsUserInserId = '';
+			$cDealingsUserInsertId = '';
 
 			// 거래 유저 테이블에 데이터 있는지 확인
 			$rUserCountQ = 'SELECT COUNT(`idx`) cnt 
@@ -971,7 +971,7 @@
 			$this->db->execute($uDealingsQ, $uDealingsP);
 
 			$dealingsAffectRow = $this->db->affected_rows();
-			if ($dealingsAffectRow < 1) {
+			if ($dealingsAffectRow < 0) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '거래테이블 상태 수정하면서 오류가 발생하였습니다.'
@@ -1037,7 +1037,7 @@
 				$this->db->execute($uDealingsUserQ, $uDealingsUserP);
 
 				$uDealingsUsersAffectedRow = $this->db->affected_rows();
-				if ($uDealingsUsersAffectedRow < 1) {
+				if ($uDealingsUsersAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '거래 유저를 수정하면서 오류가 발생했습니다.'
@@ -1068,7 +1068,7 @@
 			return [
 				'result'=> true,
 				'resultMessage'=> '',
-				'cDealingsUserInserId'=> $cDealingsUserInserId
+				'cDealingsUserInserId'=> $cDealingsUserInsertId
 			];
 		}
 	}

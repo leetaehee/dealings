@@ -184,10 +184,10 @@
 									`participate_count` = `participate_count` + ?
 								   WHERE `idx` = ?';
 			
-				$uEventHistoryResult = $this->db->execute($uEventHistoryQ, $uHistoryParam);
-				$historyAffectedRow = $this->db->affected_rows();
+				$this->db->execute($uEventHistoryQ, $uHistoryParam);
 
-				if ($historyAffectedRow < 1) {
+				$historyAffectedRow = $this->db->affected_rows();
+				if ($historyAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '이벤트 히스토리 테이블 수정하면서 오류가 발생했습니다.'
@@ -209,10 +209,10 @@
 									`event_type` = ?,
 									`participate_count` = ?';
 
-				$cEventHistoryResult = $this->db->execute($cEventHistoryQ, $cHistoryParam);
-				$inserId = $this->db->insert_id();
+				$this->db->execute($cEventHistoryQ, $cHistoryParam);
 
-				if ($inserId < 1) {
+				$insertId = $this->db->insert_id();
+				if ($insertId < 1) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '이벤트 히스토리 테이블 추가하면서 오류가 발생했습니다.'

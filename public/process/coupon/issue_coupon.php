@@ -115,7 +115,6 @@
 
         $couponInsertId = $db->insert_id();
         if ($couponInsertId < 1) {
-            exit;
             throw new RollbackException('쿠폰을 발행하는 중에 오류가 발생했습니다.');
         }
 

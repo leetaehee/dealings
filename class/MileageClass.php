@@ -1079,7 +1079,7 @@
 				$this->db->execute($uChargeQ, $uChargeP);
 
 				$chargeAffectedRow = $this->db->affected_rows();
-				if ($chargeAffectedRow < 1) {
+				if ($chargeAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '충전금액을 사용 처리 하면서 오류가 발생했습니다.'
@@ -1103,7 +1103,7 @@
 				$this->db->execute($uMileageSumQ, $uMileageSumP);
 	
 				$mileageSumAffectedRow = $this->db->affected_rows();
-				if ($mileageSumAffectedRow < 1) {
+				if ($mileageSumAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '마일리지 유형별 출금금액을 수정하면서 오류가 발생했습니다.'
@@ -1135,7 +1135,7 @@
 				$this->db->execute($uChargeStatusQ);
 				
 				$chargeStatusAffectedRow = $this->db->affected_rows();
-				if ($chargeStatusAffectedRow < 1) {
+				if ($chargeStatusAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '사용 완료 상태를 변경하면서 오류가 발생했습니다.'
@@ -1248,7 +1248,7 @@
 			$this->db->execute($uMbMileageQ, $uMbMileageP);
 
 			$mbMileageAffectedRow = $this->db->affected_rows();
-			if ($mbMileageAffectedRow < 1) {
+			if ($mbMileageAffectedRow < 0) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '회원 마일리지를 수정하면서 오류가 발생했습니다.'
@@ -1367,7 +1367,7 @@
 				$this->db->execute($uMileageQ, $mileageParam);
 
 				$mileageAffectedRow = $this->db->affected_rows();
-				if ($mileageAffectedRow < 1) {
+				if ($mileageAffectedRow < 0) {
 					return [
 						'result'=> false,
 						'resultMessage'=> '회원 마일리지 변동중에 오류가 발생하였습니다.'
@@ -1405,7 +1405,7 @@
 					$this->db->execute($uMileageSumQ, $mileageTypeParam);
 					
 					$mileageSumAffectedRows = $this->db->affected_rows();
-					if ($mileageSumAffectedRows < 1) {
+					if ($mileageSumAffectedRows < 0) {
 						return [
 							'result'=> false,
 							'resultMessage'=> '마일리지 유형별 합계 수정하는데 실패했습니다.' 
@@ -1463,7 +1463,7 @@
 						$this->db->execute($uDealingsChangeQ, $changeData);
 
 						$affected_row = $this->db->affected_rows();
-						if ($affected_row < 1) {
+						if ($affected_row < 0) {
 							return [
 								'result'=> false,
 								'resultMessage'=> '거래마일리지 변동내역 수정 시 오류가 발생했습니다.'

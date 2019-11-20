@@ -21,10 +21,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($withdrawalList as $key => $value): ?>
+		<?php if($myWithdrawalDataCount > 0): ?>
+			<?php foreach($myWithdrawalData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['process_date']?></td>
 					<td><?=$value['charge_infomation']?></td>
 					<td>
@@ -32,7 +32,7 @@
 						(<?=$value['charge_taget_name']?>)
 					</td>
 					<td><?=number_format($value['charge_cost'])?></td>
-					<td><?=$value['mileage_name']?></td>
+					<td><?=$value['mileage_code_name']?></td>
 					<td><?=$value['charge_name']?></td>
 				</tr>
 			<?php endforeach; ?>

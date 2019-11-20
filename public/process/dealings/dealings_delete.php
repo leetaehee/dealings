@@ -86,7 +86,7 @@
 
 		$uDealingsResult = $db->execute($uDealingsQ, $uDeleteDealingsP);
 		$uDealingsAffectedRow = $db->affected_rows();
-		if ($uDealingsAffectedRow < 1) {
+		if ($uDealingsAffectedRow < 0) {
 			throw new RollbackException('거래 글을 삭제하면서 오류가 발생하였습니다.');
 		}
 

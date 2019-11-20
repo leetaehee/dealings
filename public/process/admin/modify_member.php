@@ -108,7 +108,7 @@
         $uAdminResult = $db->execute($uAdminQ, $uAdminP);
 
         $adminAffectedRow = $db->affected_rows();
-        if ($adminAffectedRow < 1) {
+        if ($adminAffectedRow < 0) {
             throw new RollbackException('관리자 정보를 수정하면서 오류가 발생했습니다.');
         }
 

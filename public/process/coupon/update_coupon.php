@@ -121,7 +121,7 @@
         $uCouponMbResult = $db->execute($uCouponMbQ, $uCouponMbP);
 
         $couponMbAffectedRow = $db->affected_rows();
-        if ($couponMbAffectedRow < 1) {
+        if ($couponMbAffectedRow < 0) {
             throw new RollbackException('지급된 쿠폰을 수정하면서 오류가 발생했습니다.');
         }
 

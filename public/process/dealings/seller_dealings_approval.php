@@ -149,7 +149,7 @@
 			$uCouponUseageResult = $db->execute($uBuyerCouponUseageQ, $cpBuyerStParam);
 
 			$uCpBuyerUseAffectRows = $db->affected_rows();
-			if ($uCpBuyerUseAffectRows < 1) {
+			if ($uCpBuyerUseAffectRows < 0) {
 				throw new RollbackException('구매자 쿠폰 완료하는 과정에서 오류가 발생했습니다.');
 			}
 		}
@@ -227,7 +227,7 @@
 			$uCouponUseageResult = $db->execute($uCouponUseageQ, $cpSellerStParam);
 			$uCpUseAffectRows = $db->affected_rows();
 
-			if ($uCpUseAffectRows < 1) {
+			if ($uCpUseAffectRows < 0) {
 				throw new RollbackException('판매자 쿠폰 완료하는 과정에서 오류가 발생했습니다.');
 			}
 		}

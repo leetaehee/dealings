@@ -1149,7 +1149,7 @@
 			$this->db->execute($uCouponMbQ, $couponMbStParam);
 
 			$couponMbAffectedRow = $this->db->affected_rows();
-			if ($couponMbAffectedRow < 1) {
+			if ($couponMbAffectedRow < 0) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰 지급 정보 상태를 변경하는 중에 오류가 발생했습니다.'
@@ -1230,7 +1230,7 @@
 			$this->db->execute($uCouponUseQ, $uCouponUseP);
 
 			$couponUseAffectedRow = $this->db->affected_rows();
-			if ($couponUseAffectedRow < 1) {
+			if ($couponUseAffectedRow < 0) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰 사용내역을 수정하면서 오류가 발생했습니다.'
@@ -1268,7 +1268,7 @@
 			$this->db->execute($uCouponMemberQ, $uCouponMemberP);
 			
 			$uCouponMemberAffectedRow = $this->db->affected_rows();
-			if ($uCouponMemberAffectedRow < 1) {
+			if ($uCouponMemberAffectedRow < 0) {
 				return [
 					'result'=> false,
 					'resultMessage'=> '쿠폰 고객 정보를 수정하면서 오류가 발생했습니다.'

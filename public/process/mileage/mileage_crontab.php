@@ -84,7 +84,7 @@
 			$uChargeMileageResult = $db->execute($uChargesMileageQ, $uChargeMileageP);
 			$chargeMileageAffectedRow = $db->affected_rows();
 
-			if ($chargeMileageAffectedRow < 1) {
+			if ($chargeMileageAffectedRow < 0) {
 				throw new RollbackException('마일리지 상태를 변경하면서 오류가 발생했습니다.');
 			}
 		}
@@ -140,7 +140,7 @@
 			$uMileageResult = $db->execute($uMileageQ, $uMileageP);
 
 			$mileageAffectedRow = $db->affected_rows();
-			if ($mileageAffectedRow < 1) {
+			if ($mileageAffectedRow < 0) {
 				throw new RollbackException('회원의 마일리지를 차감하면서 오류가 발생했습니다');
 			}
 		}
@@ -209,7 +209,7 @@
 				$uTypeSumResult = $db->execute($uTypeSumQ, $uTypeSumP);
 				
 				$uTypeSumAffectedRow = $db->affected_rows();
-				if ($uTypeSumAffectedRow < 1) {
+				if ($uTypeSumAffectedRow < 0) {
 					throw new RollbackException('회원 마일리지 유형 합계를 수정하면서 오류가 발생했습니다.');
 				}
 			}
@@ -231,7 +231,7 @@
 		$uExpirationResult = $db->execute($uExpirationQ, $uExpirationP);
 		$uExpirationAffectedRow = $db->affected_rows();
 
-		if ($uExpirationAffectedRow < 1) {
+		if ($uExpirationAffectedRow < 0) {
 			throw new RollbackException('유효기간 초과에 대해 수정하면서 오류가 발생했습니다.');
 		}
 

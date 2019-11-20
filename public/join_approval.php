@@ -50,10 +50,22 @@
             throw new RollbackException('가입승인일자를 조회하면서 오류가 발생했습니다.');
         }
 
-        // 가입승인 처리
+        // 가입 승인이 되 경우 진행하지 않을 것
         $joinApprovalDate = $rJoinApprovalResult->fields['join_approval_date'];
         if (!empty($joinApprovalDate)) {
             throw new RollbackException('이미 승인 된 회원입니다.');
+        }
+
+        // 가입 승인 처리
+        $uMemberQ = 'UPDATE `th_members` 
+					 SET `join_approval_date` = CURDATE() 
+					 WHERE `idx` = ?';
+
+        $uMemberResult = $db->execute($uMemberQ, $memberIdx);
+
+        $memberAffectedRow = $db->affected_rows();
+        if ($memberAffectedRow < 0) {
+            throw new RollbackException('가입 승인 처리하는 중에 오류가 발생했습니다.');
         }
 
         $db->completeTrans();

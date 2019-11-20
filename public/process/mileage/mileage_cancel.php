@@ -68,7 +68,7 @@
 		$uChargeResult = $db->execute($uChargeQ, $chargeIdx);
 		
 		$chargeAffectedRow = $db->affected_rows();
-		if ($chargeAffectedRow < 1) {
+		if ($chargeAffectedRow < 0) {
 			throw new RollbackException('충전 취소 하면서 오류가 발생했습니다.');
 		}
 
@@ -118,7 +118,7 @@
 		$uMileageResult = $db->execute($uMileageQ, $uMileageP);
 		
 		$mileageAffectedRow = $db->affected_rows();
-		if ($mileageAffectedRow < 1) {
+		if ($mileageAffectedRow < 0) {
 			throw new RollbackException('회원 마일리지를 수정하면서 오류가 발생했습니다.');
 		}
 
@@ -137,7 +137,7 @@
 		$uMileageSumResult = $db->execute($uMileageSumQ, $uMileageSumP);
 		
 		$mileageSumAffectedRow = $db->affected_rows();
-		if ($mileageSumAffectedRow < 1) {
+		if ($mileageSumAffectedRow < 0) {
 			throw new RollbackException('마일리지 유형별 합계 수정하면서 오류가 발생했습니다.');
 		}
 

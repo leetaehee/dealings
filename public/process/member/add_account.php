@@ -59,7 +59,7 @@
         $uMyAccountResult = $db->execute($uMyAccountQ, $uMyAccountP);
 
         $myAccountAffectedRow = $db->affected_rows();
-        if ($myAccountAffectedRow < 1) {
+        if ($myAccountAffectedRow < 0) {
             throw new RollbackException('계좌를 설정하면서 오류가 발생하였습니다.');
         }
 

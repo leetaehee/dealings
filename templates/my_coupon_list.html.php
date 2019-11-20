@@ -31,7 +31,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($myCouponCount > 0): ?>
+		<?php if($myCouponDataCount > 0): ?>
 			<?php foreach($myCouponData as $key => $value): ?>
 				<tr>
 					<td><?=$value['seq']?></td>

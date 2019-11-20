@@ -104,7 +104,7 @@
         $uMemberResult = $db->execute($uMemberQ, $uMemberP);
 
         $memberAffectedRow = $db->affected_rows();
-        if ($memberAffectedRow < 1) {
+        if ($memberAffectedRow < 0) {
             throw new RollbackException('회원정보를 수정하면서 오류가 발생했습니다.');
         }
 

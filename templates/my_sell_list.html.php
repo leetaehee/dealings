@@ -1,6 +1,4 @@
-<p>
-	<h3>[<?=TITLE_VOUCHER_SELL_ENROLL_STATUS?>]</h3>
-</p>
+<p><h3>[<?=TITLE_VOUCHER_SELL_ENROLL_STATUS?>]</h3></p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 6%;">
@@ -23,13 +21,13 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($myPurchaseListCount > 0): ?>
-			<?php foreach($myPurchaseList as $key => $value): ?>
+		<?php if($mySellDataCount > 0): ?>
+			<?php foreach($mySellData as $key => $value): ?>
 				<tr>
 					<td><?=$key+1?></td>
 					<td><?=$value['item_name']?></td>
 					<td>
-						<a href="<?=$DealingsDetailViewHref?>type=<?=$value['dealings_status']?>&idx=<?=$value['idx']?>">
+						<a href="<?=$value['detail_view_url']?>">
 							<?=$value['dealings_subject']?>
 						</a>
 					</td>

@@ -89,7 +89,7 @@
         $uCouponDeleteResult = $db->execute($uCouponDeleteQ, $uCouponDeleteP);
 
         $couponDeleteAffectedRow = $db->affected_rows();
-        if ($couponDeleteAffectedRow < 1) {
+        if ($couponDeleteAffectedRow < 0) {
             throw new RollbackException('쿠폰을 삭제하면서 오류가 발생하였습니다.');
         }
 

@@ -68,7 +68,7 @@
             $uCouponMbDeleteResult = $db->execute($uCouponMbDeleteQ, $uCouponMbDeleteP);
 
             $couponMbAffectedRow = $db->affected_rows();
-            if ($couponMbAffectedRow < 1) {
+            if ($couponMbAffectedRow < 0) {
                 throw new RollbackException('유효기간 만료 쿠폰을 삭제하면서 오류가 발생했습니다.');
             }
         }
@@ -88,7 +88,7 @@
         $db->execute($uCouponDeleteQ, $uCouponDeleteP);
 
         $couponDeleteAffectedRow = $db->affected_rows();
-        if ($couponDeleteAffectedRow < 1) {
+        if ($couponDeleteAffectedRow < 0) {
             throw new RollbackException('유효기간이 만료된 쿠폰을 삭제하면서 오류가 발생했습니다.');
         }
 

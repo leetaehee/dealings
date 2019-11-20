@@ -13,15 +13,9 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_SELL_ENROLL_STATUS . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN.'/mypage.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_DOMAIN . '/mypage.php';
 		$alertMessage = '';
 
 		$actionUrl = DEALINGS_PROCESS_ACCTION . '/myChangeCancelStatus.php';
@@ -38,73 +32,199 @@
 		$_GET['type'] = htmlspecialchars($_GET['type']);
 		$getData = $_GET;
 
-		// 디비에서 거래상태받아오기, 거래타입과 키값 보내기
-		$dealingsClass = new DealingsClass($db);
-		$couponClass = new CouponClass($db);
-		$memberClass = new MemberClass($db);
+		$dealingsIdx = $getData['idx'];
+		$memberIdx = $_SESSION['idx'];
 
-		$dealingsData = $dealingsClass->getDealingsData($getData['idx']);
-		if ($dealingsData === false) {
-			throw new Exception('회원 판매 거래정보 가져오는데 오류가 발생했습니다.');
-		}
-		$commission = $dealingsData->fields['dealings_commission'];
-		$dealingsMemberIdx = $dealingsData->fields['dealings_member_idx'];
+        // 거래 정보 조회
+        $rDealingsQ = 'SELECT `register_date`,
+                              `expiration_date`,
+                              `dealings_subject`,
+                              `dealings_content`,
+                              `item_money`,
+                              `item_no`,
+                              `item_object_no`,
+                              `dealings_mileage`,
+                              `dealings_commission`,
+                              `dealings_status`,
+                              `writer_idx`,
+                              `memo`
+                       FROM `th_dealings`
+                       WHERE `idx` = ?';
 
-		$_SESSION['dealings_writer_idx'] = $dealingsData->fields['writer_idx'];
-		$_SESSION['dealings_idx'] = $getData['idx'];
-		$_SESSION['dealings_status'] = $getData['type'];
+        $rDealingsResult = $db->execute($rDealingsQ, $dealingsIdx);
+        if ($rDealingsResult === false) {
+            throw new Exception('거래 정보를 조회하면서 오류가 발생했습니다.');
+        }
 
-		// 사용한 쿠폰정보 가져오기
-		$useCouponParam = [
-			'dealings_idx'=> $getData['idx'],
-			'member_idx'=> $_SESSION['idx'],
-			'issue_type'=> '판매',
-			'is_refund'=> 'N'
-		];
+        $registerDate = $rDealingsResult->fields['register_date'];
+        $expirationDate = $rDealingsResult->fields['expiration_date'];
+        $dealingsSubject = $rDealingsResult->fields['dealings_subject'];
+        $dealingsContent = $rDealingsResult->fields['dealings_content'];
+        $itemMoney = $rDealingsResult->fields['item_money'];
+        $itemNo = $rDealingsResult->fields['item_no'];
+        $itemObjectNo = $rDealingsResult->fields['item_object_no'];
+        $dealingsMileage = $rDealingsResult->fields['dealings_mileage'];
+        $dealingsCommission = $rDealingsResult->fields['dealings_commission'];
+        $dealingsStatus = $rDealingsResult->fields['dealings_status'];
+        $writerIdx = $rDealingsResult->fields['writer_idx'];
+        $dealingsMemo = $rDealingsResult->fields['memo'];
 
-		$useCouponData = $couponClass->getUseCouponData($useCouponParam);
-		if ($useCouponData === false) {
-			throw new Exception('쿠폰 사용 내역을 가져오면서 오류가 발생했습니다.');
-		}
-		$couponIdx = $useCouponData->fields['idx'];
-		$couponUseBeforeMileage = $useCouponData->fields['coupon_use_before_mileage'];
-		$couponUseMileage = $useCouponData->fields['coupon_use_mileage'];
-		$discountRate = $useCouponData->fields['discount_rate'];
+        // 판매자 상세정보 조회
+        $rSellerQ = 'SELECT `id`,
+                           `name`
+                    FROM `th_members`
+                    WHERE `idx` = ?';
 
-		$finalPaymentSum = $finalRealPaymentSum = $dealingsData->fields['dealings_mileage']; // 거래잔액
-		
-		$dealingsCommission = $dealingsData->fields['dealings_commission']; // 거래수수료
-		if ($dealingsCommission < 0) {
-			throw new Exception('수수료가 입력되어있지 않습니다.'); 
-		}
-		$dealingsCommission = ceil(($finalPaymentSum*$dealingsCommission)/100);
+        $rSellerResult = $db->execute($rSellerQ, $writerIdx);
+        if ($rSellerResult === false) {
+            throw new Exception('판매자를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$finalPaymentSum -= $dealingsCommission;
-		$discountMoney =  $useCouponData->fields['coupon_use_before_mileage'];
+        $sellerId = $rSellerResult->fields['id'];
+        $sellerName = $rSellerResult->fields['name'];
 
-		if (!empty($couponIdx) && $discountRate < 100) {
-			$finalRealPaymentSum -= $couponUseMileage;
-			$discountMoney =  $useCouponData->fields['coupon_use_mileage'];
-		}
+        // 판매 물품명 조회
+        $rSellItemQ = 'SELECT `item_name`
+                       FROM `th_sell_item`
+                       WHERE `idx` = ?';
 
-		// 구매자 정보 갖고오기
-		$purchaserData = $memberClass->getMyInfomation($dealingsMemberIdx);
-		if ($purchaserData === false) {
-			throw new Exception('구매자 정보를 가져 올 수 없습니다');
-		} else {
-			$purchaserDataCount = $purchaserData->recordCount();
-		}
+        $rSellItemResult = $db->execute($rSellItemQ, $itemNo);
+        if ($rSellItemResult === false) {
+            throw Exception('판매 물품 이름을 조회하면서 오류가 발생했습니다.');
+        }
 
-		// 거래상태 변경
-		$DealingsStatusChangehref = $actionUrl . '?mode=change_status&dealings_idx ='.$getData['idx'];
+        $itemName = $rSellItemResult->fields['item_name'];
 
-		$dealingsModifyUrl = SITE_DOMAIN . '/sell_dealings_modify.php?idx=' . $getData['idx']; // 판매거래수정 
-		$dealingsDeleteUrl = DEALINGS_PROCESS_ACCTION . '/dealings_delete.php?idx=' . $getData['idx']; // 거래삭제
+        // 거래 상태 조회
+        $rDealingsStatusQ = 'SELECT `dealings_status_name`
+                             FROM `th_dealings_status_code`
+                             WHERE `idx` = ?';
 
-		$dealingsCompleteParam = '?idx=' . $getData['idx'] . '&target=writer_idx'; // 파라미터
+        $rDealingsStatusResult = $db->execute($rDealingsStatusQ, $dealingsStatus);
+        if ($rDealingsStatusResult === false) {
+            throw new Exception('거래 상태를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$dealingsApproval = DEALINGS_PROCESS_ACCTION . '/seller_dealings_approval.php' . $dealingsCompleteParam; // 거래승인
-		$dealingsCancel = DEALINGS_PROCESS_ACCTION . '/seller_dealings_cancel.php' . $dealingsCompleteParam; // 거래취소
+        $dealingsStatusName = $rDealingsStatusResult->fields['dealings_status_name'];
+
+        // 거래 유저 조회 (구매자)
+        $rDealingsUserQ = 'SELECT `dealings_member_idx`
+                           FROM `th_dealings_user`
+                           WHERE `dealings_idx` = ?';
+
+        $rDealingsUserResult = $db->execute($rDealingsUserQ, $dealingsIdx);
+        if ($rDealingsUserResult === false) {
+            throw new Exception('구매자 키를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $purchaserIdx = $rDealingsUserResult->fields['dealings_member_idx'];
+
+        // 구매자 정보 조회
+        $rPurchaserQ = 'SELECT `idx`,
+                               `id`,
+                               `name`,
+                               `email`,
+                               `phone`
+                         FROM `th_members`
+                         WHERE `idx` = ?';
+
+        $rPurchaserResult = $db->execute($rPurchaserQ, $purchaserIdx);
+        if ($rPurchaserResult === false) {
+            throw new Exception('구매자 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $purchaserIdx = $rPurchaserResult->fields['idx'];
+        $purchaserId = $rPurchaserResult->fields['id'];
+        $purchaserName = $rPurchaserResult->fields['name'];
+        $purchaserEmail = $rPurchaserResult->fields['email'];
+        $purchaserPhone = $rPurchaserResult->fields['phone'];
+
+        // 사용한 쿠폰정보 조회
+        $rUseCouponP = [
+            'dealings_idx'=> $dealingsIdx,
+            'member_idx'=> $_SESSION['idx'],
+            'issue_type'=> '판매',
+            'is_refund'=> 'N'
+        ];
+
+        $rUseCouponQ = 'SELECT `coupon_idx`,
+                               `coupon_use_before_mileage`,
+							   `coupon_use_mileage`
+					    FROM `th_coupon_useage`
+					    WHERE `dealings_idx` = ?
+					    AND `member_idx` = ?
+					    AND `issue_type` = ?
+					    AND `is_refund` = ?';
+
+        $rUseCouponResult = $db->execute($rUseCouponQ, $rUseCouponP);
+        if ($rUseCouponResult === false) {
+            throw new Exception('사용한 쿠폰내역을 조회하면서 오류가 발생했습니다.');
+        }
+
+        $useCouponIdx = $rUseCouponResult->fields['coupon_idx'];
+        $useCpBeforeMileage = $rUseCouponResult->fields['coupon_use_before_mileage'];
+        $useCpUsedMileage = $rUseCouponResult->fields['coupon_use_mileage'];
+
+        // 사용된 쿠폰 정보를 조회
+        $rUseCouponInfoQ = 'SELECT `subject`,
+                                   `item_money`,
+                                   `discount_rate`
+                            FROM `th_coupon`
+                            WHERE `idx` = ?';
+
+        $rUseCouponInfoResult = $db->execute($rUseCouponInfoQ, $useCouponIdx);
+        if ($rUseCouponInfoResult == false) {
+            throw new Exception('사용된 쿠폰의 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $useCpSubject = $rUseCouponInfoResult->fields['subject'];
+        $useCpItemMoney = $rUseCouponInfoResult->fields['item_money'];
+        $useCpDiscountRate = $rUseCouponInfoResult->fields['discount_rate'];
+
+        if ($useCpItemMoney == 0) {
+            // 100% 할인 받았을 때
+            $useCpDiscountMoney = ($dealingsMileage * $useCpDiscountRate)/100;
+        } else {
+            $useCpDiscountMoney = ($useCpItemMoney * $useCpDiscountRate)/100;
+        }
+
+        // 수수료 계산
+        $finalPaymentSum = $finalRealPaymentSum = $dealingsMileage;
+
+        if ($dealingsCommission < 1) {
+            throw new Exception('수수료가 입력되지 않았습니다');
+        }
+
+        // 수수료 차감
+        $commission = ceil(($finalPaymentSum*$dealingsCommission)/100);
+        $finalPaymentSum -= $commission;
+
+        if (!empty($couponIdx) && $discountRate < 100) {
+            $finalRealPaymentSum -= $useCpBeforeMileage;
+            $discountMoney =  $useCpUsedMileage;
+        }
+
+        // 판매 거래 수정 링크
+        $dealingsModifyUrl = SITE_DOMAIN . '/sell_dealings_modify.php';
+        $dealingsModifyUrl .= '?idx=' . $dealingsIdx;
+
+        // 판매 거래 삭제 링크
+        $dealingsDeleteUrl = DEALINGS_PROCESS_ACCTION . '/dealings_delete.php';
+        $dealingsDeleteUrl .= '?idx=' . $dealingsIdx;
+
+        // 거래승인, 취소 기능
+        $dealingsApproval = $dealingsCancel = DEALINGS_PROCESS_ACCTION;
+        $paramUrl = '?idx=' . $dealingsIdx . '&target=writer_idx';
+
+        // 거래승인
+        $dealingsApproval ='/seller_dealings_approval.php' . $paramUrl;
+        // 거래취소
+        $dealingsCancel = '/seller_dealings_cancel.php' . $paramUrl;
+
+        // 세션등록
+        $_SESSION['dealings_writer_idx'] = $writerIdx;
+        $_SESSION['dealings_idx'] = $dealingsIdx;
+        $_SESSION['dealings_status'] = $dealingsStatus;
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/my_sell_dealings_status.html.php';
 	} catch (Exception $e) {
