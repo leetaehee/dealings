@@ -21,13 +21,13 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($dealingsListCount > 0): ?>
-			<?php foreach($dealingsList as $key => $value): ?>
+		<?php if($sellDataCount > 0): ?>
+			<?php foreach($sellData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['item_name']?></td>
 					<td>
-						<a href="<?=$DealingsDetailViewHref?>&idx=<?=$value['idx']?>">
+						<a href="<?=$value['detail_view_url']?>">
 							<?=$value['dealings_subject']?>
 						</a>
 					</td>

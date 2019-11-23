@@ -26,30 +26,30 @@
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-        $rSellListP = [
+        $rSellUserListP = [
             'dealings_type'=> $dealingsType,
             'dealings_status'=> 1,
             'dealings_member_idx'=> $memberIdx
         ];
 
-		$rSellListQ = 'SELECT `dealings_idx`,
-							  `dealings_status`,
-							  `dealings_date`,
-							  `dealings_member_idx`
-					   FROM `th_dealings_user`
-					   WHERE `dealings_type` = ?
-					   AND `dealings_status` <> ?
-					   AND `dealings_member_idx` = ?
-					   ORDER BY `dealings_date` DESC, `dealings_status` ASC';
+		$rSellUserListQ = 'SELECT `dealings_idx`,
+                                  `dealings_status`,
+                                  `dealings_date`,
+                                  `dealings_member_idx`
+                           FROM `th_dealings_user`
+                           WHERE `dealings_type` = ?
+                           AND `dealings_status` <> ?
+                           AND `dealings_member_idx` = ?
+                           ORDER BY `dealings_date` DESC, `dealings_status` ASC';
 
-        $rSellListResult = $db->execute($rSellListQ, $rSellListP);
-        if ($rSellListResult === false) {
+        $rSellUserListResult = $db->execute($rSellUserListQ, $rSellUserListP);
+        if ($rSellUserListResult === false) {
             throw new Exception('판매 내역을 조회하면서 오류가 발생했습니다.');
         }
 
         $mySellData = [];
 
-        foreach ($rSellListResult as $key => $value) {
+        foreach ($rSellUserListResult as $key => $value) {
             // 판매상세글 화면으로 이동
             $dealingsDetailViewHref = SITE_DOMAIN . '/dealings_purchase_status_view.php';
 
@@ -72,26 +72,25 @@
             $sellerId = $rSellerResult->fields['id'];
             $sellerName = $rSellerResult->fields['name'];
 
-            $rSellListQ = 'SELECT `dealings_subject`,
+            // 거래 정보 조회
+            $rSellDataQ = 'SELECT `dealings_subject`,
                                   `item_money`,
                                   `item_no`,
-                                  `item_object_no`,
                                   `dealings_mileage`,
                                   `writer_idx`
                            FROM `th_dealings`
                            WHERE `idx` = ?';
 
-            $rSellListResult = $db->execute($rSellListQ, $dealingsIdx);
-            if ($rSellListResult === false) {
+            $rSellDataResult = $db->execute($rSellDataQ, $dealingsIdx);
+            if ($rSellDataResult === false) {
                 throw new Exception('거래 정보를 조회하면서 오류가 발생했습니다.');
             }
 
-            $dealingsSubject = $rSellListResult->fields['dealings_subject'];
-            $itemMoney = $rSellListResult->fields['item_money'];
-            $itemNo =  $rSellListResult->fields['item_no'];
-            $itemObjectNo = $rSellListResult->fields['item_object_no'];
-            $dealingsMileage = $rSellListResult->fields['dealings_mileage'];
-            $writerIdx = $rSellListResult->fields['writer_idx'];
+            $dealingsSubject = $rSellDataResult->fields['dealings_subject'];
+            $itemMoney = $rSellDataResult->fields['item_money'];
+            $itemNo =  $rSellDataResult->fields['item_no'];
+            $dealingsMileage = $rSellDataResult->fields['dealings_mileage'];
+            $writerIdx = $rSellDataResult->fields['writer_idx'];
 
             // 판매 물품명 조회
             $rSellItemQ = 'SELECT `item_name`
@@ -131,7 +130,6 @@
             $purchaserId = $rSellerResult->fields['id'];
             $purchaserName = $rSellerResult->fields['name'];
 
-
             // 판매 상세 화면으로 이동하기 위한 파라미터
             $dealingsDetailViewHref .= '?type=' . $dealingsStatus . '&idx=' . $dealingsIdx;
 
@@ -142,7 +140,6 @@
                 'dealings_subject'=> $dealingsSubject,
                 'item_money'=> $itemMoney,
                 'item_no'=> $itemNo,
-                'item_object_no'=> $itemObjectNo,
                 'dealings_mileage'=> $dealingsMileage,
                 'dealings_status'=> $dealingsStatus,
                 'dealings_date'=> $dealingsDate,

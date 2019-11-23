@@ -10,14 +10,15 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_check.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VIRTUAL_MILEGE_CHARGE . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_DOMAIN;
+
 		$alertMessage = '';
 
 		$actionUrl = MILEAGE_PROCESS_ACTION . '/virtual_account_charge.php';
 		$ajaxUrl = VIRTUAL_ACCOUNT_PROCESS_ACTION . '/virtual_account_ajax.php';
 		$JsTemplateUrl = JS_URL . '/virtual_account.js';
+
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/virtual_account_charge.html.php';
 	} catch (Exception $e) {
 		$alertMessage = $e->getMessage();

@@ -12,52 +12,59 @@
 	// adodb
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
-	
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MileageClass.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VIRTUAL_MILEGE_WITHDRAWAL . ' | ' . TITLE_SITE_NAME;
 		$returnUrl = SITE_DOMAIN; // 리턴되는 화면 URL 초기화
 		$alertMessage = '';
 
-		$actionUrl = MILEAGE_PROCESS_ACTION . '/virtual_account_withdrawal.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/virtual_account_withdrawal.js'; 
+		$actionUrl = MILEAGE_PROCESS_ACTION . '/virtual_account_withdrawal.php';
+		$JsTemplateUrl = JS_URL . '/virtual_account_withdrawal.js';
 
-		$idx = $_SESSION['idx'];
-		$mileageType = 5;
-		
-		if ($connection === false) {
+        if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$memberClass = new MemberClass($db);
-		$mileageClass = new MileageClass($db);
+		$memberIdx = $_SESSION['idx'];
+		$mileageType = 5;
 
-		$accountData = $memberClass->getAccountByMember($idx);
-		if ($accountData === false) {
-			throw new Exception('회원 계좌정보 가져오는데 오류 발생! 관리자에게 문의하세요!');
-		}
+		// 출금계좌 조회
+        $rMyAccountQ = 'SELECT `account_no`,
+							   `account_bank`
+					    FROM `th_members`
+					    WHERE `idx` = ?';
 
-		if ($accountData->fields['account_no']==null) {
-			$returnUrl = $returnUrl.'/mypage.php';
-			throw new Exception('출금계좌가 설정되어있지않습니다. 마이룸 > 내정보조회 > 출금계좌설정에서 설정하세요!');
-		}
+        $rMyAccountResult = $db->execute($rMyAccountQ, $memberIdx);
+        if ($rMyAccountResult === false) {
+            throw new RollbackException('계좌정보를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$accountNo = $accountData->fields['account_no'];
-		$accountBank = $accountData->fields['account_bank'];
+        $accountNo = setDecrypt($rMyAccountResult->fields['account_no']);
+        $accountBank = $rMyAccountResult->fields['account_bank'];
 
-		$mileageTypeParam = [
-			'mileageType'=>$mileageType,
-			'idx'=>$idx
-		];
+        if (empty($accountNo)) {
+            $returnUrl = $returnUrl . '/mypage.php';
+            throw new Exception('마이룸 > 내정보조회 > 출금계좌설정에서 설정하세요!');
+        }
 
-		$maxMileage = $mileageClass->getAvailableMileage($mileageTypeParam);
-		if ($maxMileage < 0) {
-			throw new Exception('마일리지 조회 오류! 관리자에게 문의하세요.');
-		}
+        // 출금마일리지 타입 조회
+        $mileageTypeName = $CONFIG_MILEAGE_TYPE_COLUMN[$mileageType];
+
+        // 사용가능한 마일리지 조회
+        $rMileageTypeQ = "SELECT `{$mileageTypeName}`
+					      FROM `th_mileage_type_sum`
+					      WHERE `member_idx` = ?";
+
+        $rMileageTypeResult = $db->execute($rMileageTypeQ, $memberIdx);
+        if ($rMileageTypeResult === false) {
+            throw new Exception('마일리지를 조회하면서 오류가 발생했습니다.');
+        }
+
+        // 보유마일리지가 있는지 확인
+        $maxMileage = $rMileageTypeResult->fields[$mileageTypeName];
+        if ($maxMileage < 0) {
+            throw new Exception('마일리지 조회 오류! 관리자에게 문의하세요.');
+        }
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/virtual_account_mileage_withdrawal.html.php';
 	} catch (Exception $e) {

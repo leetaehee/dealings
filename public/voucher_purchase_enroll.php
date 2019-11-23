@@ -13,17 +13,14 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_PURCHASE_ENROLL . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php';
 		$alertMessage = '';
 
-		$actionUrl = DEALINGS_PROCESS_ACCTION . '/enroll.php'; // form action url
-		$JsTemplateUrl = JS_URL . '/voucher_purchase_enroll.js'; 
+		$actionUrl = DEALINGS_PROCESS_ACCTION . '/enroll.php';
+		$JsTemplateUrl = JS_URL . '/voucher_purchase_enroll.js';
+
 		$dealingsState = '거래대기';
 		$dealingsType = '구매';
 
@@ -31,14 +28,23 @@
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$dealingsClass = new DealingsClass($db);
+		// 판매물품 조회
+        $rSellItemP = [
+            'is_sell'=> 'Y'
+        ];
 
-		$voucherList = $dealingsClass->getVoucherList();
-		if ($voucherList == false) {
-			throw new Exception('상품권 정보를 가져오다가 오류 발생! 관리자에게 문의하세요.');
-		} else {
-			$vourcherListCount = $voucherList->recordCount();
-		}
+        $rSellItemQ = 'SELECT `idx`,
+                              `item_name`,
+                              `commission` 
+					   FROM `th_sell_item` 
+					   WHERE `is_sell` = ?';
+
+        $rSellItemResult = $db->execute($rSellItemQ, $rSellItemP);
+        if ($rSellItemResult === false) {
+            throw new Exception('판매물품을 조회하면서 오류가 발생했습니다.');
+        }
+
+        $rSellItemResultCount = $rSellItemResult->recordCount();
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/voucher_purchase_enroll.html.php';
 	} catch (Exception $e) {
@@ -52,4 +58,4 @@
 			alertMsg($returnUrl,1,$alertMessage);
 		}
 	} 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php'; // 전체 레이아웃
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/layout_voucher.html.php';

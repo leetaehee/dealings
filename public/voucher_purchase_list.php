@@ -13,38 +13,84 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/DealingsClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_VOUCHER_PURCHASE_LIST . ' | ' . TITLE_SITE_NAME;
-		$returnUrl = SITE_DOMAIN.'/voucher_dealings.php'; // 리턴되는 화면 URL 초기화
-		$alertMessage = '';
+		$returnUrl = SITE_DOMAIN . '/voucher_dealings.php';
 
-		$dealingsState = 1;
-		$dealingsType = '구매';
+		$alertMessage = '';
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$dealingsClass = new DealingsClass($db);
+        // 거래정보 조회
+        $rDealingsP = [
+            'dealingsType'=> '구매',
+            'dealingsState'=> 1,
+            'is_del'=> 'N'
+        ];
 
-		$param = [
-			'dealingsType'=> $dealingsType,
-			'dealingsState'=> $dealingsState,
-			'is_del'=> 'N'
-		];
-		$dealingsList = $dealingsClass->getDealingsList($param);
-		if ($dealingsList === false) {
-			throw new Exception('거래 데이터 가져오는 중에 오류 발생! 관리자에게 문의하세요.');
-		} else {
-			$dealingsListCount = $dealingsList->recordCount();
-		}
+        $rDealingsQ = 'SELECT `idx`,
+                              `register_date`,
+                              `dealings_subject`,
+                              `dealings_status`,
+                              `item_no`,
+                              `item_money`,
+                              `dealings_mileage`
+                       FROM `th_dealings`
+                       WHERE `dealings_type` = ?
+                       AND `dealings_status` = ?
+                       AND `is_del` = ?
+                       ORDER BY `idx` DESC';
 
-		// 거래상세화면 이동
-		$DealingsDetailViewHref = SITE_DOMAIN . '/dealings_purchase_detail_view.php?type=' . $dealingsState;
+        $rDealingsResult = $db->execute($rDealingsQ, $rDealingsP);
+        if ($rDealingsResult === false) {
+            throw new Exception('거래 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $purChaseData = [];
+
+        foreach ($rDealingsResult as $key => $value) {
+            // 구매상세글 화면으로 이동
+            $dealingsDetailViewHref = SITE_DOMAIN . '/dealings_purchase_detail_view.php';
+
+            $dealingsIdx = $value['idx'];
+            $registerDate = $value['register_date'];
+            $dealingsSubject = $value['dealings_subject'];
+            $itemNo = $value['item_no'];
+            $itemMoney = $value['item_money'];
+            $dealingsMileage = $value['dealings_mileage'];
+            $dealingsStatus = $value['dealings_status'];
+
+            // 구매물품 조회
+            $rSellItemQ = 'SELECT `item_name`
+                           FROM `th_sell_item`
+                           WHERE `idx` = ?';
+
+            $rSellItemResult = $db->execute($rSellItemQ, $itemNo);
+            if ($rSellItemResult === false) {
+                throw new Exception('거래 물품명을 조회하면서 오류가 발생했습니다.');
+            }
+
+            $itemName = $rSellItemResult->fields['item_name'];
+
+            // 구매 상세 화면으로 이동하기 위한 파라미터
+            $dealingsDetailViewHref .= '?idx=' .$dealingsIdx. '&type=' . $dealingsStatus;
+
+            $purChaseData[] = [
+                'seq'=> $key+1,
+                'dealings_idx'=> $dealingsIdx,
+                'register_date'=> $registerDate,
+                'dealings_subject'=> $dealingsSubject,
+                'item_no'=> $itemNo,
+                'item_name'=> $itemName,
+                'item_money'=> $itemMoney,
+                'dealings_mileage'=> $dealingsMileage,
+                'detail_view_url'=> $dealingsDetailViewHref
+            ];
+        }
+
+        $purChaseDataCount = count($purChaseData);
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/voucher_purchase_list.html.php';
 	} catch (Exception $e) {

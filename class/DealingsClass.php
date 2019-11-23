@@ -73,21 +73,21 @@
 		public function getVoucherList($isUseForUpdate = false)
 		{
 			$param = [
-				'is_sell'=> 'Y'
-			];
+                'is_sell'=> 'Y'
+            ];
 
-			$query = 'SELECT `idx`, `item_name`, `commission` 
+            $query = 'SELECT `idx`, `item_name`, `commission` 
 					  FROM `th_sell_item` 
 					  WHERE `is_sell` = ?';
-			
-			if ($isUseForUpdate === true) {
-				$query .= ' FOR UPDATE';
-			}
-			
-			$result = $this->db->execute($query, $param);
-			if ($result === false) {
-				return false;
-			}
+
+            if ($isUseForUpdate === true) {
+                $query .= ' FOR UPDATE';
+            }
+
+            $result = $this->db->execute($query, $param);
+            if ($result === false) {
+                return false;
+            }
 
 			return $result;
 		}
@@ -1061,7 +1061,7 @@
 			if ($dealingsInsertId < 1) {
 				return [
 					'result'=> false,
-					'resultMessage'=> '거래 프로세스 테이블 추가 하면서 오류가 발생했습니다.'
+					'resultMessage'=> '거래 프로세스 추가 하면서 오류가 발생했습니다.'
 				];
 			}
 
