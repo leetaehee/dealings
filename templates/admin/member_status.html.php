@@ -23,17 +23,17 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($memberList as $key => $value): ?>
+		<?php if($memberDataCount > 0): ?>
+			<?php foreach($memberData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
-					<td><?=setDecrypt($value['name'])?></td>
+					<td><?=$value['seq']?></td>
+					<td><?=$value['name']?></td>
 					<td><?=$value['id']?></td>
-					<td><?=setDecrypt($value['email'])?></td>
-					<td><?=setDecrypt($value['phone'])?></td>
-					<td><?=$value['sex_name']?></td>
+					<td><?=$value['email']?></td>
+					<td><?=$value['phone']?></td>
+					<td><?=$value['sex']?></td>
 					<td><?=$value['join_approval_date']?></td>
-					<td><?=number_format($value['mileage'])?></td>
+					<td><?=$value['mileage']?></td>
 				</tr>
 			<?php endforeach; ?>
 		<?php else: ?>

@@ -1,6 +1,4 @@
-<p>
-	<h3>[<?=TITLE_COUPON_ISSUE_MEMBER?>]</h3>
-</p>
+<p><h3>[<?=TITLE_COUPON_ISSUE_MEMBER?>]</h3></p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 7%;">
@@ -25,22 +23,22 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($memberList as $key => $value): ?>
+		<?php if($memberDataCount > 0): ?>
+			<?php foreach($memberData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
-					<td><?=setDecrypt($value['name'])?></td>
+					<td><?=$value['seq']?></td>
+					<td><?=$value['name']?></td>
 					<td><?=$value['id']?></td>
-					<td><?=setDecrypt($value['email'])?></td>
-					<td><?=setDecrypt($value['phone'])?></td>
-					<td><?=$value['sex_name']?></td>
+					<td><?=$value['email']?></td>
+					<td><?=$value['phone']?></td>
+					<td><?=$value['sex']?></td>
 					<td>
-						<a href="<?=$couponProvideStatusURL?>?idx=<?=$value['idx']?>">
+						<a href="<?=$value['coupon_provide_status_url']?>">
 							관리하기
 						</a>
 					</td>
 					<td>
-						<a href="<?=$couponProvideURL?>?idx=<?=$value['idx']?>">
+						<a href="<?=$value['coupon_provide_url']?>">
 							지급하기
 						</a>
 					</td>

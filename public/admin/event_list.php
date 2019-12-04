@@ -10,9 +10,9 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_EVENT_STATUS . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_event.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_ADMIN_DOMAIN . '/admin_event.php';
+
 		$alertMessage = '';
 
 		// 현재 진행중인 이벤트

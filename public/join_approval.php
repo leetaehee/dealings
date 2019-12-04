@@ -69,6 +69,8 @@
         }
 
         $db->completeTrans();
+
+        $templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/join_approval.html.php';
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때
 		$alertMessage = $e->getMessage();

@@ -1,6 +1,4 @@
-<p>
-	<h3>[<?=TITLE_EVENT_STATUS?>]</h3>
-</p>
+<p><h3>[<?=TITLE_EVENT_STATUS?>]</h3></p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 7%;">

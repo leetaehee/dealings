@@ -31,10 +31,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($couponListCount > 0): ?>
-			<?php foreach($couponList as $key => $value): ?>
+		<?php if($issueCouponDataCount > 0): ?>
+			<?php foreach($issueCouponData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['issue_type']?></td>
 					<td><?=$value['subject']?></td>
 					<td><?=$value['item_name']?></td>
@@ -42,7 +42,7 @@
 					<td><?=$value['discount_rate']?>%</td>
 					<td><?=$value['discount_mileage']?>원</td>
 					<td>
-						<a href="<?=$couponAddURL?>?member_idx=<?=$memberIdx?>&coupon_idx=<?=$value['idx']?>">
+						<a href="<?=$value['coupon_add_url']?>">
 							[지급]
 						</a>
 					</td>

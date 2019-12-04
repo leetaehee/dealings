@@ -125,7 +125,7 @@
             throw new RollbackException('지급된 쿠폰을 수정하면서 오류가 발생했습니다.');
         }
 
-		$returnUrl = SITE_ADMIN_DOMAIN . '/courpon_provider_status.php?idx=' . $getData['idx'];
+		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon_provider_status.php?idx=' . $getData['idx'];
 		
 		$alertMessage = '지급 된 쿠폰정보가 수정되었습니다.';
 

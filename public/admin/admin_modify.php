@@ -12,42 +12,57 @@
 	// adodb
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
-	
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/AdminClass.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_ADMIN_MODIFY_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php'; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN.'/admin_page.php';
 		$alertMessage = '';
 
-		$actionUrl = ADMIN_PROCESS_ACTION . '/modify_member.php'; // form action url
-		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
+		$actionUrl = ADMIN_PROCESS_ACTION . '/modify_member.php';
+		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php';
 		$JsTemplateUrl = JS_ADMIN_URL . '/join.js'; 
 
-		$adminClass = new AdminClass($db);
-		$idx = $_SESSION['mIdx'];
+		$adminIdx = $_SESSION['mIdx'];
 
-		$adminData = $adminClass->getAdminData($idx);
-		if ($adminData === false) {
-			throw new Exception('회원정보를 찾을 수 없습니다. 관리자에게 문의하세요.');
-		}
+		// 관리자 정보 조회
+		$rAdminP = [
+		  'sex_condition'=> 'M',
+          'sex_then'=> '남성',
+          'sex_else'=> '여성',
+          'admin_idx'=> $adminIdx
+        ];
 
-		$adminId = $adminData->fields['id'];
-		$adminName = setDecrypt($adminData->fields['name']);
-		$adminEmail = setDecrypt($adminData->fields['email']);
-		$adminPhone = setDecrypt($adminData->fields['phone']);
-		$adminBirth = setDecrypt($adminData->fields['birth']);
-		$adminSex = $adminData->fields['sex'];
+        $rAdminQ = 'SELECT `idx`,
+                            `id`,
+                            `name`,
+                            `email`,
+                            `phone`,
+                            CASE WHEN `sex` = ? then "?" else "?" end sex_name,
+                            `sex`,
+                            `birth`
+                    FROM `th_admin` 
+                    WHERE `idx` = ?';
 
-		$adminSexMChecked = 'checked';
-		$adminSexWChecked = '';
-		if ($adminSex === 'M') {
-			$adminSexMChecked = 'checked';
-		} else {
-			$adminSexWChecked = 'checked';
-		}
+        $rAdminResult = $db->execute($rAdminQ, $rAdminP);
+        if ($rAdminResult === false) {
+            throw new Exception('관리자 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $adminId = $rAdminResult->fields['id'];
+        $adminName = setDecrypt($rAdminResult->fields['name']);
+        $adminEmail = setDecrypt($rAdminResult->fields['email']);
+        $adminPhone = setDecrypt($rAdminResult->fields['phone']);
+        $adminBirth = setDecrypt($rAdminResult->fields['birth']);
+
+        $adminSex = $rAdminResult->fields['sex'];
+        $adminSexMChecked = 'checked';
+        $adminSexWChecked = '';
+
+        if ($adminSex === 'M') {
+            $adminSexMChecked = 'checked';
+        } else {
+            $adminSexWChecked = 'checked';
+        }
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/join.html.php';
 	} catch (Exception $e) {

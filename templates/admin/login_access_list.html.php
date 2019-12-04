@@ -16,11 +16,11 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($adminLoginAccessList as $key => $value): ?>
+		<?php if($loginAccessDataCount > 0): ?>
+			<?php foreach($loginAccessData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
-					<td><?=setDecrypt($value['access_ip'])?></td>
+					<td><?=$value['seq']?></td>
+					<td><?=$value['access_ip']?></td>
 					<td><?=$value['access_date']?></td>
 					<td><?=$value['access_datetime']?></td>
 				</tr>

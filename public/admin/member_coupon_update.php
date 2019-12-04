@@ -12,23 +12,18 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-    // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
-
-	// Exception 파일 
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
-
 	try {
 		$title = TITLE_COUPON_MODIFY . ' | ' . TITLE_ADMIN_SITE_NAME;
+		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon.php';
 
-		$returnUrl = SITE_ADMIN_DOMAIN.'/coupon.php'; // 리턴되는 화면 URL 초기화
         $alertMessage = '';
 
 		if ($connection === false) {
            throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$couponClass = new CouponClass($db);
+		// 쿠폰 수정 화면에서 오류 발생 시 처리.
+        $returnUrl = SITE_ADMIN_DOMAIN . '/coupon.php';
 
 		// injection, xss 방지코드
 		$_GET['idx'] = htmlspecialchars($_GET['idx']);
@@ -37,67 +32,149 @@
 		$getData = $_GET;
 
 		$idx = $getData['idx'];
-
-		// returnURL
-		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon.php';
+		$memberIdx = $getData['member_idx'];
+		$couponIdx = $getData['coupon_idx'];
 
 		if (empty($idx)) {
 			throw new Exception('비정상적인 접근입니다.'); 
 		}
 
-		$memberParam = [
-			'idx'=> $idx,
-			'is_del'=> 'N'
-		];
+		// 사용자에게 지급된 쿠폰 정보 조회
+        $rCouponDelQ = 'SELECT `is_del`,
+                               `idx`
+                        FROM `th_coupon_member` 
+                        WHERE `idx` = ?';
 
-		$isDelete = $couponClass->getCheckCouponMemeberDelete($idx);
-		if ($isDelete === false) {
-			throw new RollbackException('지급 된 쿠폰의 삭제 여부를 가져오다가 오류가 발생했습니다.');
-		}
+		$rCouponMbResult = $db->execute($rCouponDelQ, $idx);
+		if ($rCouponMbResult === false) {
+		    throw Exception('지급된 쿠폰 삭제 여부를 조회하면서 오류가 발생했습니다.');
+        }
 
-		$couponMemberIdx = $couponClass->getCouponMemberIdx($memberParam);
-		if ($couponMemberIdx === false) {
-			throw new RollbackException('지급된 쿠폰의 고유키를 가져오면서 오류가 발생했습니다.'); 
-		}
+		$isDel = $rCouponMbResult->fields['is_del'];
+		$idx = $rCouponMbResult->fields['idx'];
 
-		if ($isDelete == 'Y') {
-			throw new RollbackException('지급 된 쿠폰은 이미 삭제 되었습니다.');
-		}
+		// 쿠폰이 이미 삭제 되었는지 체크
+		if ($isDel == 'Y') {
+		    throw new Exception('해당 쿠폰은 관리자에 의해 삭제가 되었습니다.');
+        }
 
-		if ($couponMemberIdx == ''){
-			throw new RollbackException('지급 된 쿠폰의 회원 고유키를 찾지 못했습니다.');
-		}
+		// 쿠폰정보가 유효한지 체크
+        if (empty($idx)) {
+            throw new Exception('유효하지 않은 쿠폰 정보입니다.');
+        }
 
-		$couponUseParam = [
-			'coupon_member_idx'=> $idx,
-			'coupon_idx'=> $getData['coupon_idx'],
-			'is_refund'=> 'N'
-		];
+        // 쿠폰 사용내역 조회
+        $rCouponUseP = [
+            'coupon_member_idx'=> $idx,
+            'coupon_idx'=> $couponIdx,
+            'is_refund'=> 'N'
+        ];
 
-		$memberCouponIdx = $couponClass->getCheckIsUseCouponByMember($couponUseParam);
-		if ($memberCouponIdx === false) {
-			throw new RollbackException('지급된 쿠폰의 사용내역을 가져오면서 오류가 발생했습니다.');
-		}
+        $rCouponUseQ = 'SELECT `idx` 
+                        FROM `th_coupon_useage`
+                        WHERE `coupon_member_idx` = ?
+                        AND `coupon_idx` = ?
+                        AND `is_refund` = ?';
 
-		if(!empty($memberCouponIdx)) {
-			throw new RollbackException('쿠폰 사용내역이 존재하여 변경 할 수 없습니다.');
-		}
+        $rCouponUseResult = $db->execute($rCouponUseQ, $rCouponUseP);
+        if ($rCouponUseResult === false) {
+            throw new Exception('쿠폰 사용내역을 조회하면서 오류가 발생했습니다.');
+        }
 
-		$couponParam = [
-			'member_idx'=> $_SESSION['mIdx'],
-			'is_del'=> 'N',
-			'is_coupon_del'=> 'N'
-		];
+        $couponUseIdx = $rCouponUseResult->fields['idx'];
+        if (!empty($couponUseIdx)) {
+            throw new Exception('쿠폰 사용내역이 존재하여 삭제 할 수 없습니다.');
+        }
 
-		$couponList = $couponClass->getMemberAvailableCouponList($couponParam);
-		if ($couponList === false) {
-			throw new Exception('회원 쿠폰 데이터를 가져오는 중에 오류가 발생했습니다.');
-		}
+        $rCouponP = [
+            'is_del'=> 'N'
+        ];
 
-		$couponListCount = $couponList->recordCount();
+        // 쿠폰정보 조회
+        $rCouponQ = 'SELECT `idx`,
+                            `issue_type`,
+                            `subject`,
+                            `item_money`,
+                            `discount_rate`,
+                            `discount_mileage`,
+                            `sell_item_idx`
+                     FROM `th_coupon`
+                     WHERE `is_del` = ?
+                     ORDER BY `issue_date` DESC';
 
-		// 쿠폰 변경을 처리하는 PROCESS URL
-		$couponUpdateURL = COUPON_PROCEE_ACTION . '/update_coupon.php';
+        $rCouponResult = $db->execute($rCouponQ, $rCouponP);
+        if ($rCouponResult === false) {
+            throw new Exception('쿠폰 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        // 수정 가능한 쿠폰 내역 추가
+        $couponModifyData = [];
+
+        foreach ($rCouponResult as $key => $value) {
+
+            $issueType = $value['issue_type'];
+            $subject = $value['subject'];
+            $itemMoney = $value['item_money'];
+            $discountRate = $value['discount_rate'];
+            $discountMileage = $value['discount_mileage'];
+            $sellItemIdx = $value['sell_item_idx'];
+            $couponNewIdx = $value['idx'];
+
+            // 지급된 쿠폰 내역 조회
+            $rCouponMbP = [
+                'coupon_idx'=> $couponNewIdx,
+                'member_idx'=> $memberIdx,
+                'is_del'=> 'N'
+            ];
+
+            $rCouponMbQ = 'SELECT `idx`,
+                                  `coupon_idx` 
+                           FROM `th_coupon_member`
+                           WHERE `coupon_idx` = ?
+                           AND `member_idx` = ?
+                           AND `is_del` = ?';
+
+            $rCouponMbResult = $db->execute($rCouponMbQ, $rCouponMbP);
+            if ($rCouponMbResult === false) {
+                throw new Exception('지급된 쿠폰 내역을 조회하면서 오류가 발생했습니다.');
+            }
+
+            // 이미 지급된 쿠폰은 노출 되지 않도록 함
+            $couponMbIdx = $rCouponMbResult->fields['idx'];
+            if (!empty($couponMbIdx)) {
+                continue;
+            }
+
+            // 쿠폰에 연결된 상품명 조회
+            $rSellItemQ = 'SELECT `item_name`
+                           FROM `th_sell_item`
+                           WHERE `idx` = ?';
+
+            $rSellItemResult = $db->execute($rSellItemQ, $sellItemIdx);
+            if ($rSellItemResult === false) {
+                throw new Exception('쿠폰에 연결된 상품명을 조회하면서 오류가 발생했습니다.');
+            }
+
+            $itemName = $rSellItemResult->fields['item_name'];
+
+            // 쿠폰 변경을 처리하는 PROCESS URL
+            $couponUpdateURL = COUPON_PROCEE_ACTION;
+            $couponUpdateURL .= '/update_coupon.php?idx=' . $idx . '&coupon_idx=' . $couponNewIdx;
+
+            $couponModifyData[] = [
+                'seq'=> ($key+1),
+                'coupon_member_idx'=> $couponMbIdx,
+                'issue_type'=> $issueType,
+                'subject'=> $subject,
+                'item_money'=> $itemMoney,
+                'discount_rate'=> $discountRate,
+                'discount_mileage'=> $discountMileage,
+                'item_name'=> $itemName,
+                'coupon_update_url'=> $couponUpdateURL
+            ];
+        }
+
+        $couponModifyDataCount = count($couponModifyData);
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/member_coupon_update.html.php';
 	} catch (Exception $e) {

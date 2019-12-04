@@ -1,9 +1,5 @@
-<p>
-	<h3>[<?=TITLE_ADMIN_DEALINGS_STATUS?>]</h3>
-</p>
-<p>
-	<h5>-거래완료를 하실 경우에는 취소 하실수 없습니다. 참고하세요.</h5>
-</p>
+<p><h3>[<?=TITLE_ADMIN_DEALINGS_STATUS?>]</h3></p>
+<p><h5>-거래완료를 하실 경우에는 취소 하실수 없습니다. 참고하세요.</h5></p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 6%;">
@@ -28,19 +24,16 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($payDealingsListCount > 0): ?>
-			<?php foreach($payDealingsList as $key => $value): ?>
+		<?php if($dealingsUserDataCount > 0): ?>
+			<?php foreach($dealingsUserData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['item_name']?></td>
 					<td>[<?=$value['dealings_type']?>]<br><?=$value['dealings_subject']?></td>
-					<td>
-						<?=setDecrypt($value['name'])?><br>
-						(<?=$value['id']?>)
-					</td>
-					<td></td>
+					<td><?=$value['name']?><br>(<?=$value['id']?>)</td>
+					<td><?=$value['dealings_user_name']?></td>
 					<td><?=$value['dealings_date']?></td>
-					<td><?=number_format($value['dealings_mileage'])?></td>
+					<td><?=$value['dealings_mileage']?></td>
 					<td><?=$value['dealings_status_name']?></td>
 				</tr>
 			<?php endforeach; ?>

@@ -217,9 +217,9 @@
         $paramUrl = '?idx=' . $dealingsIdx . '&target=writer_idx';
 
         // 거래승인
-        $dealingsApproval ='/seller_dealings_approval.php' . $paramUrl;
+        $dealingsApproval .='/seller_dealings_approval.php' . $paramUrl;
         // 거래취소
-        $dealingsCancel = '/seller_dealings_cancel.php' . $paramUrl;
+        $dealingsCancel .= '/seller_dealings_cancel.php' . $paramUrl;
 
         // 세션등록
         $_SESSION['dealings_writer_idx'] = $writerIdx;

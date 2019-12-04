@@ -42,37 +42,66 @@
 			throw new Exception('은행에 잘못된 값이 들어왔습니다. 다시 선택하세요.');
 		}
 
+        $memberIdx = $_SESSION['idx'];
+
 		// 트랜잭션 시작
 		$db->startTrans();
 
-		$param = [
-			'idx'=>$_SESSION['idx'],
-			'accountBank'=>$postData['accountBank']
-		];
+		// 가상계좌 중복체크
+        $rVirtualAccountP = [
+            'idx'=> $_SESSION['idx'],
+            'account_bank'=> $postData['accountBank']
+        ];
 
-		$virtualAccount = $virtualAccountClass->getVirtualAccount($param, $isUseForUpdate); // 가상계좌 구하기
-		if ($virtualAccount === false) {
-			throw new RollbackException('가상계좌 조회 오류입니다. 관리자에게 문의하세요.');
-		} else {
-			// 가상계좌 발급 
-			if ($virtualAccount === null) {
-				$insertResult = $virtualAccountClass->insertVirtualAccount($param);
+        $rVirtualAccountQ = 'SELECT `virtual_account_no`
+                             FROM `th_member_virtual_account`
+                             WHERE `member_idx` = ?
+                             AND `bank_name` = ?
+                             FOR UPDATE';
 
-				if ($insertResult === false) {
-					throw new RollbackException('가상계좌 생성 오류입니다. 관리자에게 문의하세요');
-				}
+        $rVirtualAccountResult = $db->execute($rVirtualAccountQ, $rVirtualAccountP);
+		if ($rVirtualAccountResult === false) {
+            throw new RollbackException('가상계좌 조회 오류입니다. 관리자에게 문의하세요.');
+        }
 
-				$result = [
-					'isSuccess'=>true,
-					'account_no'=>setDecrypt($insertResult['account_no'])
-				];
-			} else {
-				$result = [
-					'isSuccess'=>true,
-					'account_no'=>setDecrypt($virtualAccount)
-				];
-			}
-		}
+		$virtualAccountNo = $rVirtualAccountResult->fields['virtual_account_no'];
+		if (empty($virtualAccountNo)) {
+		    // 가상계좌 발급
+
+            // 가상계좌번호 임시생성(오늘날짜 시분초 + 회원PK)
+            $virtualAccountNo = date('YmdHis'). '' . $memberIdx;
+
+            $cVirtualAccountP = [
+                'idx'=> $_SESSION['idx'],
+                'account_bank'=> $postData['accountBank'],
+                'virtual_account_no'=> setEncrypt($virtualAccountNo)
+            ];
+
+            $cVirtualAccountQ = 'INSERT INTO `th_member_virtual_account` SET
+                                    `member_idx` = ?,
+                                    `bank_name` = ?,
+                                    `virtual_account_no` = ?';
+
+            $db->execute($cVirtualAccountQ, $cVirtualAccountP);
+
+            $virtualAccountInsertId = $db->insert_id();
+            if ($virtualAccountInsertId < 1) {
+                throw new RollbackException('가상 계좌를 발급하면서 오류가 발생했습니다.');
+            }
+
+            $result = [
+                'isSuccess'=>true,
+                'account_no'=>setDecrypt($virtualAccountNo)
+            ];
+        }
+
+		if (!empty($virtualAccountNo)) {
+            $result = [
+                'isSuccess'=>true,
+                'account_no'=>setDecrypt($virtualAccountNo)
+            ];
+        }
+
 		$db->completeTrans();
 	} catch (RollbackException $e) {
 		// 트랜잭션 문제가 발생했을 때

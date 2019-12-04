@@ -7,13 +7,12 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../messages/message.php'; // 메세지
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_JOIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
+        $actionUrl = ADMIN_PROCESS_ACTION . '/add_member.php';
+        $ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php';
+        $JsTemplateUrl = JS_ADMIN_URL . '/join.js';
+
 		$alertMessage = '';
-		
-		$actionUrl = ADMIN_PROCESS_ACTION . '/add_member.php'; // form action url
-		$ajaxUrl = ADMIN_PROCESS_ACTION . '/admin_ajax_process.php'; // ajax url
-		$JsTemplateUrl = JS_ADMIN_URL . '/join.js';
 
 		$adminId = $adminName = $adminEmail = $adminPhone = $adminBirth = $adminSex = '';
 		$adminSexMChecked = 'checked';

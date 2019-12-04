@@ -1,6 +1,4 @@
-<p>
-	<h3>[<?=TITLE_COUPON_MODIFY?>]</h3>
-</p>
+<p><h3>[<?=TITLE_COUPON_MODIFY?>]</h3></p>
 <table class="table dealings-table-width">
 	<colgroup>
 		<col style="width: 6%;">
@@ -23,17 +21,17 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($couponListCount > 0): ?>
-			<?php foreach($couponList as $key => $value): ?>
+		<?php if($couponModifyDataCount > 0): ?>
+			<?php foreach($couponModifyData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
+					<td><?=$value['seq']?></td>
 					<td><?=$value['issue_type']?></td>
 					<td><?=$value['subject']?></td>
 					<td><?=$value['item_name']?></td>
 					<td><?=$value['item_money']?>원</td>
 					<td><?=$value['discount_rate']?>%</td>
 					<td>
-						<a href="<?=$couponUpdateURL?>?idx=<?=$idx?>&coupon_idx=<?=$value['idx']?>">
+						<a href="<?=$value['coupon_update_url']?>">
 							[변경하기]
 						</a>
 					</td>

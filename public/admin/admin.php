@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * 메인화면 
+	 * 메인화면 (로그인 후 메인화면)
 	 */
 
 	// 공통
@@ -9,9 +9,9 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
 
-	try { 
-		// 템플릿에서 <title>에 보여줄 메세지 설정
+	try {
 		$title = TITLE_SITE_MAIN . ' | ' . TITLE_ADMIN_SITE_NAME;
+
 		$alertMessage = '';
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/admin_home.html.php';

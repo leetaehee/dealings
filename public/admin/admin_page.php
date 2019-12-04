@@ -17,25 +17,60 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/AdminClass.php';
 
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_ADMIN_MENU . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN;
+
 		$alertMessage = '';
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$adminClass = new AdminClass($db);
-		$idx = $_SESSION['mIdx'];
-		
-		$adminData = $adminClass->getAdminData($idx);
-		if ($adminData === false) {
-			throw new Exception('로그인 된 관리자 정보 가져오면 오류가 발생했습니다.');
-		}
+		$adminIdx = $_SESSION['mIdx'];
 
-		$adminDeleteUrl = SITE_ADMIN_DOMAIN . '/admin_delete.php?idx=' . $idx; // 회원탈퇴 
-		$adminModifyUrl = SITE_ADMIN_DOMAIN . '/admin_modify.php?idx=' . $idx; // 회원수정 
+        // 관리자 정보 조회
+        $rAdminP = [
+            'sex_condition'=> 'M',
+            'sex_then'=> '남성',
+            'sex_else'=> '여성',
+            'admin_idx'=> $adminIdx
+        ];
+
+        $rAdminQ = 'SELECT `idx`,
+                            `id`,
+                            `name`,
+                            `email`,
+                            `phone`,
+                            CASE WHEN `sex` = ? then ? else ? end sex_name,
+                            `sex`,
+                            `birth`,
+                            `join_date`,
+                            `join_approval_date`,
+							`is_superadmin`
+                    FROM `th_admin` 
+                    WHERE `idx` = ?';
+
+        $rAdminResult = $db->execute($rAdminQ, $rAdminP);
+        if ($rAdminResult === false) {
+            throw new Exception('관리자 정보를 조회하면서 오류가 발생했습니다.');
+        }
+
+        $id = $rAdminResult->fields['id'];
+        $name = setDecrypt($rAdminResult->fields['name']);
+        $email = setDecrypt($rAdminResult->fields['email']);
+        $phone = setDecrypt($rAdminResult->fields['phone']);
+        $sex = $rAdminResult->fields['sex_name'];
+        $birth = setDecrypt($rAdminResult->fields['birth']);
+        $joinDate = $rAdminResult->fields['join_date'];
+        $joinApprovalDate = $rAdminResult->fields['join_approval_date'];
+        $isSuperAdmin = $rAdminResult->fields['is_superadmin'];
+
+        $adminDeleteUrl = $adminModifyUrl = SITE_ADMIN_DOMAIN;
+
+        // 회원탈퇴
+		$adminDeleteUrl .= '/admin_delete.php?idx=' . $adminIdx;
+        // 회원수정
+		$adminModifyUrl .= '/admin_modify.php?idx=' . $adminIdx;
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/admin_page.html.php';
 	} catch (Exception $e) {

@@ -109,7 +109,7 @@
         $_SESSION['mName'] = setDecrypt($rAdminLoginResult->fields['name']);
         $_SESSION['mIs_superadmin'] = $rAdminLoginResult->fields['is_superadmin'];
 
-        $returnUrl = SITE_ADMIN_DOMAIN;
+        $returnUrl = SITE_ADMIN_DOMAIN . '/admin.php';
 
 		$alertMessage = '로그인 성공하였습니다.';
 

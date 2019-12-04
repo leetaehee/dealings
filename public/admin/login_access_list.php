@@ -13,31 +13,61 @@
     include_once $_SERVER['DOCUMENT_ROOT'] . '/../adodb/adodb.inc.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/LoginClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_ADMIN_LOGIN_LIST . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$returnUrl = SITE_ADMIN_DOMAIN; // 리턴되는 화면 URL 초기화.
+		$returnUrl = SITE_ADMIN_DOMAIN;
+
 		$alertMessage = '';
 
 		if ($connection === false) {
             throw new Exception('데이터베이스 접속이 되지 않았습니다. 관리자에게 문의하세요');
         }
 
-		$param = [
-			'idx'=>$_SESSION['mIdx'],
-			'today'=>date('Y-m-d')
+		$mIdx = $_SESSION['mIdx'];
+
+		// 관리자 접속내역 조회
+		$rLoginAccessP = [
+			'idx'=> $_SESSION['mIdx'],
+			'today'=> date('Y-m-d')
 		];
-		$loginClass = new LoginClass($db);
 
-		$adminLoginAccessList = $loginClass->getAdminLoginAccessList($param);
-		if($adminLoginAccessList === false) {
-			throw new Exception('로그인 내역을 가져오다가 오류 발생! 관리자에게 문의하세요');
-		}
+        $rLoginAccessQ = 'SELECT `idx`,
+                                 `admin_idx`,
+                                 `access_ip`,
+                                 `access_date`,
+                                 `access_datetime`
+                          FROM `th_admin_access_ip`
+                          WHERE `admin_idx` = ?
+                          AND `access_date` = ?';
 
-		$rocordCount = $adminLoginAccessList->recordCount();
+        $rLoginAccessResult = $db->execute($rLoginAccessQ, $rLoginAccessP);
+        if ($rLoginAccessResult === false) {
+            throw new Exception('관리자 접속 내역을 조회하면서 오류가 발생했습니다.');
+        }
+
+        // 관리자 접속내역 추가
+        $loginAccessData = [];
+
+        foreach ($rLoginAccessResult as $key => $value) {
+
+            $accessIdx = $rLoginAccessResult->fields['idx'];
+            $adminIdx = $rLoginAccessResult->fields['admin_idx'];
+            $accessIp = $rLoginAccessResult->fields['access_ip'];
+            $accessDate = $rLoginAccessResult->fields['access_date'];
+            $accessDatetime = $rLoginAccessResult->fields['access_datetime'];
+
+            $loginAccessData[] = [
+                'seq'=> ($key+1),
+                'access_idx'=> $accessIdx,
+                'admin_idx'=> $adminIdx,
+                'access_ip'=> setDecrypt($accessIp),
+                'access_date'=> $accessDate,
+                'access_datetime'=> $accessDatetime
+
+            ];
+        }
+
+        $loginAccessDataCount = count($loginAccessData);
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/login_access_list.html.php';
 	} catch (Exception $e) {

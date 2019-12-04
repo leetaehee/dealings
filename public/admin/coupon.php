@@ -9,9 +9,9 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
 
-	try { 
-		// 템플릿에서 <title>에 보여줄 메세지 설정
+	try {
 		$title = TITLE_COUPON_MAIN . ' | ' . TITLE_ADMIN_SITE_NAME;
+
 		$alertMessage = '';
 
 		$templateFileName =  $_SERVER['DOCUMENT_ROOT'] . '/../templates/admin/coupon.html.php';

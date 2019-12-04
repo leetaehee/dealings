@@ -9,13 +9,9 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/function.php';
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/session_admin_check.php';
 
-	// Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/CouponClass.php';
-
 	try {
-		// 템플릿에서 <title>에 보여줄 메세지 설정
 		$title = TITLE_COUPON_ISSUE . ' | ' . TITLE_ADMIN_SITE_NAME;
-		$returnUrl = SITE_ADMIN_DOMAIN.'/coupon.php'; // 리턴되는 화면 URL 초기화
+		$returnUrl = SITE_ADMIN_DOMAIN . '/coupon.php';
 		$actionUrl = COUPON_PROCEE_ACTION . '/issue_coupon.php';
 		$JsTemplateUrl = JS_ADMIN_URL . '/issue_coupon.js';
 		$btnName = '발행하기';

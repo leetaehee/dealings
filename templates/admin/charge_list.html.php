@@ -28,25 +28,23 @@
 		</tr>
 	</thead>
 	<tbody>
-		<?php if($rocordCount > 0): ?>
-			<?php foreach($chageList as $key => $value): ?>
+		<?php if($chargeDataCount > 0): ?>
+			<?php foreach($chargeData as $key => $value): ?>
 				<tr>
-					<td><?=$key+1?></td>
-					<td><?=setDecrypt($value['name'])?><br>(<?=$value['id']?>)</td>
-					<td><?=setDecrypt($value['phone'])?></td>
+					<td><?=$value['seq']?></td>
+					<td><?=$value['name']?><br>(<?=$value['id']?>)</td>
+					<td><?=$value['phone']?></td>
 					<td>
-						[<?=$value['charge_taget_name']?>]
-						<?=$value['charge_infomation']?><br>
-						(<?=setDecrypt($value['charge_account_no'])?>)
+						[<?=$value['charge_target_name']?>]<?=$value['charge_infomation']?><br>
+						(<?=$value['charge_account_no']?>)
 					</td>
 					<td><?=$value['charge_date']?></td>
 					<td><?=number_format($value['charge_cost'])?></td>
 					<td><?=number_format($value['use_cost'])?></td>
 					<td>
-						<?php if($value['use_cost'] == 0): ?>
-							<!-- 아래 값을 비교할 때 php 배열로 정의 후 in_array 함수로 개선하도록 수정 필요. --> 
-							<?php if($value['charge_target_idx']!=7 && $value['charge_target_idx']!=8): ?>
-								<a href="<?=$chargeCancelUrl?>?idx=<?=$value['idx']?>">
+						<?php if($useCost == 0): ?>
+							<?php if($value['is_cancel_disabled'] == true): ?>
+								<a href="<?=$value['charge_cancel_url']?>">
 									[취소]
 								</a>
 							<?php endif; ?>
