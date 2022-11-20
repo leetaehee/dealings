@@ -28,10 +28,23 @@
          */
 		public function checkFormValidate($postData)
 		{
-			if (isset($postData['accountBank']) && empty($postData['accountBank'])) {
-				return ['isValid'=>false, 'errorMessage'=>'입금은행을 입력하세요'];
+			if (isset($postData['account_bank']) === true && empty($postData['account_bank']) === true) {
+				return [
+                    'isValid' => false,
+                    'errorMessage' => '입금 은행을 입력하세요'
+                ];
 			}
 
-			return ['isValid'=>true, 'errorMessage'=>''];
+            if  (isset($postData['account_no']) === true && empty($postData['account_no']) === true) {
+                return [
+                    'isValid' => false,
+                    'errorMessage' => '입금 계좌번호를 입력하세요.'
+                ];
+            }
+
+			return [
+                'isValid' => true,
+                'errorMessage'=> ''
+            ];
 		}
 	}

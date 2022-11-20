@@ -21,7 +21,7 @@ function mailer($fname, $fmail, $to, $subject, $content, $type=0, $file="", $cc=
 	$mail->Host = "smtp.gmail.com"; 
 	$mail->Port = 465; 
 	$mail->Username = "developerkimtakgu@gmail.com";
-	$mail->Password = "otigukngcxepqrdi"; 
+	$mail->Password = "jktlakkcgaoijwex";
 	
 	$mail->SMTPAuth = true;
 	

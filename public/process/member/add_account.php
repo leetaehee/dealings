@@ -13,7 +13,7 @@
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../includes/adodbConnection.php';
 
     // Class 파일
-	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/MemberClass.php';
+	include_once $_SERVER['DOCUMENT_ROOT'] . '/../class/VirtualAccountClass.php';
 
 	// Exception 파일
 	include_once $_SERVER['DOCUMENT_ROOT'] . '/../Exception/RollbackException.php';
@@ -32,13 +32,11 @@
 		$_POST['account_no'] = htmlspecialchars($_POST['account_no']);
 		$postData = $_POST;
 
-		$memberClass = new MemberClass($db);
-
-		$resultAccountValidCheck = $memberClass->checkAccountFormValidate($postData);
+		$virtualAccountClass = new VirtualAccountClass($db);
+		$resultAccountValidCheck = $virtualAccountClass->checkFormValidate($postData);
 		if ($resultAccountValidCheck['isValid'] === false) {
 			throw new Exception($resultAccountValidCheck['errorMessage']);
         }
-
 
 		// 트랜잭션 시작
 		$db->startTrans();

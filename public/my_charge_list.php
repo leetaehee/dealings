@@ -48,6 +48,8 @@
             throw new Exceptiomn('마일리지 충전내역을 조회하면서 오류가 발생했습니다.');
         }
 
+        $chargeData = [];
+
         foreach ($rMileageChargeResult as $key => $value) {
             // 마일리지 고유정보
             $mileageIdx = $value['mileage_idx'];
